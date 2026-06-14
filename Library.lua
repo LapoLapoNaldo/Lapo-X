@@ -1,7 +1,3 @@
--- Lapo Hub X (Syn Version) — UI Refactor
--- Visual limpo, estilo Synapse X, com efeitos, glow e botão mobile
--- by ENI — for LO, sempre
-
 local LapoHub = {}
 LapoHub.__index = LapoHub
 
@@ -48,6 +44,9 @@ local state = {
     mobileBtnHover = false,
     focusedTextBox = nil,
     sinkTextBox = nil,
+    mainInputFrame = nil,
+    mobileInputFrame = nil,
+    dropdownInputFrame = nil,
 }
 
 -- ========== TEMA REFINADO (Synapse X vibes) ==========
@@ -1550,6 +1549,50 @@ local function startRenderLoop()
     conn = runSvc.RenderStepped:Connect(function(dt)
         if state.destroyFlag then conn:Disconnect(); return end
 
+        local ss = state.scale
+        if state.visible then
+            local headerH = 34 * ss
+            local actualHeight = state.minimized and headerH or state.frameSize.Y
+            if state.mainInputFrame then
+                state.mainInputFrame.Position = UDim2.new(0, state.framePos.X, 0, state.framePos.Y)
+                state.mainInputFrame.Size = UDim2.new(0, state.frameSize.X, 0, actualHeight)
+                state.mainInputFrame.Visible = true
+            end
+        else
+            if state.mainInputFrame then
+                state.mainInputFrame.Visible = false
+            end
+        end
+
+        if state.mobile and ui and ui.mobileBtn and ui.mobileBtn.Visible then
+            local BS = 44 * ss
+            local BX = state.framePos.X + state.frameSize.X + 8 * ss
+            local BY = state.framePos.Y + 4 * ss
+            if state.mobileInputFrame then
+                state.mobileInputFrame.Position = UDim2.new(0, BX, 0, BY)
+                state.mobileInputFrame.Size = UDim2.new(0, BS, 0, BS)
+                state.mobileInputFrame.Visible = true
+            end
+        else
+            if state.mobileInputFrame then
+                state.mobileInputFrame.Visible = false
+            end
+        end
+
+        if state.dropdownOpen and state.dropdownWidget and state.visible and not state.minimized then
+            local w = state.dropdownWidget
+            local g = dropdownGeom(w)
+            if state.dropdownInputFrame then
+                state.dropdownInputFrame.Position = UDim2.new(0, g.popX, 0, g.popY)
+                state.dropdownInputFrame.Size = UDim2.new(0, g.popW, 0, g.popH)
+                state.dropdownInputFrame.Visible = true
+            end
+        else
+            if state.dropdownInputFrame then
+                state.dropdownInputFrame.Visible = false
+            end
+        end
+
         -- ---- notificações ----------------------------------------
         local toRm = {}
         local screenW = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize.X or 1280
@@ -2003,8 +2046,13 @@ function LapoHub:Init(config)
 
     local s = state.scale
     if state.mobile then
-        state.frameSize = Vector2.new(500*s, 580*s)
-        state.framePos  = Vector2.new(16, 40)
+        local cam = workspace.CurrentCamera
+        local viewW = cam and cam.ViewportSize.X or 800
+        local viewH = cam and cam.ViewportSize.Y or 450
+        local targetW = math.clamp(viewW * 0.7, 450, 650)
+        local targetH = math.clamp(viewH * 0.75, 260, 360)
+        state.frameSize = Vector2.new(targetW, targetH)
+        state.framePos  = Vector2.new((viewW - targetW)/2, (viewH - targetH)/2)
     else
         state.frameSize = Vector2.new(960*s, 600*s)
         state.framePos  = Vector2.new(120, 80)
@@ -2035,6 +2083,33 @@ function LapoHub:Init(config)
             tb.Parent = sg
 
             state.sinkTextBox = tb
+
+            local mainFrame = Instance.new("Frame")
+            mainFrame.Name = "MainFrame"
+            mainFrame.BackgroundTransparency = 1
+            mainFrame.BorderSizePixel = 0
+            mainFrame.Active = true
+            mainFrame.Visible = false
+            mainFrame.Parent = sg
+            state.mainInputFrame = mainFrame
+
+            local mobileFrame = Instance.new("Frame")
+            mobileFrame.Name = "MobileFrame"
+            mobileFrame.BackgroundTransparency = 1
+            mobileFrame.BorderSizePixel = 0
+            mobileFrame.Active = true
+            mobileFrame.Visible = false
+            mobileFrame.Parent = sg
+            state.mobileInputFrame = mobileFrame
+
+            local dropdownFrame = Instance.new("Frame")
+            dropdownFrame.Name = "DropdownFrame"
+            dropdownFrame.BackgroundTransparency = 1
+            dropdownFrame.BorderSizePixel = 0
+            dropdownFrame.Active = true
+            dropdownFrame.Visible = false
+            dropdownFrame.Parent = sg
+            state.dropdownInputFrame = dropdownFrame
         end
     end)
 
