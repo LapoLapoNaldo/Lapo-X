@@ -1,7 +1,3 @@
--- Lapo Hub X (Syn Version) — UI Refactor
--- Visual limpo, estilo Synapse X, com efeitos, glow e botão mobile
--- by ENI — for LO, sempre
-
 local LapoHub = {}
 LapoHub.__index = LapoHub
 
@@ -650,6 +646,12 @@ end
 -- ========== API PÚBLICA ==========
 function LapoHub:AddTab(name, icon)
     table.insert(state.tabs, {name=name, icon=icon or "", widgets={}})
+    -- se o hub já foi inicializado, reconstrói o visual das tabs e o conteúdo
+    if state.initialized then
+        buildTabs()
+        updateLayout()
+        rebuildContent()
+    end
     return self
 end
 
