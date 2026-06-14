@@ -132,15 +132,15 @@ local function isSubVisible(y, h, cY, cY2)
 end
 
 local function getGuiParent()
-    local cl = pcall(function() return game:GetService("CoreGui") end)
-    if cl then
-        local success, cg = pcall(function() return game:GetService("CoreGui") end)
-        if success and cg then return cg end
-    end
     local p = game:GetService("Players").LocalPlayer
     if p then
         local success, pg = pcall(function() return p:FindFirstChildOfClass("PlayerGui") end)
         if success and pg then return pg end
+    end
+    local cl = pcall(function() return game:GetService("CoreGui") end)
+    if cl then
+        local success, cg = pcall(function() return game:GetService("CoreGui") end)
+        if success and cg then return cg end
     end
     return nil
 end
@@ -1758,6 +1758,8 @@ function LapoHub:Init(config)
 
             local sg = Instance.new("ScreenGui")
             sg.Name = "LapoHubX_InputSink"
+            sg.ResetOnSpawn = false
+            sg.Enabled = true
             sg.Parent = sgParent
 
             local tb = Instance.new("TextBox")
@@ -1766,6 +1768,9 @@ function LapoHub:Init(config)
             tb.Position = UDim2.new(0, -1000, 0, -1000)
             tb.BackgroundTransparency = 1
             tb.Text = ""
+            tb.ClearTextOnFocus = false
+            tb.TextEditable = true
+            tb.Active = true
             tb.Parent = sg
 
             state.sinkTextBox = tb
