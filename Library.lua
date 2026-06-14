@@ -618,6 +618,7 @@ local function newWidget(kind, props)
     elseif kind == "Label" then
         local lbl = cdraw(make("Text", {Text=props.text or "", Color=Theme.Text,    Size=13*s, Font=Font, ZIndex=16}))
         return {type="Label", label=lbl, text=props.text or "", y=0, h=26*s,
+            updateText=function(self, newText) self.text = newText; self.label.Text = newText end,
             destroy=function() lbl:Remove() end}
 
     elseif kind == "Paragraph" then
@@ -716,7 +717,23 @@ function LapoHub:AddToggle(tabIdx,    cfg) addWidget(tabIdx, "Toggle",    cfg) r
 function LapoHub:AddSlider(tabIdx,    cfg) addWidget(tabIdx, "Slider",    cfg) return self end
 function LapoHub:AddDropdown(tabIdx,  cfg) addWidget(tabIdx, "Dropdown",  cfg) return self end
 function LapoHub:AddTextBox(tabIdx,   cfg) addWidget(tabIdx, "TextBox",   cfg) return self end
-function LapoHub:AddLabel(tabIdx,     cfg) addWidget(tabIdx, "Label",     cfg) return self end
+function LapoHub:AddLabel(tabIdx, cfg)
+    local tabIdxR = resolveTab(tabIdx)
+    local text = cfg and cfg.text or ""
+    local ref = { _tabIdx = tabIdxR, _text = text }
+    function ref:updateText(newText)
+        for _, w in ipairs(widgetList) do
+            if w.type == "Label" and w.text == ref._text then
+                w.text = newText
+                w.label.Text = newText
+                ref._text = newText
+                return
+            end
+        end
+    end
+    addWidget(tabIdx, "Label", cfg)
+    return ref
+end
 function LapoHub:AddParagraph(tabIdx, cfg) addWidget(tabIdx, "Paragraph", cfg) return self end
 function LapoHub:AddSeparator(tabIdx)      addWidget(tabIdx, "Separator", {})  return self end
 
@@ -1292,6 +1309,7 @@ local function startRenderLoop()
 
                 if not vis then
                     hide(w.bg, w.label, w.border)
+                    if w.type=="Button"    then hide(w.bar) end
                     if w.type=="Toggle"    then hide(w.trackBg,w.trackBd,w.knob) end
                     if w.type=="Slider"    then hide(w.track,w.fill,w.thumb,w.thumbGl,w.valText) end
                     if w.type=="Dropdown"  then hide(w.dispBg,w.dispBd,w.selectedText,w.arrow,w.popupBg,w.popupBd,w.searchBg,w.searchBd,w.searchIc,w.searchTx) for _,it in ipairs(w.itemDraws) do setVis(it.bg,false); setVis(it.txt,false) end end
