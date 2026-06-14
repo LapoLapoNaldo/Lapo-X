@@ -5,7 +5,6 @@
 local LapoHub = loadstring(game:HttpGet("https://raw.githubusercontent.com/LapoLapoNaldo/Lapo-X/refs/heads/main/Library.lua"))()
 
 LapoHub:AddTab("📊 Stats", "📊")
-LapoHub:AddTab("♾ Items", "♾")
 LapoHub:AddTab("📋 Quests", "📋")
 LapoHub:AddTab("⬆ Limit Break", "⬆")
 LapoHub:AddTab("🎁 Banners", "🎁")
@@ -166,8 +165,14 @@ local statsUnitNames = #statsUnits > 0 and statsUnits or { "Nenhuma unit" }
 local statsSelectedUnit = statsUnitNames[1]
 local statsInfoLabels = {}
 
-for i = 1, 3 do
+for i = 1, 15 do
     statsInfoLabels[i] = LapoHub:AddLabel("📊 Stats", { text = "" })
+end
+
+local function IsEmptyTable(t)
+    if type(t) ~= "table" then return false end
+    for _ in pairs(t) do return false end
+    return true
 end
 
 local function refreshStatsDisplay()
@@ -197,6 +202,37 @@ local function refreshStatsDisplay()
     if unit.Trait then table.insert(lines, "Trait: " .. unit.Trait) end
     if unit.Traits and type(unit.Traits)=="table" and #unit.Traits>0 then
         table.insert(lines, "Traits: " .. table.concat(unit.Traits, ", "))
+    end
+
+    -- 2. Display all other raw data, excluding what was already shown
+    local shownKeys = {
+        Upgrade=true, LimitBreak=true, Limit=true, LimitLevel=true, BreakLevel=true,
+        Modifiers=true, Mods=true, Trait=true, Traits=true, TraitsList=true, SelectedTrait=true
+    }
+    
+    local otherKeys = {}
+    for k in pairs(unit) do
+        if not shownKeys[k] then
+            table.insert(otherKeys, k)
+        end
+    end
+    table.sort(otherKeys)
+
+    for _, k in ipairs(otherKeys) do
+        local v = unit[k]
+        if v ~= nil and v ~= "" and not (type(v) == "table" and IsEmptyTable(v)) then
+            local valueStr
+            if type(v) == "table" then
+                local ok, enc = pcall(function() return HttpSvc:JSONEncode(v) end)
+                valueStr = ok and enc or tostring(v)
+                if #valueStr > 50 then
+                    valueStr = string.sub(valueStr, 1, 47) .. "..."
+                end
+            else
+                valueStr = tostring(v)
+            end
+            table.insert(lines, tostring(k) .. ": " .. valueStr)
+        end
     end
 
     for i = 1, #statsInfoLabels do
@@ -245,101 +281,6 @@ LapoHub:AddParagraph("📊 Stats", { text = "ATK/STA scale: 115 = 1.5x | COST sc
 if statsSelectedUnit and statsData and statsData.Units and statsData.Units[statsSelectedUnit] then
     refreshStatsDisplay()
 end
-
--- ================================================================
--- ==================== TAB: INFINITE ITEMS ======================
--- ================================================================
-
-LapoHub:AddLabel("♾ Items", { text = "♾ Gerador de Items Infinitos" })
-
-local infItems = { "Super Celestial Crystal", "Holy Grail", "Miracle Shard", "Celestial Crystal" }
-local infThreads = 1
-local infInnerDelay = 0
-local infCycleDelay = 120
-local infRunning = false
-local infAttemptCounts = {}
-local infSuccessCounts = {}
-
-for _, it in ipairs(infItems) do
-    infAttemptCounts[it] = 0
-    infSuccessCounts[it] = 0
-end
-
-LapoHub:AddParagraph("♾ Items", { text = "Items: " .. table.concat(infItems, ", ") })
-
-local infStatusLabel = LapoHub:AddLabel("♾ Items", { text = "Status: Inativo" })
-
-local infThreadOpts = {}
-for i = 1, 100 do table.insert(infThreadOpts, tostring(i)) end
-
-LapoHub:AddDropdown("♾ Items", {
-    text = "Threads por Ciclo",
-    options = infThreadOpts,
-    default = 1,
-    callback = function(_, value) infThreads = tonumber(value) or 1 end,
-})
-
-LapoHub:AddTextBox("♾ Items", {
-    text = "Delay entre tentativas (seg)",
-    placeholder = "0.00001",
-    callback = function(value)
-        local n = tonumber(value)
-        if n and n > 0 then infInnerDelay = n end
-    end,
-})
-
-LapoHub:AddTextBox("♾ Items", {
-    text = "Delay entre ciclos (seg)",
-    placeholder = "120",
-    callback = function(value)
-        local n = tonumber(value)
-        if n and n >= 0 then infCycleDelay = n end
-    end,
-})
-
-LapoHub:AddToggle("♾ Items", {
-    text = "▶ Iniciar / ⏹ Parar",
-    default = false,
-    callback = function(state)
-        infRunning = state
-        if not state then
-            infStatusLabel:updateText("Status: Parado")
-            return
-        end
-        LapoHub:Notify({ title="Inf Items", content="Script ativado!", duration=3 })
-        task.spawn(function()
-            local BuyItemRemote = Remote:WaitForChild("BuyItem")
-            while infRunning do
-                for _, nomeItem in ipairs(infItems) do
-                    for i = 1, 1 do
-                        for t = 1, infThreads do
-                            infAttemptCounts[nomeItem] = infAttemptCounts[nomeItem] + 1
-                            task.spawn(function()
-                                local ok = SafeInvoke(BuyItemRemote, nomeItem, "Summer 2025")
-                                if ok then
-                                    infSuccessCounts[nomeItem] = infSuccessCounts[nomeItem] + 1
-                                else
-                                    local ok2 = SafeInvoke(BuyItemRemote, nomeItem)
-                                    if ok2 then
-                                        infSuccessCounts[nomeItem] = infSuccessCounts[nomeItem] + 1
-                                    end
-                                end
-                                if infSuccessCounts[nomeItem] % 5 == 0 then
-                                    infStatusLabel:updateText("Sucesso: " .. nomeItem .. " (" .. infSuccessCounts[nomeItem] .. ")")
-                                end
-                            end)
-                        end
-                    end
-                end
-                task.wait(2)
-                task.wait(infCycleDelay)
-            end
-        end)
-    end,
-})
-
-LapoHub:AddSeparator("♾ Items")
-
 -- ================================================================
 -- ==================== TAB: SIDE QUESTS =========================
 -- ================================================================
@@ -1236,23 +1177,129 @@ LapoHub:AddButton("🔗 Webhook", {
         local data = GetReturnData()
         if not data then LapoHub:Notify({ title="Error", content="Falha ao carregar dados", duration=4 }); return end
 
-        local function safe(t,k,f) if not t or type(t)~="table" then return f end; local v=t[k]; if v==nil then return f end; return v end
-        local passTier = safe(data,"PassTier",0); local passExp = safe(data,"PassEXP",0)
-        local items = data.Items or {}; local gem = safe(data,"Gem",0); local gold = safe(data,"Gold",0); local puzzles = safe(data,"Puzzles",safe(data,"Puzzle",0))
-        local holy = tonumber(safe(items,"Holy Grail",0)) or 0; local cel = tonumber(safe(items,"Celestial Crystal",0)) or 0; local scel = tonumber(safe(items,"Super Celestial Crystal",0)) or 0
+        local function safe(t, key, fallback)
+            if not t or type(t) ~= "table" then return fallback end
+            local v = t[key]
+            if v == nil then return fallback end
+            return v
+        end
+
+        local passTier = safe(data, "PassTier", 0)
+        local passExp = safe(data, "PassEXP", 0)
+
+        local items = data.Items or {}
+        local holyGrail = tonumber(safe(items, "Holy Grail", 0)) or 0
+        local celestial = tonumber(safe(items, "Celestial Crystal", 0)) or 0
+        local superCelestial = tonumber(safe(items, "Super Celestial Crystal", 0)) or 0
+
+        local gem = tonumber(safe(data, "Gem", safe(items, "Gem", 0))) or 0
+        local gold = tonumber(safe(data, "Gold", 0)) or 0
+        local puzzles = tonumber(safe(data, "Puzzles", safe(data, "Puzzle", 0))) or 0
+
+        local isLB = false
+        local lbRank = nil
+        if type(data.IsLB) == "table" then
+            if data.IsLB.weekly and data.IsLB.weekly.OnBoard ~= nil then
+                isLB = data.IsLB.weekly.OnBoard == true
+            end
+            if data.IsLB.weekly and data.IsLB.weekly.Rank then
+                lbRank = data.IsLB.weekly.Rank
+            end
+        end
+
+        local currentExp = safe(data, "Exp", safe(data, "EXP", 0))
+
+        local function progressBar(current, max, length)
+            length = length or 12
+            current = tonumber(current) or 0
+            max = tonumber(max) or 1
+            local filled = math.floor((current / math.max(max,1)) * length)
+            if filled < 0 then filled = 0 end
+            if filled > length then filled = length end
+            return string.rep("▰", filled) .. string.rep("▱", length - filled)
+        end
+
+        local lbStatusEmoji = isLB and "✅" or "❌"
+        local function bold(v) return "**" .. tostring(v) .. "**" end
+
+        local passMax = 100
+        local fields = {
+            {
+                name = "🎟️ Pass",
+                value = string.format("Tier: %s · %s %s", bold(passTier), progressBar(passExp, passMax, 10), bold(passExp)),
+                inline = false
+            },
+            {
+                name = "💰 Currency",
+                value = string.format("Gem: %s\nGold: %s\nPuzzles: %s", bold(gem), bold(gold), bold(puzzles)),
+                inline = true
+            },
+            {
+                name = "📦 Items",
+                value = string.format("Holy Grail: %s\nCelestial Crystal: %s\nSuper Celestial Crystal: %s", bold(holyGrail), bold(celestial), bold(superCelestial)),
+                inline = false
+            },
+            {
+                name = "🏆 LB",
+                value = string.format("%s %s", lbStatusEmoji, (isLB and "OnBoard" or "Not OnBoard")),
+                inline = true
+            }
+        }
+
+        if lbRank then
+            table.insert(fields, {
+                name = "🔢 LB Rank",
+                value = bold(lbRank),
+                inline = true
+            })
+        end
+
+        table.insert(fields, {
+            name = "🆙 Level / Exp",
+            value = string.format("Level: %s\n%s %s", bold(data.Level or "N/A"), progressBar(currentExp, 100, 12), bold(currentExp)),
+            inline = true
+        })
+
+        local hour = os.date("%H")
+        local min = os.date("%M")
+        local footerText = "Generated by Lapo Hub X • Hoje às " .. tostring(hour) .. ":" .. tostring(min)
 
         local embed = {
-            title="Player Stats", color=0x4B0082,
-            author={name=username, icon_url="https://tr.rbxcdn.com/e2b8fdb35a39caa95f2aa1c48a2f7cd2/150/150/Image/Png"},
-            fields={
-                {name="🎟️ Pass", value="Tier: " .. tostring(passTier) .. " | EXP: " .. tostring(passExp), inline=false},
-                {name="💰 Currency", value="Gem: " .. tostring(gem) .. "\nGold: " .. tostring(gold) .. "\nPuzzles: " .. tostring(puzzles), inline=true},
-                {name="📦 Items", value="Holy Grail: " .. tostring(holy) .. "\nCelestial: " .. tostring(cel) .. "\nSuper: " .. tostring(scel), inline=false},
-            },
-            footer={text="Lapo Hub X"}, timestamp=os.date("!%Y-%m-%dT%H:%M:%SZ")
+            title = "Player Stats",
+            description = "Overview of the account",
+            color = 0x4B0082,
+            fields = fields,
+            footer = { text = footerText },
+            timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
         }
+
         local ok = SendWebhook({embeds={embed}})
         if ok then LapoHub:Notify({ title="Webhook", content="Stats enviadas!", duration=3 }) end
+    end,
+})
+
+LapoHub:AddButton("🔗 Webhook", {
+    text = "🧪 Enviar Log de Teste",
+    callback = function()
+        if webhookURL == "" then
+            LapoHub:Notify({ title="Error", content="Por favor defina a URL primeiro!", duration=3 })
+            return
+        end
+        local plName = "Player"
+        pcall(function() plName = LP.Name or plName end)
+        local embed = {
+            title = "Auto Best Trait All (Test)",
+            description = "Test log sent from Lapo Hub",
+            color = 0x58D68D,
+            fields = {
+                { name = "Queue", value = "1/4", inline = true },
+                { name = "Unit (current)", value = plName, inline = true },
+                { name = "Current Trait", value = "The Honored One", inline = false }
+            },
+            footer = { text = "Lapo Hub Logs (test)" },
+            timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
+        }
+        SendWebhook({ embeds = { embed } })
     end,
 })
 
@@ -1266,18 +1313,106 @@ LapoHub:AddToggle("🔗 Webhook", {
     end,
 })
 
--- Hook trait remote for logs
+-- Hook remotes for logs
 local oldInvoke = SafeInvoke
 SafeInvoke = function(remote, ...)
-    local args = {...}; local result = oldInvoke(remote, ...)
-    if webhookEnabled and remote and remote.Name == "traitRemote" and args[2] and result then
-        local rolled = type(result) == "table" and result[1] or result
-        if type(rolled) == "string" then
-            local unitName = args[2]
-            local embed = {title="Trait Changed", color=0x5DADE2,
-                fields={{name="Unit", value=unitName, inline=true},{name="New Trait", value=rolled, inline=true}},
-                footer={text="Lapo Hub Logs"}, timestamp=os.date("!%Y-%m-%dT%H:%M:%SZ")}
-            SendWebhook({embeds={embed}})
+    local args = {...}
+    local result = oldInvoke(remote, ...)
+    if WEBHOOK_LOGS_ENABLED and remote and remote.Name then
+        if remote.Name == "HolyGrail" and args[1] then
+            local unitName = args[1]
+            local data = GetReturnData()
+            if data and data.Units and data.Units[unitName] then
+                local unit = data.Units[unitName]
+                local mods = unit.Modifiers or unit.Mods or {}
+                local atk = tonumber(mods.ATK) or 1
+                local sta = tonumber(mods.STA) or 1
+                local cost = tonumber(mods.COST) or 1
+                
+                local function formatStat(name, x)
+                    local v = tonumber(x) or 1
+                    if math.abs(v - 1.5) < 0.01 then
+                        if name == "COST" then return "85%" end
+                        return "115%"
+                    end
+                    return tostring(math.floor(v * 100)) .. "%"
+                end
+
+                local embed = {
+                    title = "Holy Grail Used",
+                    description = "A Holy Grail was used on a unit",
+                    color = 0x7B3FBF,
+                    fields = {
+                        { name = "Unit", value = tostring(unitName), inline = true },
+                        { name = "Level", value = tostring(unit.Upgrade or "N/A"), inline = true },
+                        { name = "Limit Break", value = tostring(unit.LimitBreak or "N/A"), inline = true },
+                        { name = "Current Stats", value = string.format("ATK: %s · SPA: %s · COST: %s", formatStat("ATK", atk), formatStat("STA", sta), formatStat("COST", cost)), inline = false }
+                    },
+                    footer = { text = "Lapo Hub Logs" },
+                    timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
+                }
+                SendWebhook({ embeds = { embed } })
+            end
+        end
+        if remote.Name == "traitRemote" and args[2] then
+            local rolled = type(result) == "table" and result[1] or result
+            if type(rolled) == "string" then
+                local unitName = args[2]
+                local embed = {
+                    title = "Trait Changed",
+                    description = "A unit's trait has changed",
+                    color = 0x5DADE2,
+                    fields = {
+                        { name = "Unit", value = tostring(unitName), inline = true },
+                        { name = "New Trait", value = tostring(rolled), inline = true }
+                    },
+                    footer = { text = "Lapo Hub Logs" },
+                    timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
+                }
+                SendWebhook({ embeds = { embed } })
+            end
+        end
+    end
+    return result
+end
+
+local oldFire = SafeFire
+SafeFire = function(remote, ...)
+    local args = {...}
+    local result = oldFire(remote, ...)
+    if WEBHOOK_LOGS_ENABLED and remote and remote.Name == "HolyGrail" and args[1] then
+        local unitName = args[1]
+        local data = GetReturnData()
+        if data and data.Units and data.Units[unitName] then
+            local unit = data.Units[unitName]
+            local mods = unit.Modifiers or unit.Mods or {}
+            local atk = tonumber(mods.ATK) or 1
+            local sta = tonumber(mods.STA) or 1
+            local cost = tonumber(mods.COST) or 1
+            
+            local function formatStat(name, x)
+                local v = tonumber(x) or 1
+                if math.abs(v - 1.5) < 0.01 then
+                    if name == "COST" then return "85%" end
+                    return "115%"
+                end
+                return tostring(math.floor(v * 100)) .. "%"
+            end
+
+            local embed = {
+                title = "Holy Grail Used",
+                description = "A Holy Grail was used on a unit",
+                color = 0x7B3FBF,
+                fields = {
+                    { name = "Unit", value = tostring(unitName), inline = true },
+                    { name = "Upgrade", value = tostring(unit.Upgrade or "N/A"), inline = true },
+                    { name = "Limit Break", value = tostring(unit.LimitBreak or "N/A"), inline = true },
+                    { name = "Current Stats", value = string.format("ATK: %s · STA: %s · COST: %s", formatStat("ATK", atk), formatStat("STA", sta), formatStat("COST", cost)), inline = false }
+                },
+                footer = { text = "Lapo Hub Logs" },
+                timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
+            }
+            SendWebhook({ embeds = { embed } })
         end
     end
     return result
@@ -1296,7 +1431,7 @@ end
 
 LapoHub:Notify({
     title   = "⚡ Lapo Hub X",
-    content = "Hub carregado! " .. #UNITS .. " units\n9 tabs | Data version: " .. dataVersion,
+    content = "Hub carregado! " .. #UNITS .. " units\n8 tabs | Data version: " .. dataVersion,
     duration = 5,
 })
 
