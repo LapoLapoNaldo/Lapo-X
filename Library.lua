@@ -79,6 +79,15 @@ local Theme = {
 
 local Font = Drawing.Fonts.Monospace or Drawing.Fonts.UI
 
+-- math.clamp fallback (não existe em Lua padrão)
+if not math.clamp then
+    math.clamp = function(v, min, max)
+        if v < min then return min end
+        if v > max then return max end
+        return v
+    end
+end
+
 -- ========== HELPERS ==========
 local function detectMobile()
     local ok, uis = pcall(function() return game:GetService("UserInputService") end)
