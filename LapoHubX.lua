@@ -54,47 +54,8 @@ end
 
 -- ====== DATA READING ======
 
--- OwnedUnits listener (for traits)
-local dataFolder   = LP:WaitForChild("Data", 10)
-local unitsValue   = dataFolder and dataFolder:WaitForChild("OwnedUnits", 10)
-
-local cachedRaw      = ""
 local cachedUnitsData = {}
-local dataVersion    = 0
-
-local function parseAndCache(raw)
-    if not raw or raw == "" then return {} end
-    local ok, data = pcall(function() return HttpSvc:JSONDecode(raw) end)
-    if ok and type(data) == "table" then
-        cachedUnitsData = data
-        return data
-    end
-    return cachedUnitsData
-end
-
-if unitsValue then
-    cachedRaw = unitsValue.Value or ""
-    parseAndCache(cachedRaw)
-    unitsValue:GetPropertyChangedSignal("Value"):Connect(function()
-        local newRaw = unitsValue.Value
-        if newRaw ~= cachedRaw then
-            cachedRaw = newRaw
-            dataVersion = dataVersion + 1
-            parseAndCache(newRaw)
-        end
-    end)
-end
-
-local function forceReadUnits()
-    if not unitsValue then return cachedUnitsData end
-    local raw = unitsValue.Value
-    if raw and raw ~= "" and raw ~= cachedRaw then
-        cachedRaw = raw
-        dataVersion = dataVersion + 1
-        parseAndCache(raw)
-    end
-    return cachedUnitsData
-end
+local dataVersion = 0
 
 -- GetReturnData (for stats, limit break, etc.)
 local function GetReturnData()
@@ -105,6 +66,18 @@ local function GetReturnData()
     end
     return nil
 end
+
+local function forceReadUnits()
+    local data = GetReturnData()
+    if data and data.Units then
+        cachedUnitsData = data.Units
+        dataVersion = dataVersion + 1
+    end
+    return cachedUnitsData
+end
+
+-- Initialize units data
+forceReadUnits()
 
 -- ====== TRAIT DATA ======
 local TraitData = {
@@ -239,7 +212,8 @@ local function refreshStatsDisplay()
     end
 end
 
-LapoHub:AddDropdown("📊 Stats", {
+local _statsDropdown
+_statsDropdown = LapoHub:AddDropdown("📊 Stats", {
     text = "Selecione a Unit",
     options = statsUnitNames,
     default = 1,
@@ -261,6 +235,7 @@ LapoHub:AddButton("📊 Stats", {
         statsUnits = {}
         for name,_ in pairs(newData.Units or {}) do table.insert(statsUnits, name) end
         table.sort(statsUnits)
+        _statsDropdown:Set(statsUnits)
         if statsSelectedUnit and newData.Units[statsSelectedUnit] then
             refreshStatsDisplay()
         else
@@ -749,8 +724,8 @@ local function waitForDataChange(timeoutSec)
 end
 
 local function doRoll(rrType, unitName)
-    local ok, result = pcall(function() return Remote:WaitForChild("traitRemote"):InvokeServer(rrType, unitName) end)
-    if not ok then LapoHub:Notify({ title="❌ Erro Roll", content=tostring(result), duration=4 }); return false, nil end
+    local result = SafeInvoke(Remote:WaitForChild("traitRemote"), rrType, unitName)
+    if result == nil then return false, nil end
     return true, result
 end
 
@@ -802,7 +777,8 @@ local function refreshUnitDisplay(unitName)
     traitSlotsLabel:updateText("📋 " .. table.concat(stxts, " | "))
 end
 
-LapoHub:AddDropdown("🎲 Traits", {
+local _traitUnitDropdown
+_traitUnitDropdown = LapoHub:AddDropdown("🎲 Traits", {
     text = "Boneco",
     options = UNITS,
     default = 1,
@@ -817,6 +793,7 @@ LapoHub:AddButton("🎲 Traits", {
     callback = function()
         forceReadUnits()
         UNITS = buildUnitList()
+        _traitUnitDropdown:Set(UNITS)
         LapoHub:Notify({ title="Units", content="Encontradas: " .. #UNITS .. " units", duration=3 })
     end,
 })
@@ -996,9 +973,12 @@ LapoHub:AddButton("🎲 Traits", {
 
 local ignoreLBUnits = {"Vending Machine","Stone Doctor","Shining Star Idol","Investigator","Denis","Ultimis","CapsuleGirl","Shielder","Peem","Leader","Gamble Queen"}
 
-LapoHub:AddButton("🎲 Traits", {
+LapoHub:AddToggle("🎲 Traits", {
     text = "🏆 Auto Melhor Trait em Todas",
-    callback = function()
+    default = false,
+    callback = function(state)
+        autoRolling = state
+        if not state then return end
         forceReadUnits()
         LapoHub:Notify({ title="Auto Best", content="Iniciando...", duration=3 })
         task.spawn(function()
@@ -1026,8 +1006,8 @@ LapoHub:AddButton("🎲 Traits", {
                     local found = false
                     for attempt = 1, maxAttempts do
                         if not autoRolling then break end
-                        local ok, result = pcall(function() return Remote:WaitForChild("traitRemote"):InvokeServer("Random", unitName) end)
-                        if ok and result then
+                        local result = SafeInvoke(Remote:WaitForChild("traitRemote"), "Random", unitName)
+                        if result then
                             local rolled = type(result) == "table" and result[1] or result
                             if type(rolled) == "string" and BEST_TRAITS[rolled] then
                                 found = true
@@ -1044,6 +1024,7 @@ LapoHub:AddButton("🎲 Traits", {
                 end
                 task.wait(0.3)
             end
+            autoRolling = false
             LapoHub:Notify({ title="✅ Auto Best", content="Finalizado! Processados: " .. processed .. " | Pulados: " .. skipped, duration=5 })
         end)
     end,
