@@ -1,6 +1,6 @@
 -- LapoHubX.lua
--- Reescrito completo — leitura real de OwnedUnits, auto-roll funcional, UI limpa
--- OwnedUnits é um StringValue com JSON contendo TODAS as units
+-- Reescrito completo — leitura real de OwnedUnits com detecção de mudança
+-- Fix: aguarda replicação do servidor após cada roll antes de checar trait
 
 local LapoHub = loadstring(game:HttpGet("https://raw.githubusercontent.com/LapoLapoNaldo/Lapo-X/refs/heads/main/Library.lua"))()
 
@@ -58,22 +58,25 @@ local TRAIT_NAMES = {
     "Survivor", "Divine Treasure", "The Honored One", "The Fallen One",
 }
 
--- ====== CORE: LEITURA REAL DE OWNEDUNITS ======
--- OwnedUnits é um StringValue cujo .Value é um JSON gigante
--- Estrutura: { "NomeUnit": { Traits: ["trait1","None","None"], SelectedTrait: 1, ... }, ... }
+-- =====================================================
+-- ====== CORE: LEITURA DE DATA COM CHANGE DETECT ======
+-- =====================================================
+-- OwnedUnits é um StringValue cujo .Value é JSON gigante
+-- Problema: após InvokeServer, o .Value demora pra replicar no client
+-- Solução: escutar .Changed e/ou poll até detectar mudança
 
+local dataFolder   = LP:WaitForChild("Data", 10)
+local unitsValue   = dataFolder and dataFolder:WaitForChild("OwnedUnits", 10)
+
+-- Cache global — sempre atualizado via listener
+local cachedRaw      = ""
 local cachedUnitsData = {}
+local dataVersion    = 0   -- incrementa toda vez que o Value muda
 
-local function readOwnedUnits()
+-- Parse o JSON e atualiza cache
+local function parseAndCache(raw)
+    if not raw or raw == "" then return {} end
     local ok, data = pcall(function()
-        local unitsObj = LP:WaitForChild("Data", 5)
-        if not unitsObj then return {} end
-        unitsObj = unitsObj:WaitForChild("OwnedUnits", 5)
-        if not unitsObj then return {} end
-
-        local raw = unitsObj.Value
-        if not raw or raw == "" then return {} end
-
         return HttpSvc:JSONDecode(raw)
     end)
     if ok and type(data) == "table" then
@@ -83,7 +86,70 @@ local function readOwnedUnits()
     return cachedUnitsData
 end
 
--- Pega a trait ativa (slot selecionado) de uma unit
+-- Leitura inicial
+if unitsValue then
+    cachedRaw = unitsValue.Value or ""
+    parseAndCache(cachedRaw)
+
+    -- LISTENER: escuta QUALQUER mudança no Value do OwnedUnits
+    -- Isso é o que garante que após um roll, a gente pega a data nova
+    unitsValue:GetPropertyChangedSignal("Value"):Connect(function()
+        local newRaw = unitsValue.Value
+        if newRaw ~= cachedRaw then
+            cachedRaw = newRaw
+            dataVersion = dataVersion + 1
+            parseAndCache(newRaw)
+        end
+    end)
+end
+
+-- Força re-leitura direto do Value (bypass cache pra safety)
+local function forceReadUnits()
+    if not unitsValue then return cachedUnitsData end
+    local raw = unitsValue.Value
+    if raw and raw ~= "" and raw ~= cachedRaw then
+        cachedRaw = raw
+        dataVersion = dataVersion + 1
+        parseAndCache(raw)
+    end
+    return cachedUnitsData
+end
+
+-- Leitura normal (usa cache que é mantido pelo listener)
+local function readOwnedUnits()
+    return cachedUnitsData
+end
+
+-- Espera até a data mudar (retorna true se mudou, false se timeout)
+-- Usado APÓS um roll pra garantir que o servidor atualizou
+local function waitForDataChange(timeoutSec)
+    local versionBefore = dataVersion
+    local elapsed = 0
+    local pollInterval = 0.05  -- checa a cada 50ms
+
+    while elapsed < timeoutSec do
+        task.wait(pollInterval)
+        elapsed = elapsed + pollInterval
+
+        -- Checa se o listener já pegou a mudança
+        if dataVersion > versionBefore then
+            return true
+        end
+
+        -- Fallback: force-read direto do Value caso o listener não tenha disparado
+        forceReadUnits()
+        if dataVersion > versionBefore then
+            return true
+        end
+    end
+
+    -- Último fallback: lê direto e aceita mesmo se o version não mudou
+    -- (pode ser que a trait não mudou mesmo — rolou a mesma trait)
+    forceReadUnits()
+    return false
+end
+
+-- Pega a trait ativa de uma unit
 local function getUnitTrait(unitName)
     local units = readOwnedUnits()
     local unitData = units[unitName]
@@ -99,7 +165,6 @@ local function getUnitTrait(unitName)
         return activeTrait
     end
 
-    -- fallback: pega o primeiro slot que não seja None
     for _, t in ipairs(traits) do
         if t and t ~= "None" then return t end
     end
@@ -123,15 +188,13 @@ local function getUnitAllTraits(unitName)
     }
 end
 
--- Pega info completa de uma unit
+-- Info completa de uma unit
 local function getUnitInfo(unitName)
     local units = readOwnedUnits()
-    local unitData = units[unitName]
-    if not unitData then return nil end
-    return unitData
+    return units[unitName]
 end
 
--- Lista todas as units do player, ordenadas
+-- Lista todas as units ordenadas
 local function buildUnitList()
     local units = readOwnedUnits()
     local list = {}
@@ -148,7 +211,7 @@ end
 -- ====== LEITURA DE MATERIAIS / ITEMS ======
 local function readMaterials()
     local ok, data = pcall(function()
-        local raw = LP:WaitForChild("Data", 5):WaitForChild("OwnedMaterials", 5).Value
+        local raw = dataFolder:WaitForChild("OwnedMaterials", 5).Value
         return HttpSvc:JSONDecode(raw)
     end)
     if ok and type(data) == "table" then return data end
@@ -157,7 +220,7 @@ end
 
 local function readOwnedItems()
     local ok, data = pcall(function()
-        local raw = LP:WaitForChild("Data", 5):WaitForChild("OwnedItems", 5).Value
+        local raw = dataFolder:WaitForChild("OwnedItems", 5).Value
         return HttpSvc:JSONDecode(raw)
     end)
     if ok and type(data) == "table" then return data end
@@ -167,7 +230,6 @@ end
 local function getTokenInfo()
     local mats  = readMaterials()
     local items = readOwnedItems()
-
     return {
         Spirit           = mats["Spirit"] or 0,
         SecretCrystal    = mats["Secret Crystal"] or 0,
@@ -176,15 +238,17 @@ local function getTokenInfo()
     }
 end
 
--- ====== ROLL ======
+-- ====== ROLL COM ESPERA DE REPLICAÇÃO ======
 local function doRoll(rrType, unitName)
+    local result = nil
     local ok, err = pcall(function()
-        return traitRemote:InvokeServer(rrType, unitName)
+        result = traitRemote:InvokeServer(rrType, unitName)
     end)
     if not ok then
         LapoHub:Notify({ title = "❌ Erro Roll", content = tostring(err), duration = 4 })
+        return false, nil
     end
-    return ok
+    return true, result
 end
 
 -- ====== STATE ======
@@ -193,8 +257,8 @@ local UNITS          = buildUnitList()
 local selectedUnit   = UNITS[1] or "Nenhuma"
 local selectedTrait  = TRAIT_NAMES[1]
 local autoRolling    = false
-local rollDelay      = 0.8    -- delay safe entre rolls
-local rollCount      = 0      -- contador global de rolls
+local rollDelay      = 0.8
+local rollCount      = 0
 
 -- ========================
 -- ======= UI BUILD =======
@@ -230,26 +294,19 @@ LapoHub:AddSeparator("Lapo Hub")
 -- ====== SEÇÃO: SELEÇÃO DE UNIT ======
 LapoHub:AddLabel("Lapo Hub", { text = "🎮 Seleção de Unit" })
 
--- Label que mostra info da unit selecionada
-local unitInfoLabel = LapoHub:AddLabel("Lapo Hub", { text = "Selecione uma unit..." })
-
--- Label trait atual
+local unitInfoLabel   = LapoHub:AddLabel("Lapo Hub", { text = "Selecione uma unit..." })
 local traitAtualLabel = LapoHub:AddLabel("Lapo Hub", { text = "🎯 Trait Atual: —" })
-
--- Label todos os slots
 local traitSlotsLabel = LapoHub:AddLabel("Lapo Hub", { text = "📋 Slots: — | — | —" })
 
--- Função pra atualizar as labels da unit
 local function refreshUnitDisplay(unitName)
     local info = getUnitInfo(unitName)
     if not info then
-        unitInfoLabel:updateText("⚠ Unit '" .. tostring(unitName) .. "' não encontrada na data")
+        unitInfoLabel:updateText("⚠ Unit '" .. tostring(unitName) .. "' não encontrada")
         traitAtualLabel:updateText("🎯 Trait Atual: N/A")
         traitSlotsLabel:updateText("📋 Slots: N/A")
         return
     end
 
-    -- Info da unit
     local upgrade   = info.Upgrade or 0
     local limitB    = info.LimitBreak or 0
     local dupes     = info.DuplicateSummon or 0
@@ -265,7 +322,6 @@ local function refreshUnitDisplay(unitName)
         unitName, upgrade, limitB, dupes, wins, dmg, atk, sta, cost
     ))
 
-    -- Trait ativa
     local activeTrait = getUnitTrait(unitName)
     local traitInfo = TraitData[activeTrait]
     if traitInfo then
@@ -277,7 +333,6 @@ local function refreshUnitDisplay(unitName)
         traitAtualLabel:updateText("🎯 Trait Atual: " .. tostring(activeTrait))
     end
 
-    -- 3 slots
     local slots = getUnitAllTraits(unitName)
     local slotTxts = {}
     for i, s in ipairs(slots) do
@@ -291,7 +346,6 @@ local function refreshUnitDisplay(unitName)
     traitSlotsLabel:updateText("📋 " .. table.concat(slotTxts, " | "))
 end
 
--- Dropdown de boneco — puxa da data real
 LapoHub:AddDropdown("Lapo Hub", {
     text    = "Boneco",
     options = UNITS,
@@ -302,11 +356,10 @@ LapoHub:AddDropdown("Lapo Hub", {
     end,
 })
 
--- Botão pra recarregar lista de units (caso sumone novas)
 LapoHub:AddButton("Lapo Hub", {
     text = "🔄 Recarregar Units",
     callback = function()
-        cachedUnitsData = {}
+        forceReadUnits()
         UNITS = buildUnitList()
         LapoHub:Notify({
             title   = "Units",
@@ -321,7 +374,6 @@ LapoHub:AddSeparator("Lapo Hub")
 -- ====== SEÇÃO: REROLL ======
 LapoHub:AddLabel("Lapo Hub", { text = "🎲 Reroll de Traits" })
 
--- Tipo de reroll
 LapoHub:AddDropdown("Lapo Hub", {
     text    = "Tipo de Roll",
     options = { "Normal (Random)", "Super (SuperRandom)" },
@@ -340,7 +392,6 @@ LapoHub:AddDropdown("Lapo Hub", {
     end,
 })
 
--- Trait desejada
 LapoHub:AddDropdown("Lapo Hub", {
     text    = "Trait Desejada",
     options = TRAIT_NAMES,
@@ -358,7 +409,6 @@ LapoHub:AddDropdown("Lapo Hub", {
     end,
 })
 
--- Slider de delay
 LapoHub:AddSlider("Lapo Hub", {
     text    = "Delay entre rolls (seg)",
     min     = 0.4,
@@ -369,8 +419,8 @@ LapoHub:AddSlider("Lapo Hub", {
     end,
 })
 
--- Label de status do auto-roll
 local autoStatusLabel = LapoHub:AddLabel("Lapo Hub", { text = "⏹ Auto-Roll: Parado" })
+local debugLabel      = LapoHub:AddLabel("Lapo Hub", { text = "🔧 Debug: —" })
 
 LapoHub:AddSeparator("Lapo Hub")
 
@@ -386,22 +436,23 @@ LapoHub:AddButton("Lapo Hub", {
             return
         end
 
-        -- Checa trait ANTES do roll
         local traitAntes = getUnitTrait(selectedUnit)
+        debugLabel:updateText("🔧 Rolando " .. selectedUnit .. "... trait antes: " .. tostring(traitAntes))
 
-        local ok = doRoll(selectedRRType, selectedUnit)
+        local ok, result = doRoll(selectedRRType, selectedUnit)
         if not ok then return end
 
         rollCount = rollCount + 1
-        task.wait(0.5)
 
-        -- Checa trait DEPOIS do roll
+        -- ESPERA a data mudar no client (até 3 segundos)
+        local changed = waitForDataChange(3.0)
+        debugLabel:updateText("🔧 Data mudou: " .. tostring(changed) .. " | version: " .. tostring(dataVersion))
+
+        -- Lê trait DEPOIS da replicação
         local traitDepois = getUnitTrait(selectedUnit)
 
-        -- Atualiza display
         refreshUnitDisplay(selectedUnit)
 
-        -- Notifica a mudança
         if traitAntes ~= traitDepois then
             local info = TraitData[traitDepois]
             local rarTxt = info and (" [" .. info.Rarity .. "]") or ""
@@ -432,7 +483,6 @@ LapoHub:AddToggle("Lapo Hub", {
             return
         end
 
-        -- Validações
         if not selectedUnit or selectedUnit == "Nenhuma unit encontrada" then
             LapoHub:Notify({ title = "Auto", content = "Selecione um boneco!", duration = 3 })
             autoRolling = false
@@ -445,7 +495,8 @@ LapoHub:AddToggle("Lapo Hub", {
             return
         end
 
-        -- Checa se já tem a trait desejada ANTES de começar
+        -- Checa se já tem a trait ANTES de começar
+        forceReadUnits()
         local currentBefore = getUnitTrait(selectedUnit)
         if currentBefore == selectedTrait then
             LapoHub:Notify({
@@ -458,7 +509,6 @@ LapoHub:AddToggle("Lapo Hub", {
             return
         end
 
-        -- Inicia auto-roll em thread separada
         task.spawn(function()
             local tries = 0
             local startTick = tick()
@@ -472,8 +522,12 @@ LapoHub:AddToggle("Lapo Hub", {
             })
 
             while autoRolling do
-                -- ========== PASSO 1: ROLAR ==========
-                local ok = doRoll(selectedRRType, selectedUnit)
+                -- ========== PASSO 1: SALVAR VERSÃO ATUAL ==========
+                local versionBefore = dataVersion
+                local traitBefore   = getUnitTrait(selectedUnit)
+
+                -- ========== PASSO 2: ROLAR ==========
+                local ok, result = doRoll(selectedRRType, selectedUnit)
                 tries = tries + 1
                 rollCount = rollCount + 1
 
@@ -488,15 +542,32 @@ LapoHub:AddToggle("Lapo Hub", {
                     break
                 end
 
-                -- ========== PASSO 2: ESPERAR (SAFE) ==========
-                task.wait(rollDelay)
+                -- ========== PASSO 3: ESPERAR REPLICAÇÃO ==========
+                -- InvokeServer é síncrono, mas a mudança no StringValue pode demorar
+                -- Espera até 2s pra data mudar, checando a cada 50ms
+                local dataChanged = waitForDataChange(2.0)
 
-                -- ========== PASSO 3: CHECAR TRAIT ATUAL ==========
+                -- Se o delay do usuário é maior que o tempo de espera, completa com wait
+                local extraWait = rollDelay - 2.0
+                if extraWait > 0 then
+                    task.wait(extraWait)
+                end
+
+                -- ========== PASSO 4: LER TRAIT NOVA ==========
+                -- Force read mais uma vez pra garantir
+                forceReadUnits()
                 local currentTrait = getUnitTrait(selectedUnit)
 
-                -- ========== PASSO 4: COMPARAR ==========
+                -- Debug info
+                debugLabel:updateText(string.format(
+                    "🔧 R#%d v%d→%d | antes:%s | agora:%s | mudou:%s",
+                    tries, versionBefore, dataVersion,
+                    tostring(traitBefore), tostring(currentTrait),
+                    tostring(dataChanged)
+                ))
+
+                -- ========== PASSO 5: COMPARAR ==========
                 if currentTrait == selectedTrait then
-                    -- ACHOU A TRAIT DESEJADA
                     autoRolling = false
                     local elapsed = tick() - startTick
 
@@ -517,12 +588,11 @@ LapoHub:AddToggle("Lapo Hub", {
                         duration = 10,
                     })
 
-                    -- Atualiza display final
                     refreshUnitDisplay(selectedUnit)
                     break
                 end
 
-                -- ========== PASSO 5: NÃO ACHOU, ATUALIZAR STATUS ==========
+                -- ========== PASSO 6: NÃO ACHOU — STATUS ==========
                 local elapsed = tick() - startTick
                 local traitInfoCur = TraitData[currentTrait]
                 local curRar = traitInfoCur and ("[" .. traitInfoCur.Rarity .. "]") or ""
@@ -532,12 +602,10 @@ LapoHub:AddToggle("Lapo Hub", {
                     tries, currentTrait, curRar, selectedTrait, elapsed
                 ))
 
-                -- Atualiza o display da unit a cada 5 rolls pra não spammar
                 if tries % 5 == 0 then
                     refreshUnitDisplay(selectedUnit)
                 end
 
-                -- Log a cada 25 rolls
                 if tries % 25 == 0 then
                     LapoHub:Notify({
                         title   = "📊 Progresso",
@@ -549,7 +617,6 @@ LapoHub:AddToggle("Lapo Hub", {
                     })
                 end
 
-                -- Safety: se passou de 500 rolls, para e avisa
                 if tries >= 500 then
                     autoRolling = false
                     autoStatusLabel:updateText("⚠ Parou em 500 rolls — trait não encontrada")
@@ -561,9 +628,23 @@ LapoHub:AddToggle("Lapo Hub", {
                     refreshUnitDisplay(selectedUnit)
                     break
                 end
+
+                -- ========== PASSO 7: DETECTAR DATA PARADA ==========
+                -- Se a data NÃO mudou por 5 rolls seguidos, avisa
+                if not dataChanged and tries > 3 then
+                    if tries % 5 == 0 then
+                        LapoHub:Notify({
+                            title   = "⚠ Aviso",
+                            content = "Data não está atualizando. Pode ser lag do servidor.\nTentando continuar...",
+                            duration = 3,
+                        })
+                        -- Tenta forçar uma leitura completa
+                        task.wait(0.5)
+                        forceReadUnits()
+                    end
+                end
             end
 
-            -- Se o toggle foi desligado manualmente
             if not autoRolling and tries > 0 then
                 refreshUnitDisplay(selectedUnit)
             end
@@ -571,7 +652,7 @@ LapoHub:AddToggle("Lapo Hub", {
     end,
 })
 
--- Botão de parar (redundância ao toggle)
+-- Botão de parar
 LapoHub:AddButton("Lapo Hub", {
     text = "⏹ Parar Auto-Roll",
     callback = function()
@@ -588,10 +669,10 @@ LapoHub:AddSeparator("Lapo Hub")
 -- ====== SEÇÃO: FERRAMENTAS ======
 LapoHub:AddLabel("Lapo Hub", { text = "🛠 Ferramentas" })
 
--- Listar todas as units com traits
 LapoHub:AddButton("Lapo Hub", {
     text = "📋 Listar Units com Traits",
     callback = function()
+        forceReadUnits()
         local units = readOwnedUnits()
         local withTraits = {}
         local total = 0
@@ -626,10 +707,10 @@ LapoHub:AddButton("Lapo Hub", {
     end,
 })
 
--- Buscar units sem trait (pra saber quais precisam de roll)
 LapoHub:AddButton("Lapo Hub", {
     text = "🔍 Units SEM Trait",
     callback = function()
+        forceReadUnits()
         local units = readOwnedUnits()
         local noTrait = {}
 
@@ -659,14 +740,42 @@ LapoHub:AddButton("Lapo Hub", {
     end,
 })
 
--- Contador de rolls da sessão
 LapoHub:AddButton("Lapo Hub", {
     text = "📊 Stats da Sessão",
     callback = function()
         LapoHub:Notify({
             title   = "📊 Sessão",
-            content = "Total de rolls nesta sessão: " .. rollCount,
+            content = "Total de rolls: " .. rollCount .. "\nData version: " .. dataVersion,
             duration = 4,
+        })
+    end,
+})
+
+-- Debug: checar data value raw
+LapoHub:AddButton("Lapo Hub", {
+    text = "🔧 Debug: Checar OwnedUnits",
+    callback = function()
+        if not unitsValue then
+            LapoHub:Notify({ title = "Debug", content = "OwnedUnits não encontrado!", duration = 5 })
+            return
+        end
+
+        local raw = unitsValue.Value
+        local len = raw and #raw or 0
+
+        forceReadUnits()
+        local traitCheck = getUnitTrait(selectedUnit)
+
+        LapoHub:Notify({
+            title   = "🔧 Debug OwnedUnits",
+            content = string.format(
+                "Value length: %d chars\nData version: %d\nCache size: %d units\nUnit: %s\nTrait lida: %s",
+                len, dataVersion, 
+                (function() local c=0; for _ in pairs(cachedUnitsData) do c=c+1 end; return c end)(),
+                tostring(selectedUnit),
+                tostring(traitCheck)
+            ),
+            duration = 8,
         })
     end,
 })
@@ -674,10 +783,9 @@ LapoHub:AddButton("Lapo Hub", {
 LapoHub:AddSeparator("Lapo Hub")
 
 -- ====== RODAPÉ ======
-LapoHub:AddParagraph("Lapo Hub", { text = "Lapo Hub X © ENI — Toggle: K\nOwnedUnits: JSON parse direto da Data" })
+LapoHub:AddParagraph("Lapo Hub", { text = "Lapo Hub X © ENI — Toggle: K\nData: listener + force read + version tracking" })
 
 -- ====== INIT ======
--- Atualiza tokens e mostra info da primeira unit
 refreshTokenLabel()
 if selectedUnit and selectedUnit ~= "Nenhuma unit encontrada" then
     refreshUnitDisplay(selectedUnit)
@@ -685,7 +793,7 @@ end
 
 LapoHub:Notify({
     title   = "⚡ Lapo Hub X",
-    content = "Hub carregado! " .. #UNITS .. " units encontradas.",
+    content = "Hub carregado! " .. #UNITS .. " units\nData version: " .. dataVersion .. " | Listener ativo",
     duration = 5,
 })
 
