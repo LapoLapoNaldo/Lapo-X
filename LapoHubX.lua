@@ -6,7 +6,6 @@ local LapoHub = loadstring(game:HttpGet("https://raw.githubusercontent.com/LapoL
 
 LapoHub:AddTab("Home",    "🏠")
 LapoHub:AddTab("Trait's", "🎲")
-LapoHub:AddTab("Traits",  "⭐")
 LapoHub:AddTab("Settings","⚙")
 
 LapoHub:Init({
@@ -27,34 +26,41 @@ local LP      = Players.LocalPlayer
 
 local traitRemote = RS:WaitForChild("Remote"):WaitForChild("traitRemote")
 local RR_TYPES    = { "Random", "SuperRandom" }
-local TRAIT_TAB   = 2
 
--- ====== TRAIT DATA COMPLETA ======
+-- ====== TRAIT DATA ======
 local TraitData = {
-    ["Strength"]        = { Rarity = "R",  Desc = "+10% ATK", Buffs = { ATK = 10 } },
-    ["Swiftness"]       = { Rarity = "R",  Desc = "-5% SPA", Buffs = { SPA = -5 } },
-    ["Precision"]       = { Rarity = "R",  Desc = "+10% RNG", Buffs = { RNG = 10 } },
-    ["Entrepreneur"]    = { Rarity = "SR", Desc = "+10% Cash", Buffs = { Cash = 10 } },
-    ["Deadeye"]         = { Rarity = "SR", Desc = "+25% Range", Buffs = { RNG = 25 } },
-    ["Berserk"]         = { Rarity = "SR", Desc = "20% ATK", Buffs = { ATK = 20 } },
-    ["Golden"]          = { Rarity = "UR", Desc = "+20% Cash, -10% Cost", Buffs = { Cash = 20, Cost = -10 } },
-    ["Giant Slayer"]    = { Rarity = "UR", Desc = "+40% ATK, +50% boss dmg", Buffs = { ATK = 40, SubPassive = "Giant Slayer" } },
-    ["Elementalist"]    = { Rarity = "UR", Desc = "+50% DOT, +10% DOT rate", Buffs = { DOT = 50, DOTRate = 10 } },
-    ["Momentum"]        = { Rarity = "UR", Desc = "-20% SPA, +30% RNG", Buffs = { SPA = -20, RNG = 30 } },
-    ["Dark Summoner"]   = { Rarity = "UR", Desc = "+30% Summon ATK, -10% SPA", Buffs = { SummonDMG = 30, SPA = -10 } },
-    ["Bounty Hunt"]     = { Rarity = "UR", Desc = "+15% RNG, bounty tag (x2 cash, +30% EXP)", Buffs = { RNG = 15, SubPassive = "Bounty Hunt" } },
-    ["Assassin"]        = { Rarity = "LR", Desc = "+50% ATK, -15% SPA, bounty tag", Buffs = { ATK = 50, SPA = -15, SubPassive = "Bounty Hunt" } },
-    ["Streamliner"]     = { Rarity = "LR", Desc = "+50% ATK, +15% RNG, -10% SPA", Buffs = { ATK = 50, RNG = 10, SPA = -10 } },
-    ["Arcanist"]        = { Rarity = "LR", Desc = "+125% DOT, +30% rate, -10% SPA, -20% Cost", Buffs = { DOT = 125, DOTRate = 30, SPA = -10, Cost = -20 } },
-    ["Survivor"]        = { Rarity = "LR", Desc = "+40% ATK, +20% Summon ATK, +150% EXP", Buffs = { ATK = 40, SummonATK = 20, EXPBoost = 150 } },
-    ["Divine Treasure"] = { Rarity = "LR", Desc = "+50% Summon ATK, +30% ATK, +15% RNG", Buffs = { SummonATK = 50, ATK = 30, RNG = 15, EXPSummon = 30 } },
-    ["The Honored One"] = { Rarity = "LR", Desc = "+100% ATK, +25% cost/placement, +15% RNG, limit 1", Buffs = { RNG = 15, SubPassive = "The Honored One", PlaceLimit = 1 } },
-    ["The Fallen One"]  = { Rarity = "LR", Desc = "+250% DOT, +30% ATK, +15% RNG, +50% Cost, limit 1", Buffs = { DOT = 250, ATK = 30, RNG = 15, Cost = 50, PlaceLimit = 1 } },
+    ["Strength"]        = { Rarity = "R",  Desc = "+10% ATK" },
+    ["Swiftness"]       = { Rarity = "R",  Desc = "-5% SPA" },
+    ["Precision"]       = { Rarity = "R",  Desc = "+10% RNG" },
+    ["Entrepreneur"]    = { Rarity = "SR", Desc = "+10% Cash" },
+    ["Deadeye"]         = { Rarity = "SR", Desc = "+25% Range" },
+    ["Berserk"]         = { Rarity = "SR", Desc = "20% ATK" },
+    ["Golden"]          = { Rarity = "UR", Desc = "+20% Cash, -10% Cost" },
+    ["Giant Slayer"]    = { Rarity = "UR", Desc = "+40% ATK, +50% boss dmg" },
+    ["Elementalist"]    = { Rarity = "UR", Desc = "+50% DOT, +10% DOT rate" },
+    ["Momentum"]        = { Rarity = "UR", Desc = "-20% SPA, +30% RNG" },
+    ["Dark Summoner"]   = { Rarity = "UR", Desc = "+30% Summon ATK, -10% SPA" },
+    ["Bounty Hunt"]     = { Rarity = "UR", Desc = "+15% RNG, bounty tag" },
+    ["Assassin"]        = { Rarity = "LR", Desc = "+50% ATK, -15% SPA, bounty" },
+    ["Streamliner"]     = { Rarity = "LR", Desc = "+50% ATK, +15% RNG, -10% SPA" },
+    ["Arcanist"]        = { Rarity = "LR", Desc = "+125% DOT, +30% rate, -10% SPA, -20% Cost" },
+    ["Survivor"]        = { Rarity = "LR", Desc = "+40% ATK, +20% Summon ATK, +150% EXP" },
+    ["Divine Treasure"] = { Rarity = "LR", Desc = "+50% Summon ATK, +30% ATK, +15% RNG" },
+    ["The Honored One"] = { Rarity = "LR", Desc = "+100% ATK, +25% cost/placement, +15% RNG, limit 1" },
+    ["The Fallen One"]  = { Rarity = "LR", Desc = "+250% DOT, +30% ATK, +15% RNG, +50% Cost, limit 1" },
 }
 
-local TRAIT_NAMES = {}
-for k in pairs(TraitData) do table.insert(TRAIT_NAMES, k) end
-table.sort(TRAIT_NAMES)
+-- EXTrail: traits LR específicas por classe de unidade
+local EXTrail = {
+    Summon  = { "Survivor", "Divine Treasure" },
+    DOT     = { "The Honored One", "Arcanist", "The Fallen One" },
+    Hunter  = { "Survivor", "Assassin" },
+    Regular = { "Streamliner", "The Honored One" },
+}
+
+-- Traits comuns que toda unidade pode pegar (R, SR, UR)
+local COMMON_TRAITS = { "Strength","Swiftness","Precision","Entrepreneur","Deadeye","Berserk",
+    "Golden","Giant Slayer","Elementalist","Momentum","Dark Summoner","Bounty Hunt" }
 
 -- ====== HELPERS ======
 local function readOwnedItems()
@@ -63,6 +69,44 @@ local function readOwnedItems()
     end)
     if ok and type(data) == "table" then return data end
     return {}
+end
+
+local function getUnitClass(unitName)
+    local ok, unitClass = pcall(function()
+        local u = LP.Data:FindFirstChild("OwnedUnits") and LP.Data.OwnedUnits:FindFirstChild(unitName)
+        if not u then return nil end
+        -- tenta ler atributo Class
+        local cls = u:GetAttribute("Class") or u:GetAttribute("UnitClass")
+        if cls then return cls end
+        -- tenta módulo do jogo
+        local mod = require(RS.Assets.CheckUnitModule.UnitGuiStats)
+        if mod and mod.GetUnitClass then
+            return mod.GetUnitClass(nil, unitName)
+        end
+        -- tenta inferir do nome
+        for class, _ in pairs(EXTrail) do
+            if unitName:find(class, 1, true) then return class end
+        end
+        return nil
+    end)
+    return ok and unitClass or nil
+end
+
+local function getTraitsForUnit(unitName)
+    local class = getUnitClass(unitName)
+    local lrList = {}
+    if class and EXTrail[class] then
+        lrList = EXTrail[class]
+    else
+        -- fallback: todas LR
+        for k, d in pairs(TraitData) do
+            if d.Rarity == "LR" then table.insert(lrList, k) end
+        end
+    end
+    local result = {}
+    for _, t in ipairs(COMMON_TRAITS) do table.insert(result, t) end
+    for _, t in ipairs(lrList) do table.insert(result, t) end
+    return result
 end
 
 local function getUnitTrait(unitName)
@@ -104,7 +148,7 @@ local function doRoll(rrType, unitName)
         return traitRemote:InvokeServer(rrType, unitName)
     end)
     if not ok then
-        LapoHub:Notify({ title = "Reroll erro", content = tostring(err), duration = 4 })
+        LapoHub:Notify({ title = "Erro", content = tostring(err), duration = 4 })
     end
     return ok
 end
@@ -124,7 +168,7 @@ end
 local selectedRRType  = RR_TYPES[1]
 local UNITS           = buildUnitList()
 local selectedUnit    = UNITS[1]
-local selectedTrait   = TRAIT_NAMES[1]
+local selectedTrait   = ""
 local autoRolling     = false
 
 -- ====== HOME ======
@@ -136,10 +180,11 @@ LapoHub:AddButton("Home", {
     callback = showCounts,
 })
 
--- ====== TRAIT'S (REROLL) ======
-LapoHub:AddLabel(TRAIT_TAB, { text = "Reroll de Traits" })
+-- ====== TRAIT'S ======
+LapoHub:AddLabel("Trait's", { text = "Reroll de Traits" })
 
-LapoHub:AddDropdown(TRAIT_TAB, {
+-- Dropdown tipo de RR
+LapoHub:AddDropdown("Trait's", {
     text    = "Tipo de RR",
     options = { "Normal (Random)", "Super (SuperRandom)" },
     default = 1,
@@ -148,27 +193,78 @@ LapoHub:AddDropdown(TRAIT_TAB, {
     end,
 })
 
-LapoHub:AddDropdown(TRAIT_TAB, {
+-- Dropdown boneco + label trait atual
+local traitAtualLabel = LapoHub:AddLabel("Trait's", {
+    text = "Trait atual: —"
+})
+
+LapoHub:AddDropdown("Trait's", {
     text    = "Boneco",
     options = UNITS,
     default = 1,
     callback = function(_, value)
         selectedUnit = value
+        -- atualiza trait atual
+        local t = getUnitTrait(value)
+        if t and t ~= "" then
+            traitAtualLabel:updateText("Trait atual: " .. tostring(t))
+        else
+            traitAtualLabel:updateText("Trait atual: Nenhuma")
+        end
+        -- filtra traits disponíveis pro boneco
+        local available = getTraitsForUnit(value)
+        LapoHub:AddDropdown("Trait's", {
+            text    = "Trait desejada",
+            options = available,
+            default = 1,
+            callback = function(_, v)
+                selectedTrait = v
+                local d = TraitData[v]
+                if d then
+                    LapoHub:Notify({
+                        title = "[" .. d.Rarity .. "] " .. v,
+                        content = d.Desc,
+                        duration = 4,
+                    })
+                end
+            end,
+        })
     end,
 })
 
-LapoHub:AddDropdown(TRAIT_TAB, {
-    text    = "Trait desejada",
-    options = TRAIT_NAMES,
-    default = 1,
-    callback = function(_, value)
-        selectedTrait = value
-    end,
-})
+-- Dropdown trait desejada (inicial)
+local function initTraitDropdown()
+    local available = getTraitsForUnit(selectedUnit)
+    selectedTrait = available[1]
+    LapoHub:AddDropdown("Trait's", {
+        text    = "Trait desejada",
+        options = available,
+        default = 1,
+        callback = function(_, value)
+            selectedTrait = value
+            local d = TraitData[value]
+            if d then
+                LapoHub:Notify({
+                    title = "[" .. d.Rarity .. "] " .. value,
+                    content = d.Desc,
+                    duration = 4,
+                })
+            end
+        end,
+    })
+end
+initTraitDropdown()
 
-LapoHub:AddSeparator(TRAIT_TAB)
+-- atualiza trait atual do primeiro boneco
+local firstTrait = getUnitTrait(selectedUnit)
+if firstTrait and firstTrait ~= "" then
+    traitAtualLabel:updateText("Trait atual: " .. tostring(firstTrait))
+end
 
-LapoHub:AddButton(TRAIT_TAB, {
+LapoHub:AddSeparator("Trait's")
+
+-- Botão girar 1x
+LapoHub:AddButton("Trait's", {
     text = "Girar 1x",
     callback = function()
         if not selectedUnit then
@@ -176,15 +272,30 @@ LapoHub:AddButton(TRAIT_TAB, {
             return
         end
         doRoll(selectedRRType, selectedUnit)
+        -- atualiza trait atual depois do roll
+        task.wait(0.3)
+        local t = getUnitTrait(selectedUnit)
+        if t and t ~= "" then
+            traitAtualLabel:updateText("Trait atual: " .. tostring(t))
+        else
+            traitAtualLabel:updateText("Trait atual: Nenhuma")
+        end
     end,
 })
 
-LapoHub:AddToggle(TRAIT_TAB, {
+-- Toggle auto-roll
+LapoHub:AddToggle("Trait's", {
     text    = "Auto até pegar a trait",
     default = false,
     callback = function(state)
         autoRolling = state
-        if not state or not selectedUnit then return end
+        if not state or not selectedUnit or not selectedTrait or selectedTrait == "" then
+            if state then
+                LapoHub:Notify({ title = "Auto", content = "Selecione boneco e trait.", duration = 3 })
+                autoRolling = false
+            end
+            return
+        end
 
         task.spawn(function()
             local tries = 0
@@ -208,39 +319,12 @@ LapoHub:AddToggle(TRAIT_TAB, {
     end,
 })
 
-LapoHub:AddSeparator(TRAIT_TAB)
+LapoHub:AddSeparator("Trait's")
 
-LapoHub:AddButton(TRAIT_TAB, {
+LapoHub:AddButton("Trait's", {
     text = "Ver tokens",
     callback = showCounts,
 })
-
--- ====== TRAITS (LISTA) ======
-LapoHub:AddLabel("Traits", { text = "Todas as Traits" })
-LapoHub:AddParagraph("Traits", { text = "Selecione no dropdown pra ver detalhes." })
-
-local selectedTraitInfo = TRAIT_NAMES[1]
-LapoHub:AddDropdown("Traits", {
-    text    = "Trait",
-    options = TRAIT_NAMES,
-    default = 1,
-    callback = function(_, value)
-        local d = TraitData[value]
-        if not d then return end
-        LapoHub:Notify({
-            title = "[" .. d.Rarity .. "] " .. value,
-            content = d.Desc,
-            duration = 6,
-        })
-    end,
-})
-
-for _, name in ipairs(TRAIT_NAMES) do
-    local d = TraitData[name]
-    LapoHub:AddLabel("Traits", {
-        text = "[" .. d.Rarity .. "] " .. name .. " — " .. d.Desc
-    })
-end
 
 -- ====== SETTINGS ======
 LapoHub:AddParagraph("Settings", { text = "Lapo Hub X © ENI — for LO" })
