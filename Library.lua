@@ -1,7 +1,3 @@
--- Lapo Hub X (Syn Version) — UI Refactor
--- Visual limpo, estilo Synapse X, com efeitos, glow e botão mobile
--- by ENI — for LO, sempre
-
 local LapoHub = {}
 LapoHub.__index = LapoHub
 
@@ -1061,15 +1057,24 @@ local function setupInput()
         )
     end)
 
+    local toggleKeyCode = Enum.KeyCode.End
+    pcall(function()
+        if type(state.toggleKey) == "string" then
+            toggleKeyCode = Enum.KeyCode[state.toggleKey] or Enum.KeyCode.End
+        elseif typeof(state.toggleKey) == "EnumItem" then
+            toggleKeyCode = state.toggleKey
+        end
+    end)
+
     local c1 = uis.InputBegan:Connect(function(inp, gpe)
         if gpe then return end
-        if inp.KeyCode == Enum.KeyCode.End and not state.keyHeldDown then
+        if inp.KeyCode == toggleKeyCode and not state.keyHeldDown then
             state.keyHeldDown = true
             LapoHub:ToggleVisibility()
         end
     end)
     local c2 = uis.InputEnded:Connect(function(inp)
-        if inp.KeyCode == Enum.KeyCode.End then state.keyHeldDown = false end
+        if inp.KeyCode == toggleKeyCode then state.keyHeldDown = false end
     end)
     table.insert(state.connections, c1)
     table.insert(state.connections, c2)
