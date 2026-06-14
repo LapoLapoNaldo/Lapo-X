@@ -720,30 +720,140 @@ function LapoHub:AddTab(name, icon)
     return self
 end
 
-function LapoHub:AddButton(tabIdx,    cfg) addWidget(tabIdx, "Button",    cfg) return self end
-function LapoHub:AddToggle(tabIdx,    cfg) addWidget(tabIdx, "Toggle",    cfg) return self end
-function LapoHub:AddSlider(tabIdx,    cfg) addWidget(tabIdx, "Slider",    cfg) return self end
-function LapoHub:AddDropdown(tabIdx,  cfg) addWidget(tabIdx, "Dropdown",  cfg) return self end
-function LapoHub:AddTextBox(tabIdx,   cfg) addWidget(tabIdx, "TextBox",   cfg) return self end
-function LapoHub:AddLabel(tabIdx, cfg)
-    local tabIdxR = resolveTab(tabIdx)
-    local text = cfg and cfg.text or ""
-    local ref = { _tabIdx = tabIdxR, _text = text }
-    function ref:updateText(newText)
+function LapoHub:AddButton(tabIdx, cfg)
+    cfg = cfg or {}
+    addWidget(tabIdx, "Button", cfg)
+    local handle = { _tabIdx = resolveTab(tabIdx) }
+    return handle
+end
+
+function LapoHub:AddToggle(tabIdx, cfg)
+    cfg = cfg or {}
+    addWidget(tabIdx, "Toggle", cfg)
+    local handle = { _tabIdx = resolveTab(tabIdx) }
+    function handle:Set(val)
+        cfg.default = val
         for _, w in ipairs(widgetList) do
-            if w.type == "Label" and w.text == ref._text then
-                w.text = newText
-                w.label.Text = newText
-                ref._text = newText
-                return
+            if w.desc and w.desc.props == cfg and w.type == "Toggle" then
+                if w.value ~= val then
+                    w:toggle()
+                end
+                break
             end
         end
     end
-    addWidget(tabIdx, "Label", cfg)
-    return ref
+    return handle
 end
-function LapoHub:AddParagraph(tabIdx, cfg) addWidget(tabIdx, "Paragraph", cfg) return self end
-function LapoHub:AddSeparator(tabIdx)      addWidget(tabIdx, "Separator", {})  return self end
+
+function LapoHub:AddSlider(tabIdx, cfg)
+    cfg = cfg or {}
+    addWidget(tabIdx, "Slider", cfg)
+    local handle = { _tabIdx = resolveTab(tabIdx) }
+    function handle:Set(val)
+        cfg.default = val
+        for _, w in ipairs(widgetList) do
+            if w.desc and w.desc.props == cfg and w.type == "Slider" then
+                w:updateValue(val)
+                break
+            end
+        end
+    end
+    return handle
+end
+
+function LapoHub:AddDropdown(tabIdx, cfg)
+    cfg = cfg or {}
+    addWidget(tabIdx, "Dropdown", cfg)
+    local handle = { _tabIdx = resolveTab(tabIdx) }
+    function handle:Set(valOrOptions)
+        if type(valOrOptions) == "table" then
+            cfg.options = valOrOptions
+            for _, w in ipairs(widgetList) do
+                if w.desc and w.desc.props == cfg and w.type == "Dropdown" then
+                    w.options = valOrOptions
+                    w.filtered = valOrOptions
+                    w.selected = 1
+                    w.selectedText.Text = valOrOptions[1] or "Select"
+                    break
+                end
+            end
+        else
+            cfg.default = valOrOptions
+            for _, w in ipairs(widgetList) do
+                if w.desc and w.desc.props == cfg and w.type == "Dropdown" then
+                    local idx = table.find(w.options, valOrOptions) or 1
+                    w.selected = idx
+                    w.selectedText.Text = tostring(valOrOptions)
+                    break
+                end
+            end
+        end
+    end
+    return handle
+end
+
+function LapoHub:AddTextBox(tabIdx, cfg)
+    cfg = cfg or {}
+    addWidget(tabIdx, "TextBox", cfg)
+    local handle = { _tabIdx = resolveTab(tabIdx) }
+    function handle:Set(val)
+        cfg.placeholder = val
+        for _, w in ipairs(widgetList) do
+            if w.desc and w.desc.props == cfg and w.type == "TextBox" then
+                w.value = val
+                w.valueText.Text = val
+                w.valueText.Color = Theme.Text
+                break
+            end
+        end
+    end
+    return handle
+end
+
+function LapoHub:AddLabel(tabIdx, cfg)
+    cfg = cfg or {}
+    addWidget(tabIdx, "Label", cfg)
+    local handle = { _tabIdx = resolveTab(tabIdx) }
+    function handle:updateText(newText)
+        cfg.text = newText
+        for _, w in ipairs(widgetList) do
+            if w.desc and w.desc.props == cfg and w.type == "Label" then
+                w.text = newText
+                w.label.Text = newText
+                break
+            end
+        end
+    end
+    function handle:Set(newText)
+        self:updateText(newText)
+    end
+    return handle
+end
+
+function LapoHub:AddParagraph(tabIdx, cfg)
+    cfg = cfg or {}
+    addWidget(tabIdx, "Paragraph", cfg)
+    local handle = { _tabIdx = resolveTab(tabIdx) }
+    function handle:updateText(newText)
+        cfg.text = newText
+        for _, w in ipairs(widgetList) do
+            if w.desc and w.desc.props == cfg and w.type == "Paragraph" then
+                w.text = newText
+                w.label.Text = newText
+                break
+            end
+        end
+    end
+    function handle:Set(newText)
+        self:updateText(newText)
+    end
+    return handle
+end
+
+function LapoHub:AddSeparator(tabIdx)
+    addWidget(tabIdx, "Separator", {})
+    return self
+end
 
 function LapoHub:Notify(cfg)
     cfg = cfg or {}
@@ -1111,7 +1221,11 @@ local function setupInput()
                             state.dropdownWidget = w
                             if w.search and state.sinkTextBox then
                                 state.sinkTextBox.Text = ""
-                                state.sinkTextBox:CaptureFocus()
+                                state.sinkTextBox.Position = UDim2.new(0, px - 5, 0, py - 5)
+                                state.sinkTextBox.Size = UDim2.new(0, 10, 0, 10)
+                                task.defer(function()
+                                    state.sinkTextBox:CaptureFocus()
+                                end)
                             end
                             return
                         elseif w.type == "TextBox" then
@@ -1122,7 +1236,11 @@ local function setupInput()
                             if state.sinkTextBox then
                                 state.focusedTextBox = w
                                 state.sinkTextBox.Text = w.value
-                                state.sinkTextBox:CaptureFocus()
+                                state.sinkTextBox.Position = UDim2.new(0, px - 5, 0, py - 5)
+                                state.sinkTextBox.Size = UDim2.new(0, 10, 0, 10)
+                                task.defer(function()
+                                    state.sinkTextBox:CaptureFocus()
+                                end)
                             end
                             return
                         end
