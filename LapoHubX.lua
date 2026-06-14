@@ -4,14 +4,14 @@
 
 local LapoHub = loadstring(game:HttpGet("https://raw.githubusercontent.com/LapoLapoNaldo/Lapo-X/refs/heads/main/Library.lua"))()
 
-LapoHub:AddTab("📊 Stats", "📊")
-LapoHub:AddTab("📋 Quests", "📋")
-LapoHub:AddTab("⬆ Limit Break", "⬆")
-LapoHub:AddTab("🎁 Banners", "🎁")
-LapoHub:AddTab("🗺 Stages", "🗺")
-LapoHub:AddTab("🎲 Traits", "🎲")
-LapoHub:AddTab("👕 Skins", "👕")
-LapoHub:AddTab("🔗 Webhook", "🔗")
+LapoHub:AddTab("📊 Stats", "")
+LapoHub:AddTab("📋 Quests", "")
+LapoHub:AddTab("⬆ Limit Break", "")
+LapoHub:AddTab("🎁 Banners", "")
+LapoHub:AddTab("🗺 Stages", "")
+LapoHub:AddTab("🎲 Traits", "")
+LapoHub:AddTab("👕 Skins", "")
+LapoHub:AddTab("🔗 Webhook", "")
 
 LapoHub:Init({
     Title     = "Lapo Hub X",
