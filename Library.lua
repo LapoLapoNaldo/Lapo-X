@@ -1476,6 +1476,7 @@ local function startRenderLoop()
             local cY = mh + HEADER_H
             local cW = fw - SIDE_W - 1
             local cH = fh - HEADER_H
+            local cY2 = cY + cH
             local PAD = 10*ss
 
             for _, w in ipairs(widgetList) do
