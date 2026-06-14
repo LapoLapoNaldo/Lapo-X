@@ -33,7 +33,11 @@ local state = {
     destroyFlag = false,
     prevTime = 0,
     keyHeldDown = false,
-    notifyId = 0
+    notifyId = 0,
+    userName = "LapoLapoNaldo",
+    userRank = "Lapo Newba",
+    userPopupOpen = false,
+    userCallback = nil
 }
 
 local Theme = {
@@ -151,6 +155,17 @@ function drawingSystem:setup()
 
     minimizeBtn = makeDrawable("Text", {Text = "─", Color = Theme.TextSecondary, Size = 20, Font = FontMonospace, ZIndex = 20, Visible = state.visible})
     table.insert(drgs, minimizeBtn)
+
+    -- user info footer
+    local userBg = makeDrawable("Square", {Filled = true, Color = Theme.Surface, Transparency = 1, ZIndex = 14, Visible = state.visible})
+    local userNameTxt = makeDrawable("Text", {Text = state.userName, Color = Theme.Text, Size = 13, Font = FontMonospace, ZIndex = 15, Visible = state.visible})
+    local userRankTxt = makeDrawable("Text", {Text = state.userRank, Color = Theme.TextSecondary, Size = 11, Font = FontMonospace, ZIndex = 15, Visible = state.visible})
+    table.insert(drgs, userBg)
+    table.insert(drgs, userNameTxt)
+    table.insert(drgs, userRankTxt)
+    state._userBg = userBg
+    state._userNameTxt = userNameTxt
+    state._userRankTxt = userRankTxt
 end
 
 function drawingSystem:updateLayout()
@@ -159,42 +174,63 @@ function drawingSystem:updateLayout()
     local sz = state.frameSize
     local mw, mh = pos.X, pos.Y
     local fw, fh = sz.X, sz.Y
+    local headerH = 30 * s
+    local sideW = 170 * s
+    local footerH = 50 * s
 
     if state.minimized then
-        fh = 40 * s
+        fh = headerH
     end
 
     frame.Position = Vector2.new(mw, mh)
     frame.Size = Vector2.new(fw, fh)
     header.Position = Vector2.new(mw, mh)
-    header.Size = Vector2.new(fw, 40 * s)
+    header.Size = Vector2.new(fw, headerH)
 
-    local sideW = 200 * s
-    sidebar.Position = Vector2.new(mw, mh + 40 * s)
-    sidebar.Size = Vector2.new(sideW, fh - 40 * s)
+    sidebar.Position = Vector2.new(mw, mh + headerH)
+    sidebar.Size = Vector2.new(sideW, fh - headerH - footerH)
 
     local cX = mw + sideW
-    local cY = mh + 40 * s
+    local cY = mh + headerH
     local cW = fw - sideW
-    local cH = fh - 40 * s
+    local cH = fh - headerH
     content.Position = Vector2.new(cX, cY)
     content.Size = Vector2.new(cW, cH)
 
-    closeBtn.Position = Vector2.new(mw + fw - 30 * s, mh + 10 * s)
-    minimizeBtn.Position = Vector2.new(mw + fw - 55 * s, mh + 10 * s)
+    closeBtn.Position = Vector2.new(mw + fw - 28 * s, mh + 5 * s)
+    minimizeBtn.Position = Vector2.new(mw + fw - 52 * s, mh + 5 * s)
 
-    local tabStartY = mh + 45 * s
+    local tabStartY = mh + headerH + 4 * s
     for i, tabBg in ipairs(tabBgList) do
-        local tabY = tabStartY + (i - 1) * 50 * s
+        local tabY = tabStartY + (i - 1) * 40 * s
         tabBg.Position = Vector2.new(mw + 4 * s, tabY)
-        tabBg.Size = Vector2.new(sideW - 8 * s, 44 * s)
+        tabBg.Size = Vector2.new(sideW - 8 * s, 36 * s)
         tabBg.Color = i == state.currentTab and Theme.Border or Color3.new(0,0,0)
         tabBg.Transparency = i == state.currentTab and 0.15 or 0
     end
     for i, tabTxt in ipairs(tabTextList) do
-        local tabY = tabStartY + (i - 1) * 50 * s
-        tabTxt.Position = Vector2.new(mw + 20 * s, tabY + 12 * s)
+        local tabY = tabStartY + (i - 1) * 40 * s
+        tabTxt.Position = Vector2.new(mw + 20 * s, tabY + 9 * s)
         tabTxt.Color = i == state.currentTab and Theme.Accent or Theme.TextSecondary
+        tabTxt.Size = 13 * s
+    end
+
+    -- user footer
+    local userBg = state._userBg
+    local userNameTxt = state._userNameTxt
+    local userRankTxt = state._userRankTxt
+    if userBg then
+        userBg.Position = Vector2.new(mw, mh + fh - footerH)
+        userBg.Size = Vector2.new(sideW, footerH)
+        userBg.Visible = state.visible
+    end
+    if userNameTxt then
+        userNameTxt.Position = Vector2.new(mw + 10 * s, mh + fh - footerH + 8 * s)
+        userNameTxt.Visible = state.visible
+    end
+    if userRankTxt then
+        userRankTxt.Position = Vector2.new(mw + 10 * s, mh + fh - footerH + 26 * s)
+        userRankTxt.Visible = state.visible
     end
 end
 
@@ -436,9 +472,20 @@ local function rebuildContent()
 end
 
 -- ========== WIDGET ADDERS ==========
-local function addWidgetToTab(tabIdx, type, props)
+local function resolveTab(tabIdx)
+    if type(tabIdx) == "string" then
+        for i, t in ipairs(state.tabs) do
+            if t.name == tabIdx then return i end
+        end
+        return state.currentTab
+    end
     if tabIdx > #state.tabs then tabIdx = #state.tabs end
     if tabIdx < 1 then tabIdx = 1 end
+    return tabIdx
+end
+
+local function addWidgetToTab(tabIdx, type, props)
+    tabIdx = resolveTab(tabIdx or state.currentTab)
     local tab = state.tabs[tabIdx]
     if not tab then return end
     table.insert(tab.widgets, {type = type, props = props})
@@ -486,6 +533,24 @@ end
 function LapoHub:Notify(config)
     config = config or {}
     createNotify(config.title or "Lapo Hub X (Syn Version)", config.content or "", config.duration)
+    return self
+end
+
+-- ========== SET USER ==========
+function LapoHub:SetUser(name, rank)
+    state.userName = name or state.userName
+    state.userRank = rank or state.userRank
+    if state._userNameTxt then
+        state._userNameTxt.Text = state.userName
+    end
+    if state._userRankTxt then
+        state._userRankTxt.Text = state.userRank
+    end
+    return self
+end
+
+function LapoHub:SetUserCallback(cb)
+    state.userCallback = cb
     return self
 end
 
@@ -567,9 +632,9 @@ local function setupInput()
         local mx, my = state.framePos.X, state.framePos.Y
         local sz = state.frameSize
         local s = state.scale
-        local sideW = 200 * s
+        local sideW = 170 * s
 
-        if px >= mx and px <= mx + sz.X and py >= my and py <= my + 40 * s then
+        if px >= mx and px <= mx + sz.X and py >= my and py <= my + 30 * s then
             local closeX = mx + sz.X - 30 * s
             local minX = mx + sz.X - 55 * s
             if px >= closeX - 15 * s and px <= closeX + 15 * s and py >= my + 5 * s and py <= my + 35 * s then
@@ -588,20 +653,29 @@ local function setupInput()
             return
         end
 
-        local tabStartY = my + 45 * s
+        local tabStartY = my + 30 * s + 4 * s
         for i = 1, #state.tabs do
-            local tabY = tabStartY + (i - 1) * 50 * s
-            if px >= mx + 4 * s and px <= mx + sideW - 4 * s and py >= tabY and py <= tabY + 44 * s then
+            local tabY = tabStartY + (i - 1) * 40 * s
+            if px >= mx + 4 * s and px <= mx + sideW - 4 * s and py >= tabY and py <= tabY + 36 * s then
                 state.currentTab = i
                 rebuildContent()
                 return
             end
         end
 
+        -- user footer click
+        local footerH = 50 * s
+        if px >= mx and px <= mx + sideW and py >= my + sz.Y - footerH and py <= my + sz.Y then
+            if state.userCallback then
+                state.userCallback(state.userName, state.userRank)
+            end
+            return
+        end
+
         local cX = mx + sideW
-        local cY = my + 40 * s
+        local cY = my + 30 * s
         local cW = sz.X - sideW
-        local cH = state.minimized and 0 or (sz.Y - 40 * s)
+        local cH = state.minimized and 0 or (sz.Y - 30 * s)
         if px >= cX and px <= cX + cW and py >= cY and py <= cY + cH then
             local relY = py - cY + state.contentOffset
             for _, w in ipairs(widgetList) do
@@ -711,7 +785,7 @@ local function setupInput()
 
         if state.isSliding and state.slidingWidget then
             local w = state.slidingWidget
-            local sideW = 200 * s
+            local sideW = 170 * s
             local cX = state.framePos.X + sideW
             local cW = state.frameSize.X - sideW
             local trackX = cX + 12 * s
@@ -723,11 +797,11 @@ local function setupInput()
         end
 
         if state.initialized then
-            local sideW = 200 * s
+            local sideW = 170 * s
             local cX = state.framePos.X + sideW
-            local cY = state.framePos.Y + 40 * s
+            local cY = state.framePos.Y + 30 * s
             local cW = state.frameSize.X - sideW
-            local cH = state.frameSize.Y - 40 * s
+            local cH = state.frameSize.Y - 30 * s
             if px >= cX and px <= cX + cW and py >= cY and py <= cY + cH then
                 if state.dropdownOpen and state.dropdownWidget then
                     local dw = state.dropdownWidget
@@ -757,11 +831,11 @@ local function setupInput()
         if input.UserInputType == Enum.UserInputType.MouseWheel then
             if not state.visible then return end
             local s = state.scale
-            local sideW = 200 * s
+            local sideW = 170 * s
             local cX = state.framePos.X + sideW
-            local cY = state.framePos.Y + 40 * s
+            local cY = state.framePos.Y + 30 * s
             local cW = state.frameSize.X - sideW
-            local cH = state.frameSize.Y - 40 * s
+            local cH = state.frameSize.Y - 30 * s
             local mp = getMousePos()
             local px, py = mp.X, mp.Y
             if px >= cX and px <= cX + cW and py >= cY and py <= cY + cH then
@@ -854,47 +928,77 @@ local function startRenderLoop()
         local s = state.scale
         local pos = state.framePos
         local sz = state.frameSize
+        local headerH = 30 * s
+        local sideW = 170 * s
+        local footerH = 50 * s
 
         local mw, mh = pos.X, pos.Y
         local fw, fh = sz.X, sz.Y
-        if state.minimized then fh = 40 * s end
+        if state.minimized then fh = headerH end
 
         frame.Position = Vector2.new(mw, mh)
         frame.Size = Vector2.new(fw, fh)
         frame.Visible = true
 
         header.Position = Vector2.new(mw, mh)
-        header.Size = Vector2.new(fw, 40 * s)
+        header.Size = Vector2.new(fw, headerH)
 
-        local sideW = 200 * s
-        sidebar.Position = Vector2.new(mw, mh + 40 * s)
-        sidebar.Size = Vector2.new(sideW, fh - 40 * s)
+        sidebar.Position = Vector2.new(mw, mh + headerH)
+        sidebar.Size = Vector2.new(sideW, fh - headerH - footerH)
 
         local cX = mw + sideW
-        local cY = mh + 40 * s
+        local cY = mh + headerH
         local cW = fw - sideW
-        local cH = fh - 40 * s
+        local cH = fh - headerH
 
         content.Position = Vector2.new(cX, cY)
         content.Size = Vector2.new(cW, cH)
 
-        closeBtn.Position = Vector2.new(mw + fw - 28 * s, mh + 8 * s)
-        minimizeBtn.Position = Vector2.new(mw + fw - 53 * s, mh + 8 * s)
+        closeBtn.Position = Vector2.new(mw + fw - 28 * s, mh + 5 * s)
+        minimizeBtn.Position = Vector2.new(mw + fw - 52 * s, mh + 5 * s)
 
-        local tabStartY = mh + 45 * s
+        local tabStartY = mh + headerH + 4 * s
         for i, tabBg in ipairs(tabBgList) do
-            local tabY = tabStartY + (i - 1) * 50 * s
+            local tabY = tabStartY + (i - 1) * 40 * s
             tabBg.Position = Vector2.new(mw + 4 * s, tabY)
-            tabBg.Size = Vector2.new(sideW - 8 * s, 44 * s)
+            tabBg.Size = Vector2.new(sideW - 8 * s, 36 * s)
             tabBg.Color = i == state.currentTab and Theme.Border or Color3.new(0, 0, 0)
             tabBg.Transparency = i == state.currentTab and 0.15 or 0
             tabBg.Visible = true
         end
         for i, tabTxt in ipairs(tabTextList) do
-            local tabY = tabStartY + (i - 1) * 50 * s
-            tabTxt.Position = Vector2.new(mw + 20 * s, tabY + 12 * s)
+            local tabY = tabStartY + (i - 1) * 40 * s
+            tabTxt.Position = Vector2.new(mw + 20 * s, tabY + 9 * s)
             tabTxt.Color = i == state.currentTab and Theme.Accent or Theme.TextSecondary
+            tabTxt.Size = 13 * s
             tabTxt.Visible = true
+        end
+
+        if not state.minimized then
+            -- user footer
+            local uBg = state._userBg
+            local uName = state._userNameTxt
+            local uRank = state._userRankTxt
+            if uBg then
+                uBg.Position = Vector2.new(mw, mh + fh - footerH)
+                uBg.Size = Vector2.new(sideW, footerH)
+                uBg.Visible = true
+            end
+            if uName then
+                uName.Position = Vector2.new(mw + 10 * s, mh + fh - footerH + 8 * s)
+                uName.Visible = true
+            end
+            if uRank then
+                uRank.Position = Vector2.new(mw + 10 * s, mh + fh - footerH + 26 * s)
+                uRank.Visible = true
+            end
+        else
+            local uBg = state._userBg
+            local uName = state._userNameTxt
+            local uRank = state._userRankTxt
+            if uBg then uBg.Visible = false end
+            if uName then uName.Visible = false end
+            if uRank then uRank.Visible = false end
         end
 
         if not state.minimized then
@@ -1141,20 +1245,20 @@ function LapoHub:Init(config)
 
     local s = state.scale
     if state.mobile then
-        state.frameSize = Vector2.new(580 * s, 700 * s)
+        state.frameSize = Vector2.new(480 * s, 600 * s)
         state.framePos = Vector2.new(20, 40)
     else
-        state.frameSize = Vector2.new(900 * s, 600 * s)
+        state.frameSize = Vector2.new(820 * s, 520 * s)
         state.framePos = Vector2.new(100, 80)
     end
 
     drawingSystem:setup()
 
     local s = state.scale
-    local sideW = 200 * s
+    local sideW = 170 * s
     for i, tab in ipairs(state.tabs) do
         local bg = makeDrawable("Square", {Filled = true, Color = Color3.new(0,0,0), Transparency = 0, ZIndex = 12, Visible = true})
-        local txt = makeDrawable("Text", {Text = (tab.icon or "") .. "  " .. (tab.name or ""), Color = Theme.TextSecondary, Size = 16 * s, Font = FontMonospace, ZIndex = 13, Visible = true})
+        local txt = makeDrawable("Text", {Text = (tab.icon or "") .. "  " .. (tab.name or ""), Color = Theme.TextSecondary, Size = 13 * s, Font = FontMonospace, ZIndex = 13, Visible = true})
         table.insert(tabBgList, bg)
         table.insert(tabTextList, txt)
         table.insert(drgs, bg)
