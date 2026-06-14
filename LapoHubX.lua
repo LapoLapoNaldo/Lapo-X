@@ -1,4 +1,10 @@
-local LapoHub = loadstring(game:HttpGet("https://raw.githubusercontent.com/LapoLapoNaldo/Lapo-X/refs/heads/main/Library.lua"))()
+local LapoHub
+local success, err = pcall(function()
+    return loadstring(readfile("Library.lua"))()
+end)
+if not success or not LapoHub then
+    LapoHub = loadstring(game:HttpGet("https://raw.githubusercontent.com/LapoLapoNaldo/Lapo-X/refs/heads/main/Library.lua"))()
+end
 
 LapoHub:AddTab("📊 Stats", "")
 LapoHub:AddTab("📋 Quests", "")
