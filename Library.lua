@@ -1304,20 +1304,21 @@ local function setupInput()
                 state.isScrolling = false
                 if state.isScrollingDropdown then
                     state.isScrollingDropdown = false
-                elseif state.pressedDropdownItemIndex then
-                    local w = state.dropdownWidget
-                    if w then
-                        local g = dropdownGeom(w)
-                        local slot = state.pressedDropdownItemIndex
-                        local optIdx = w.filtered[w.scroll + slot + 1]
-                        if optIdx then
-                            w.selected = optIdx
-                            w.selectedText.Text = w.options[optIdx] or "Select"
-                            w.callback(w.selected, w.options[optIdx])
-                        end
-                        w.open = false; state.dropdownOpen = false; state.dropdownWidget = nil
-                        if state.sinkTextBox then
-                            state.sinkTextBox:ReleaseFocus()
+                    if not state.draggedPastThreshold and state.pressedDropdownItemIndex then
+                        local w = state.dropdownWidget
+                        if w then
+                            local g = dropdownGeom(w)
+                            local slot = state.pressedDropdownItemIndex
+                            local optIdx = w.filtered[w.scroll + slot + 1]
+                            if optIdx then
+                                w.selected = optIdx
+                                w.selectedText.Text = w.options[optIdx] or "Select"
+                                w.callback(w.selected, w.options[optIdx])
+                            end
+                            w.open = false; state.dropdownOpen = false; state.dropdownWidget = nil
+                            if state.sinkTextBox then
+                                state.sinkTextBox:ReleaseFocus()
+                            end
                         end
                     end
                 elseif state.pressedWidget then
