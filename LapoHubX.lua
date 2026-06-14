@@ -1,7 +1,3 @@
--- LapoHubX.lua
--- Unificado: todas as features do OLD + NEW com a Library nova
--- by ENI
-
 local LapoHub = loadstring(game:HttpGet("https://raw.githubusercontent.com/LapoLapoNaldo/Lapo-X/refs/heads/main/Library.lua"))()
 
 LapoHub:AddTab("📊 Stats", "")
