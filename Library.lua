@@ -1,3 +1,7 @@
+-- Lapo Hub X (Syn Version) — UI Refactor
+-- Visual limpo, estilo Synapse X, com efeitos, glow e botão mobile
+-- by ENI — for LO, sempre
+
 local LapoHub = {}
 LapoHub.__index = LapoHub
 
@@ -132,6 +136,9 @@ local tabTextList    = {}
 local tabAccentList  = {}  -- barrinha lateral da tab ativa
 local contentDrawings = {}
 local widgetList      = {}
+
+-- máximo de itens visíveis num popup de dropdown (o resto rola)
+local DD_MAX_VIS = 6
 
 -- helpers de pool
 local function pool(obj) table.insert(drgs, obj); return obj end
@@ -533,8 +540,9 @@ local function newWidget(kind, props)
         return w
 
     elseif kind == "Dropdown" then
-        local options = props.options or {}
-        local sel     = props.default or 1
+        local options    = props.options or {}
+        local sel        = props.default or 1
+        local searchable = props.search == true
         local bg       = cdraw(make("Square", {Filled=true,  Color=Theme.BgWidget,  Transparency=1, ZIndex=15}))
         local border   = cdraw(make("Square", {Filled=false, Color=Theme.Border,    Thickness=1, Transparency=1, ZIndex=16}))
         local dispBg   = cdraw(make("Square", {Filled=true,  Color=Theme.BgInput,   Transparency=1, ZIndex=16}))
@@ -544,23 +552,50 @@ local function newWidget(kind, props)
         local arrow    = cdraw(make("Text",   {Text="▾", Color=Theme.Accent, Size=12*s, Font=Font, ZIndex=18}))
         local popupBg  = cdraw(make("Square", {Filled=true, Color=Theme.BgDeep,     Transparency=1, ZIndex=20}))
         local popupBd  = cdraw(make("Square", {Filled=false,Color=Theme.Border,     Thickness=1, Transparency=1, ZIndex=20}))
-        local popupDraws = {popupBd}
-        table.insert(contentDrawings, popupBd)
-        return {
+        -- caixa de busca (criada sempre; só aparece quando search=true e aberto)
+        local searchBg = cdraw(make("Square", {Filled=true,  Color=Theme.BgInput, Transparency=1, ZIndex=21}))
+        local searchBd = cdraw(make("Square", {Filled=false, Color=Theme.Accent,  Thickness=1, Transparency=1, ZIndex=22}))
+        local searchIc = cdraw(make("Text",   {Text="⌕", Color=Theme.TextSub, Size=13*s, Font=Font, ZIndex=23}))
+        local searchTx = cdraw(make("Text",   {Text="Pesquisar...", Color=Theme.TextMuted, Size=12*s, Font=Font, ZIndex=23}))
+
+        local w = {
             type="Dropdown", bg=bg, border=border, dispBg=dispBg, dispBd=dispBd,
-            label=lbl, selectedText=selTxt, arrow=arrow, popupBg=popupBg,
-            popupBd=popupBd, popupDraws=popupDraws,
+            label=lbl, selectedText=selTxt, arrow=arrow, popupBg=popupBg, popupBd=popupBd,
+            searchBg=searchBg, searchBd=searchBd, searchIc=searchIc, searchTx=searchTx,
+            search=searchable, query="",
             text=props.text or "Dropdown", options=options, selected=sel,
             callback=props.callback or function()end,
-            open=false, hoverIdx=1,
+            open=false, hoverIdx=sel, scroll=0,
+            itemDraws={}, filtered={},
             y=0, h=44*s,
-            destroy=function()
-                bg:Remove(); border:Remove(); dispBg:Remove(); dispBd:Remove()
-                lbl:Remove(); selTxt:Remove(); arrow:Remove()
-                popupBg:Remove(); popupBd:Remove()
-                for _, d in ipairs(popupDraws) do pcall(function() d:Remove() end) end
-            end
         }
+        -- cria os "slots" de item reaproveitáveis (no máximo DD_MAX_VIS na tela)
+        for _ = 1, DD_MAX_VIS do
+            local ob = cdraw(make("Square", {Filled=true, Color=Theme.BgWidget, Transparency=1, ZIndex=21}))
+            local ot = cdraw(make("Text",   {Text="", Color=Theme.Text, Size=12*s, Font=Font, ZIndex=22}))
+            table.insert(w.itemDraws, {bg=ob, txt=ot})
+        end
+        -- aplica o filtro da busca sobre as opções -> preenche w.filtered (índices originais)
+        w.applyFilter = function(self)
+            self.filtered = {}
+            local q = string.lower(self.query or "")
+            for idx, opt in ipairs(self.options) do
+                if q == "" or string.find(string.lower(tostring(opt)), q, 1, true) then
+                    table.insert(self.filtered, idx)
+                end
+            end
+            self.scroll   = 0
+            self.hoverIdx = self.filtered[1] or self.selected
+        end
+        w:applyFilter()
+        w.destroy = function()
+            bg:Remove(); border:Remove(); dispBg:Remove(); dispBd:Remove()
+            lbl:Remove(); selTxt:Remove(); arrow:Remove()
+            popupBg:Remove(); popupBd:Remove()
+            searchBg:Remove(); searchBd:Remove(); searchIc:Remove(); searchTx:Remove()
+            for _, it in ipairs(w.itemDraws) do pcall(function() it.bg:Remove(); it.txt:Remove() end) end
+        end
+        return w
 
     elseif kind == "TextBox" then
         local bg      = cdraw(make("Square", {Filled=true,  Color=Theme.BgWidget, Transparency=1, ZIndex=15}))
@@ -622,6 +657,27 @@ local function rebuildContent()
         end
     end
     state.maxOffset = math.max(0, curY - (state.frameSize.Y - 80 * s))
+end
+
+-- ========== DROPDOWN GEOMETRY ==========
+-- calcula posição/tamanho do popup de um dropdown (mesma conta usada em todo lugar)
+local function dropdownGeom(w)
+    local s      = state.scale
+    local SIDE_W = 160 * s
+    local cX     = state.framePos.X + SIDE_W + 1
+    local cY     = state.framePos.Y + 34 * s          -- HEADER_H
+    local cW     = state.frameSize.X - SIDE_W - 1
+    local ITEM_H = 32 * s
+    local searchH= w.search and 30 * s or 0
+    local popX   = cX + 8 * s
+    local popY   = cY + w.y - state.contentOffset + w.h
+    local popW   = cW - 16 * s
+    local visN   = math.min(#w.filtered, DD_MAX_VIS)
+    local popH   = searchH + visN * ITEM_H
+    return {
+        s=s, cX=cX, cY=cY, cW=cW, ITEM_H=ITEM_H, searchH=searchH,
+        popX=popX, popY=popY, popW=popW, visN=visN, popH=popH,
+    }
 end
 
 -- ========== TAB HELPERS ==========
@@ -775,6 +831,35 @@ local function setupInput()
 
         if not state.visible then return end
 
+        -- ── PRIORIDADE: dropdown aberto absorve o clique (corrige o "vazamento"
+        --    pro widget de baixo). Clique no popup seleciona; fora dele, fecha.
+        if state.dropdownOpen and state.dropdownWidget then
+            local w = state.dropdownWidget
+            local g = dropdownGeom(w)
+            local inSearch = w.search and inRect(px,py, g.popX, g.popY, g.popW, g.searchH)
+            local inItems  = inRect(px,py, g.popX, g.popY + g.searchH, g.popW, g.visN * g.ITEM_H)
+            if inSearch then
+                return  -- mantém aberto (a busca captura o teclado automaticamente)
+            elseif inItems then
+                local slot   = math.floor((py - (g.popY + g.searchH)) / g.ITEM_H)
+                local optIdx = w.filtered[w.scroll + slot + 1]
+                if optIdx then
+                    w.selected = optIdx
+                    w.selectedText.Text = w.options[optIdx] or "Select"
+                    w.callback(w.selected, w.options[optIdx])
+                end
+                w.open = false; state.dropdownOpen = false; state.dropdownWidget = nil
+                return
+            else
+                -- fora do popup: fecha. Se clicou no próprio header do dropdown,
+                -- consome o clique (senão o loop de widgets reabriria embaixo).
+                w.open = false; state.dropdownOpen = false; state.dropdownWidget = nil
+                local wy = g.cY + w.y - state.contentOffset
+                if inRect(px,py, g.cX + 10*s, wy, g.cW - 20*s, w.h) then return end
+                -- senão, deixa o clique seguir o fluxo normal
+            end
+        end
+
         -- header — drag ou botões
         if inRect(px,py, mw,mh, fw,HEADER_H) then
             local closeX = mw + fw - BTN_PAD - BTN_SZ
@@ -834,43 +919,16 @@ local function setupInput()
                             w:updateValue(w.min + math.clamp((px-trackX)/trackW,0,1)*(w.max-w.min))
                             return
                         elseif w.type == "Dropdown" then
-                            -- checar clique em popup aberta
-                            if w.open then
-                                local DISPW  = 150*s
-                                local dispX  = cX + (cW-SIDE_W)/2 + SIDE_W/2 - DISPW/2
-                                -- usa posição salva
-                                local ITEM_H = 32*s
-                                local popY   = cY + w.y - state.contentOffset + w.h
-                                local popH   = #w.options * ITEM_H
-                                if inRect(px,py, cX+8*s, popY, cW-16*s, popH) then
-                                    local idx = math.floor((py-popY)/ITEM_H)+1
-                                    idx = math.clamp(idx,1,#w.options)
-                                    w.selected = idx
-                                    w.selectedText.Text = w.options[idx] or "Select"
-                                    w.callback(w.selected, w.options[idx])
-                                end
-                                w.open = false
-                                state.dropdownOpen  = false
-                                state.dropdownWidget= nil
-                                for _, d in ipairs(w.popupDraws) do pcall(function() d:Remove() end) end
-                                w.popupDraws = {}
-                                return
-                            else
-                                w.open = true; w.hoverIdx = w.selected
-                                state.dropdownOpen   = true
-                                state.dropdownWidget = w
-                                for _, d in ipairs(w.popupDraws) do pcall(function() d:Remove() end) end
-                                w.popupDraws = {}
-                                for idx, opt in ipairs(w.options) do
-                                    local ob = make("Square", {Filled=true,  Color=Theme.BgWidget, Transparency=1, ZIndex=21})
-                                    local ot = make("Text",   {Text=opt, Color=Theme.Text, Size=12*s, Font=Font, ZIndex=22})
-                                    table.insert(w.popupDraws, ob)
-                                    table.insert(w.popupDraws, ot)
-                                    table.insert(contentDrawings, ob)
-                                    table.insert(contentDrawings, ot)
-                                end
-                                return
-                            end
+                            -- abre o dropdown; fechar/selecionar é tratado no
+                            -- bloco de PRIORIDADE no topo do InputBegan
+                            w.open   = true
+                            w.query  = ""
+                            w.scroll = 0
+                            w:applyFilter()
+                            w.hoverIdx = w.selected
+                            state.dropdownOpen   = true
+                            state.dropdownWidget = w
+                            return
                         elseif w.type == "TextBox" then
                             for _, ww in ipairs(widgetList) do
                                 if ww.type=="TextBox" and ww.focused then
@@ -900,11 +958,6 @@ local function setupInput()
                         w.inputBd.Color = Theme.Border
                         if w.value~="" then w.valueText.Color=Theme.Text; w.callback(w.value)
                         else w.valueText.Text=w.placeholder; w.valueText.Color=Theme.TextMuted end
-                    end
-                    if w.type=="Dropdown" and w.open then
-                        w.open=false; state.dropdownOpen=false; state.dropdownWidget=nil
-                        for _, d in ipairs(w.popupDraws) do pcall(function() d:Remove() end) end
-                        w.popupDraws={}
                     end
                 end
             end
@@ -943,24 +996,14 @@ local function setupInput()
             return
         end
 
-        -- hover em dropdown popup
+        -- hover em dropdown popup (a cor é aplicada no render via hoverIdx)
         if state.dropdownOpen and state.dropdownWidget then
-            local dw     = state.dropdownWidget
-            local SIDE_W = 160*s
-            local cX     = state.framePos.X + SIDE_W + 1
-            local cY     = state.framePos.Y + 34*s
-            local cW     = state.frameSize.X - SIDE_W - 1
-            local ITEM_H = 32*s
-            local popY   = cY + dw.y - state.contentOffset + dw.h
-            local popH   = #dw.options * ITEM_H
-            if inRect(px,py, cX+8*s,popY, cW-16*s,popH) then
-                local idx = math.clamp(math.floor((py-popY)/ITEM_H)+1, 1, #dw.options)
-                dw.hoverIdx = idx
-                for i, d in ipairs(dw.popupDraws) do
-                    if i%2==1 then
-                        d.Color = (math.floor((i-1)/2)+1)==idx and Theme.BgPanel or Theme.BgWidget
-                    end
-                end
+            local dw = state.dropdownWidget
+            local g  = dropdownGeom(dw)
+            if inRect(px,py, g.popX, g.popY+g.searchH, g.popW, g.visN*g.ITEM_H) then
+                local slot   = math.floor((py-(g.popY+g.searchH))/g.ITEM_H)
+                local optIdx = dw.filtered[dw.scroll + slot + 1]
+                if optIdx then dw.hoverIdx = optIdx end
             end
         end
     end)
@@ -970,23 +1013,81 @@ local function setupInput()
     local c6 = uis.InputChanged:Connect(function(inp)
         if inp.UserInputType ~= Enum.UserInputType.MouseWheel then return end
         if not state.visible or state.minimized then return end
+        local pos = mp()
+
+        -- dropdown aberto sob o mouse -> rola a LISTA do dropdown
+        if state.dropdownOpen and state.dropdownWidget then
+            local w = state.dropdownWidget
+            local g = dropdownGeom(w)
+            if inRect(pos.X,pos.Y, g.popX, g.popY, g.popW, g.popH) then
+                local maxScroll = math.max(0, #w.filtered - DD_MAX_VIS)
+                w.scroll = math.clamp(w.scroll - inp.Position.Z, 0, maxScroll)
+                return
+            end
+        end
+
         local s      = state.scale
         local SIDE_W = 160*s
         local cX     = state.framePos.X + SIDE_W + 1
         local cY     = state.framePos.Y + 34*s
         local cW     = state.frameSize.X - SIDE_W - 1
         local cH     = state.frameSize.Y - 34*s
-        local pos    = mp()
         if inRect(pos.X,pos.Y, cX,cY, cW,cH) then
             state.contentOffset = math.clamp(state.contentOffset - inp.Position.Z*32, 0, state.maxOffset)
         end
     end)
     table.insert(state.connections, c6)
 
-    -- teclado — textbox
+    -- converte um KeyCode em caractere imprimível ("" se não for)
+    local function keyToChar(inp)
+        local kc = inp.KeyCode
+        local shift = uis:IsKeyDown(Enum.KeyCode.LeftShift) or uis:IsKeyDown(Enum.KeyCode.RightShift)
+        if kc >= Enum.KeyCode.A and kc <= Enum.KeyCode.Z then
+            local ch = string.char(string.byte("A") + (kc.Value - 8))
+            if not shift then ch = string.lower(ch) end
+            return ch
+        elseif kc >= Enum.KeyCode.One and kc <= Enum.KeyCode.Zero then
+            return tostring((kc.Value - 9) % 10)
+        elseif kc == Enum.KeyCode.Space then
+            return " "
+        end
+        return ""
+    end
+
+    -- teclado — busca do dropdown e textbox
     local c7 = uis.InputBegan:Connect(function(inp, gpe)
         if gpe then return end
         if inp.UserInputType ~= Enum.UserInputType.Keyboard then return end
+
+        -- dropdown com busca aberto captura a digitação
+        if state.dropdownOpen and state.dropdownWidget and state.dropdownWidget.search then
+            local w = state.dropdownWidget
+            if inp.KeyCode == Enum.KeyCode.Backspace then
+                w.query = string.sub(w.query or "", 1, -2)
+                w:applyFilter()
+                return
+            elseif inp.KeyCode == Enum.KeyCode.Return then
+                local optIdx = w.filtered[1]
+                if optIdx then
+                    w.selected = optIdx
+                    w.selectedText.Text = w.options[optIdx] or "Select"
+                    w.callback(w.selected, w.options[optIdx])
+                end
+                w.open=false; state.dropdownOpen=false; state.dropdownWidget=nil
+                return
+            elseif inp.KeyCode == Enum.KeyCode.Escape then
+                w.open=false; state.dropdownOpen=false; state.dropdownWidget=nil
+                return
+            else
+                local char = keyToChar(inp)
+                if #char > 0 then
+                    w.query = (w.query or "") .. char
+                    w:applyFilter()
+                end
+                return
+            end
+        end
+
         for _, w in ipairs(widgetList) do
             if w.type=="TextBox" and w.focused then
                 if inp.KeyCode == Enum.KeyCode.Backspace then
@@ -1001,16 +1102,7 @@ local function setupInput()
                     else w.valueText.Color=Theme.Text end
                     return
                 end
-                local char = ""
-                local shift = uis:IsKeyDown(Enum.KeyCode.LeftShift) or uis:IsKeyDown(Enum.KeyCode.RightShift)
-                if inp.KeyCode >= Enum.KeyCode.A and inp.KeyCode <= Enum.KeyCode.Z then
-                    char = string.char(string.byte("A") + (inp.KeyCode.Value - 8))
-                    if not shift then char = string.lower(char) end
-                elseif inp.KeyCode >= Enum.KeyCode.One and inp.KeyCode <= Enum.KeyCode.Zero then
-                    char = tostring((inp.KeyCode.Value - 9) % 10)
-                elseif inp.KeyCode == Enum.KeyCode.Space then
-                    char = " "
-                end
+                local char = keyToChar(inp)
                 if #char > 0 then
                     w.value = (w.value or "") .. char
                     w.valueText.Text  = w.value
@@ -1068,11 +1160,11 @@ local function startRenderLoop()
             n.border.Visible      = al > 0
 
             n.titleT.Position     = Vector2.new(NX + 10*s, ny + 10*s)
-            n.titleT.Transparency = al > 0 and 0 or 1
+            n.titleT.Transparency = al
             n.titleT.Visible      = al > 0
 
             n.descT.Position      = Vector2.new(NX + 10*s, ny + 30*s)
-            n.descT.Transparency  = al > 0 and 0 or 1
+            n.descT.Transparency  = al
             n.descT.Visible       = al > 0
 
             -- barra de progresso na base
@@ -1202,7 +1294,7 @@ local function startRenderLoop()
                     hide(w.bg, w.label, w.border)
                     if w.type=="Toggle"    then hide(w.trackBg,w.trackBd,w.knob) end
                     if w.type=="Slider"    then hide(w.track,w.fill,w.thumb,w.thumbGl,w.valText) end
-                    if w.type=="Dropdown"  then hide(w.dispBg,w.dispBd,w.selectedText,w.arrow,w.popupBg,w.popupBd) for _,d in ipairs(w.popupDraws) do setVis(d,false) end end
+                    if w.type=="Dropdown"  then hide(w.dispBg,w.dispBd,w.selectedText,w.arrow,w.popupBg,w.popupBd,w.searchBg,w.searchBd,w.searchIc,w.searchTx) for _,it in ipairs(w.itemDraws) do setVis(it.bg,false); setVis(it.txt,false) end end
                     if w.type=="TextBox"   then hide(w.inputBg,w.inputBd,w.valueText,w.cursor) end
                     if w.type=="Separator" then hide(w.line) end
                 else
@@ -1336,28 +1428,65 @@ local function startRenderLoop()
                         w.arrow.Text        = w.open and "▴" or "▾"
                         w.arrow.Visible     = true
 
-                        w.popupBg.Visible   = w.open
-                        w.popupBd.Visible   = w.open
+                        -- popup (busca + lista com scroll)
                         if w.open then
-                            local ITEM_H = 32*ss
-                            local popY   = wy + wh
-                            local popH   = #w.options * ITEM_H
-                            w.popupBg.Position = Vector2.new(cX+8*ss, popY)
-                            w.popupBg.Size     = Vector2.new(cW-16*ss, popH)
-                            w.popupBd.Position = Vector2.new(cX+8*ss, popY)
-                            w.popupBd.Size     = Vector2.new(cW-16*ss, popH)
-                            for i, d in ipairs(w.popupDraws) do
-                                d.Visible = true
-                                if i%2==1 then
-                                    local optIdx = math.floor((i-1)/2)+1
-                                    d.Position = Vector2.new(cX+8*ss, popY+(optIdx-1)*ITEM_H)
-                                    d.Size     = Vector2.new(cW-16*ss, ITEM_H)
-                                    d.Color    = (optIdx==w.hoverIdx) and Theme.BgPanel or Theme.BgWidget
+                            local g = dropdownGeom(w)
+                            w.popupBg.Visible  = true
+                            w.popupBd.Visible  = true
+                            w.popupBg.Position = Vector2.new(g.popX, g.popY)
+                            w.popupBg.Size     = Vector2.new(g.popW, g.popH)
+                            w.popupBd.Position = Vector2.new(g.popX, g.popY)
+                            w.popupBd.Size     = Vector2.new(g.popW, g.popH)
+
+                            -- caixa de busca (só se search=true)
+                            if w.search then
+                                w.searchBg.Visible  = true
+                                w.searchBd.Visible  = true
+                                w.searchIc.Visible  = true
+                                w.searchTx.Visible  = true
+                                w.searchBg.Position = Vector2.new(g.popX, g.popY)
+                                w.searchBg.Size     = Vector2.new(g.popW, g.searchH)
+                                w.searchBd.Position = Vector2.new(g.popX, g.popY)
+                                w.searchBd.Size     = Vector2.new(g.popW, g.searchH)
+                                w.searchIc.Position = Vector2.new(g.popX+7*ss,  g.popY+(g.searchH-13*ss)/2)
+                                w.searchTx.Position = Vector2.new(g.popX+22*ss, g.popY+(g.searchH-12*ss)/2)
+                                if w.query ~= "" then
+                                    w.searchTx.Text  = w.query
+                                    w.searchTx.Color = Theme.Text
                                 else
-                                    local optIdx = math.floor((i-2)/2)+1
-                                    d.Position = Vector2.new(cX+18*ss, popY+(optIdx-1)*ITEM_H+(ITEM_H-12*ss)/2)
-                                    d.Color    = (optIdx==w.hoverIdx) and Theme.Text or Theme.TextSub
+                                    w.searchTx.Text  = "Pesquisar..."
+                                    w.searchTx.Color = Theme.TextMuted
                                 end
+                            else
+                                w.searchBg.Visible=false; w.searchBd.Visible=false
+                                w.searchIc.Visible=false; w.searchTx.Visible=false
+                            end
+
+                            -- itens visíveis (janela de DD_MAX_VIS + scroll)
+                            for k, slot in ipairs(w.itemDraws) do
+                                local optIdx = (k <= g.visN) and w.filtered[w.scroll + k] or nil
+                                if optIdx then
+                                    local iy       = g.popY + g.searchH + (k-1)*g.ITEM_H
+                                    local hovered  = (optIdx == w.hoverIdx)
+                                    local selected = (optIdx == w.selected)
+                                    slot.bg.Visible  = true
+                                    slot.bg.Position = Vector2.new(g.popX, iy)
+                                    slot.bg.Size     = Vector2.new(g.popW, g.ITEM_H)
+                                    slot.bg.Color    = hovered and Theme.BgPanel or (selected and Theme.BgWidget or Theme.BgDeep)
+                                    slot.txt.Visible  = true
+                                    slot.txt.Position = Vector2.new(g.popX+10*ss, iy+(g.ITEM_H-12*ss)/2)
+                                    slot.txt.Text     = tostring(w.options[optIdx])
+                                    slot.txt.Color    = (hovered or selected) and Theme.Text or Theme.TextSub
+                                else
+                                    slot.bg.Visible=false; slot.txt.Visible=false
+                                end
+                            end
+                        else
+                            w.popupBg.Visible=false; w.popupBd.Visible=false
+                            w.searchBg.Visible=false; w.searchBd.Visible=false
+                            w.searchIc.Visible=false; w.searchTx.Visible=false
+                            for _, slot in ipairs(w.itemDraws) do
+                                slot.bg.Visible=false; slot.txt.Visible=false
                             end
                         end
 
@@ -1400,8 +1529,14 @@ local function startRenderLoop()
                 for _, o in pairs({w.bg,w.label,w.border,w.track,w.fill,w.thumb,w.thumbGl,
                     w.valText,w.trackBg,w.trackBd,w.knob,w.dispBg,w.dispBd,
                     w.selectedText,w.arrow,w.popupBg,w.popupBd,w.inputBg,w.inputBd,
-                    w.valueText,w.cursor,w.bar,w.line}) do
+                    w.valueText,w.cursor,w.bar,w.line,
+                    w.searchBg,w.searchBd,w.searchIc,w.searchTx}) do
                     if o then pcall(function() o.Visible=false end) end
+                end
+                if w.itemDraws then
+                    for _, it in ipairs(w.itemDraws) do
+                        pcall(function() it.bg.Visible=false; it.txt.Visible=false end)
+                    end
                 end
             end
         end
