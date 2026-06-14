@@ -23,7 +23,7 @@ local state = {
     dropdownOpen = false,
     dropdownWidget = nil,
     framePos = Vector2.new(120, 80),
-    frameSize = Vector2.new(860, 540),
+    frameSize = Vector2.new(960, 600),
     hasDrawing = pcall(function() return Drawing.new end),
     connections = {},
     initialized = false,
@@ -130,10 +130,10 @@ local function loadConfig()
 end
 
 -- ========== DRAWING POOLS ==========
-local drgs           = {}  -- elementos de estrutura
+local drgs           = {}
 local tabBgList      = {}
 local tabTextList    = {}
-local tabAccentList  = {}  -- barrinha lateral da tab ativa
+local tabAccentList  = {}
 local contentDrawings = {}
 local widgetList      = {}
 
@@ -145,96 +145,83 @@ local function pool(obj) table.insert(drgs, obj); return obj end
 local function cdraw(obj) table.insert(contentDrawings, obj); return obj end
 
 -- ========== ESTRUTURA PRINCIPAL ==========
-local ui = {}   -- frame, header, sidebar, content, dividers, títulos
+local ui = {}
 
 local function buildStructure()
     local s = state.scale
 
-    -- ── sombra externa (ilusão via quadrado maior levemente transparente)
     ui.shadow = pool(make("Square", {
         Filled = true, Color = Color3.new(0,0,0),
         Transparency = 0.6, ZIndex = 8, Visible = state.visible
     }))
 
-    -- ── frame principal
     ui.frame = pool(make("Square", {
         Filled = true, Color = Theme.BgBase,
         Transparency = 1, ZIndex = 9, Visible = state.visible
     }))
 
-    -- ── borda externa fina (1px feel)
     ui.frameBorder = pool(make("Square", {
         Filled = false, Color = Theme.Border,
         Thickness = 1, Transparency = 1, ZIndex = 10, Visible = state.visible
     }))
 
-    -- ── header
     ui.header = pool(make("Square", {
         Filled = true, Color = Theme.BgPanel,
         Transparency = 1, ZIndex = 10, Visible = state.visible
     }))
 
-    -- ── linha separadora header / corpo
     ui.headerLine = pool(make("Square", {
         Filled = true, Color = Theme.Accent,
         Transparency = 1, ZIndex = 12, Visible = state.visible
     }))
 
-    -- ── título no header
     ui.titleText = pool(make("Text", {
         Text = state.title, Color = Theme.Text,
-        Size = 15 * s, Font = Font,
+        Size = 19 * s, Font = Font,
         ZIndex = 13, Visible = state.visible
     }))
 
-    -- ── versão / subtítulo
     ui.subtitleText = pool(make("Text", {
         Text = "syn version", Color = Theme.Accent,
-        Size = 10 * s, Font = Font,
+        Size = 14 * s, Font = Font,
         ZIndex = 13, Visible = state.visible
     }))
 
-    -- ── botão fechar
     ui.closeBtn = pool(make("Square", {
         Filled = true, Color = Theme.Danger,
         Transparency = 1, ZIndex = 13, Visible = state.visible
     }))
     ui.closeTxt = pool(make("Text", {
         Text = "✕", Color = Theme.Text,
-        Size = 12 * s, Font = Font,
+        Size = 16 * s, Font = Font,
         ZIndex = 14, Visible = state.visible
     }))
 
-    -- ── botão minimizar
     ui.minBtn = pool(make("Square", {
         Filled = true, Color = Theme.BgWidget,
         Transparency = 1, ZIndex = 13, Visible = state.visible
     }))
     ui.minTxt = pool(make("Text", {
         Text = "─", Color = Theme.TextSub,
-        Size = 12 * s, Font = Font,
+        Size = 16 * s, Font = Font,
         ZIndex = 14, Visible = state.visible
     }))
 
-    -- ── sidebar
     ui.sidebar = pool(make("Square", {
         Filled = true, Color = Theme.BgPanel,
         Transparency = 1, ZIndex = 10, Visible = state.visible
     }))
 
-    -- ── linha separadora sidebar / content
     ui.sidebarLine = pool(make("Square", {
         Filled = true, Color = Theme.Separator,
         Transparency = 1, ZIndex = 12, Visible = state.visible
     }))
 
-    -- ── content area
     ui.content = pool(make("Square", {
         Filled = true, Color = Theme.BgBase,
         Transparency = 1, ZIndex = 10, Visible = state.visible
     }))
 
-    -- ── footer da sidebar (perfil)
     ui.footerBg = pool(make("Square", {
         Filled = true, Color = Theme.BgDeep,
         Transparency = 1, ZIndex = 11, Visible = state.visible
@@ -249,12 +236,12 @@ local function buildStructure()
     }))
     ui.footerName = pool(make("Text", {
         Text = state.userName, Color = Theme.Text,
-        Size = 12 * s, Font = Font,
+        Size = 16 * s, Font = Font,
         ZIndex = 13, Visible = state.visible
     }))
     ui.footerRank = pool(make("Text", {
         Text = state.userRank, Color = Theme.Accent,
-        Size = 10 * s, Font = Font,
+        Size = 14 * s, Font = Font,
         ZIndex = 13, Visible = state.visible
     }))
 
@@ -262,7 +249,6 @@ local function buildStructure()
     state._userRankTxt = ui.footerRank
     state._userBg      = ui.footerBg
 
-    -- ── botão mobile (FAB — Floating Action Button)
     if state.mobile then
         ui.mobileBtn = pool(make("Square", {
             Filled = true, Color = Theme.Accent,
@@ -274,7 +260,7 @@ local function buildStructure()
         }))
         ui.mobileBtnTxt = pool(make("Text", {
             Text = "☰", Color = Theme.Text,
-            Size = 20 * s, Font = Font,
+            Size = 24 * s, Font = Font,
             ZIndex = 102, Visible = true
         }))
     end
@@ -295,10 +281,9 @@ local function buildTabs()
         }))
         local txt = pool(make("Text", {
             Text = (tab.icon and tab.icon ~= "" and (tab.icon .. "  ") or "") .. (tab.name or "Tab"),
-            Color = Theme.TextSub, Size = 12 * s, Font = Font,
+            Color = Theme.TextSub, Size = 16 * s, Font = Font,
             ZIndex = 13, Visible = state.visible
         }))
-        -- barrinha lateral de seleção
         local accent = pool(make("Square", {
             Filled = true, Color = Theme.Accent,
             Transparency = 1, ZIndex = 14, Visible = state.visible
@@ -321,17 +306,15 @@ local function updateLayout()
     local SIDE_W    = 160 * s
     local FOOTER_H  = 52 * s
     local SHADOW_P  = 8 * s
-    local BTN_SZ    = 22 * s    -- tamanho dos botões close/min
+    local BTN_SZ    = 22 * s
     local BTN_PAD   = 10 * s
 
     if state.minimized then fh = HEADER_H end
 
-    -- sombra
     ui.shadow.Position = Vector2.new(mw - SHADOW_P, mh - SHADOW_P)
     ui.shadow.Size     = Vector2.new(fw + SHADOW_P*2, fh + SHADOW_P*2)
     ui.shadow.Visible  = state.visible
 
-    -- frame
     ui.frame.Position  = Vector2.new(mw, mh)
     ui.frame.Size      = Vector2.new(fw, fh)
     ui.frame.Visible   = state.visible
@@ -340,26 +323,22 @@ local function updateLayout()
     ui.frameBorder.Size     = Vector2.new(fw, fh)
     ui.frameBorder.Visible  = state.visible
 
-    -- header
     ui.header.Position  = Vector2.new(mw, mh)
     ui.header.Size      = Vector2.new(fw, HEADER_H)
     ui.header.Visible   = state.visible
 
-    -- linha accent no fundo do header
     ui.headerLine.Position = Vector2.new(mw, mh + HEADER_H - 1)
     ui.headerLine.Size     = Vector2.new(fw, 1)
     ui.headerLine.Visible  = state.visible
 
-    -- título
-    ui.titleText.Position  = Vector2.new(mw + 14 * s, mh + (HEADER_H - 15 * s) / 2 - 5 * s)
+    ui.titleText.Position  = Vector2.new(mw + 14 * s, mh + (HEADER_H - 19 * s) / 2 - 5 * s)
     ui.titleText.Visible   = state.visible
-    ui.titleText.Size      = 14 * s
+    ui.titleText.Size      = 18 * s
 
-    ui.subtitleText.Position = Vector2.new(mw + 14 * s, mh + (HEADER_H - 15 * s) / 2 + 10 * s)
+    ui.subtitleText.Position = Vector2.new(mw + 14 * s, mh + (HEADER_H - 19 * s) / 2 + 10 * s)
     ui.subtitleText.Visible  = state.visible
-    ui.subtitleText.Size     = 9 * s
+    ui.subtitleText.Size     = 13 * s
 
-    -- botões header (close, minimize) — círculos
     local btnY   = mh + (HEADER_H - BTN_SZ) / 2
     local closeX = mw + fw - BTN_PAD - BTN_SZ
     local minX   = closeX - BTN_SZ - 6 * s
@@ -391,7 +370,6 @@ local function updateLayout()
         return
     end
 
-    -- sidebar
     ui.sidebar.Position  = Vector2.new(mw, mh + HEADER_H)
     ui.sidebar.Size      = Vector2.new(SIDE_W, fh - HEADER_H)
     ui.sidebar.Visible   = state.visible
@@ -400,7 +378,6 @@ local function updateLayout()
     ui.sidebarLine.Size     = Vector2.new(1, fh - HEADER_H)
     ui.sidebarLine.Visible  = state.visible
 
-    -- content
     local cX = mw + SIDE_W + 1
     local cY = mh + HEADER_H
     local cW = fw - SIDE_W - 1
@@ -409,7 +386,6 @@ local function updateLayout()
     ui.content.Size     = Vector2.new(cW, cH)
     ui.content.Visible  = state.visible
 
-    -- footer do sidebar
     local dot = 7 * s
     ui.footerBg.Position   = Vector2.new(mw, mh + fh - FOOTER_H)
     ui.footerBg.Size       = Vector2.new(SIDE_W, FOOTER_H)
@@ -429,7 +405,6 @@ local function updateLayout()
     ui.footerRank.Position = Vector2.new(mw + 24 * s, mh + fh - FOOTER_H + 27 * s)
     ui.footerRank.Visible  = state.visible
 
-    -- tabs
     local TAB_H   = 38 * s
     local TAB_PAD = 6 * s
     local tabAreaH = (fh - HEADER_H - FOOTER_H)
@@ -444,11 +419,10 @@ local function updateLayout()
         bg.Transparency= active and 1 or 0
         bg.Visible     = state.visible
 
-        tabTextList[i].Position  = Vector2.new(mw + 22 * s, tabY + (TAB_H - 12 * s) / 2)
+        tabTextList[i].Position  = Vector2.new(mw + 22 * s, tabY + (TAB_H - 16 * s) / 2)
         tabTextList[i].Color     = active and Theme.Text or Theme.TextSub
         tabTextList[i].Visible   = state.visible
 
-        -- barrinha lateral
         tabAccentList[i].Position    = Vector2.new(mw + 2 * s, tabY + 6 * s)
         tabAccentList[i].Size        = Vector2.new(3 * s, TAB_H - 12 * s)
         tabAccentList[i].Transparency= active and 1 or 0
@@ -456,7 +430,6 @@ local function updateLayout()
         tabAccentList[i].Visible     = state.visible
     end
 
-    -- botão mobile
     if state.mobile and ui.mobileBtn then
         local BS  = 44 * s
         local BX  = mw + fw + 8 * s
@@ -480,12 +453,12 @@ local function newWidget(kind, props)
         local bg     = cdraw(make("Square", {Filled=true, Color=Theme.BgWidget,  Transparency=1, ZIndex=15}))
         local border = cdraw(make("Square", {Filled=false, Color=Theme.Border,   Thickness=1, Transparency=1, ZIndex=16}))
         local bar    = cdraw(make("Square", {Filled=true, Color=Theme.AccentDim, Transparency=1, ZIndex=16}))
-        local lbl    = cdraw(make("Text",   {Text=props.text or "Button", Color=Theme.Text, Size=13*s, Font=Font, ZIndex=17}))
+        local lbl    = cdraw(make("Text",   {Text=props.text or "Button", Color=Theme.Text, Size=17*s, Font=Font, ZIndex=17}))
         return {
             type="Button", bg=bg, border=border, bar=bar, label=lbl,
             text=props.text or "Button", callback=props.callback or function()end,
-            hoverT=0,  -- 0..1 para interpolação suave
-            y=0, h=40*s,
+            hoverT=0,
+            y=0, h=48*s,
             destroy=function() bg:Remove(); border:Remove(); bar:Remove(); lbl:Remove() end,
         }
 
@@ -496,11 +469,11 @@ local function newWidget(kind, props)
         local trackBg = cdraw(make("Square", {Filled=true, Color=checked and Theme.OnDim or Theme.BgInput, Transparency=1, ZIndex=16}))
         local trackBd = cdraw(make("Square", {Filled=false, Color=checked and Theme.On or Theme.Border, Thickness=1, Transparency=1, ZIndex=17}))
         local knob    = cdraw(make("Square", {Filled=true, Color=checked and Theme.On or Theme.TextSub, Transparency=1, ZIndex=18}))
-        local lbl     = cdraw(make("Text",   {Text=props.text or "Toggle", Color=Theme.Text, Size=13*s, Font=Font, ZIndex=17}))
+        local lbl     = cdraw(make("Text",   {Text=props.text or "Toggle", Color=Theme.Text, Size=17*s, Font=Font, ZIndex=17}))
         local w = {
             type="Toggle", bg=bg, border=border, trackBg=trackBg, trackBd=trackBd, knob=knob, label=lbl,
             text=props.text or "Toggle", value=checked, callback=props.callback or function()end,
-            y=0, h=40*s,
+            y=0, h=48*s,
             destroy=function() bg:Remove(); border:Remove(); trackBg:Remove(); trackBd:Remove(); knob:Remove(); lbl:Remove() end,
         }
         w.toggle = function(self)
@@ -522,14 +495,14 @@ local function newWidget(kind, props)
         local fill    = cdraw(make("Square", {Filled=true,  Color=Theme.Accent,    Transparency=1, ZIndex=17}))
         local thumb   = cdraw(make("Square", {Filled=true,  Color=Theme.AccentGlow,Transparency=1, ZIndex=19}))
         local thumbGl = cdraw(make("Square", {Filled=false, Color=Theme.AccentGlow,Thickness=1, Transparency=0.5, ZIndex=18}))
-        local lbl     = cdraw(make("Text",   {Text=props.text or "Slider", Color=Theme.Text, Size=13*s, Font=Font, ZIndex=17}))
-        local valTxt  = cdraw(make("Text",   {Text=tostring(val), Color=Theme.Accent, Size=11*s, Font=Font, ZIndex=17}))
+        local lbl     = cdraw(make("Text",   {Text=props.text or "Slider", Color=Theme.Text, Size=17*s, Font=Font, ZIndex=17}))
+        local valTxt  = cdraw(make("Text",   {Text=tostring(val), Color=Theme.Accent, Size=15*s, Font=Font, ZIndex=17}))
         local w = {
             type="Slider", bg=bg, border=border, track=track, fill=fill,
             thumb=thumb, thumbGl=thumbGl, label=lbl, valText=valTxt,
             text=props.text or "Slider", min=min, max=max, value=val,
             callback=props.callback or function()end,
-            y=0, h=54*s,
+            y=0, h=64*s,
             destroy=function() bg:Remove(); border:Remove(); track:Remove(); fill:Remove(); thumb:Remove(); thumbGl:Remove(); lbl:Remove(); valTxt:Remove() end,
         }
         w.updateValue = function(self, v)
@@ -547,16 +520,15 @@ local function newWidget(kind, props)
         local border   = cdraw(make("Square", {Filled=false, Color=Theme.Border,    Thickness=1, Transparency=1, ZIndex=16}))
         local dispBg   = cdraw(make("Square", {Filled=true,  Color=Theme.BgInput,   Transparency=1, ZIndex=16}))
         local dispBd   = cdraw(make("Square", {Filled=false, Color=Theme.Border,    Thickness=1, Transparency=1, ZIndex=17}))
-        local lbl      = cdraw(make("Text",   {Text=props.text or "Dropdown", Color=Theme.Text, Size=13*s, Font=Font, ZIndex=17}))
-        local selTxt   = cdraw(make("Text",   {Text=options[sel] or "Select", Color=Theme.TextSub, Size=12*s, Font=Font, ZIndex=18}))
-        local arrow    = cdraw(make("Text",   {Text="▾", Color=Theme.Accent, Size=12*s, Font=Font, ZIndex=18}))
+        local lbl      = cdraw(make("Text",   {Text=props.text or "Dropdown", Color=Theme.Text, Size=17*s, Font=Font, ZIndex=17}))
+        local selTxt   = cdraw(make("Text",   {Text=options[sel] or "Select", Color=Theme.TextSub, Size=16*s, Font=Font, ZIndex=18}))
+        local arrow    = cdraw(make("Text",   {Text="▾", Color=Theme.Accent, Size=16*s, Font=Font, ZIndex=18}))
         local popupBg  = cdraw(make("Square", {Filled=true, Color=Theme.BgDeep,     Transparency=1, ZIndex=20}))
         local popupBd  = cdraw(make("Square", {Filled=false,Color=Theme.Border,     Thickness=1, Transparency=1, ZIndex=20}))
-        -- caixa de busca (criada sempre; só aparece quando search=true e aberto)
         local searchBg = cdraw(make("Square", {Filled=true,  Color=Theme.BgInput, Transparency=1, ZIndex=21}))
         local searchBd = cdraw(make("Square", {Filled=false, Color=Theme.Accent,  Thickness=1, Transparency=1, ZIndex=22}))
-        local searchIc = cdraw(make("Text",   {Text="⌕", Color=Theme.TextSub, Size=13*s, Font=Font, ZIndex=23}))
-        local searchTx = cdraw(make("Text",   {Text="Pesquisar...", Color=Theme.TextMuted, Size=12*s, Font=Font, ZIndex=23}))
+        local searchIc = cdraw(make("Text",   {Text="⌕", Color=Theme.TextSub, Size=17*s, Font=Font, ZIndex=23}))
+        local searchTx = cdraw(make("Text",   {Text="Pesquisar...", Color=Theme.TextMuted, Size=16*s, Font=Font, ZIndex=23}))
 
         local w = {
             type="Dropdown", bg=bg, border=border, dispBg=dispBg, dispBd=dispBd,
@@ -567,15 +539,13 @@ local function newWidget(kind, props)
             callback=props.callback or function()end,
             open=false, hoverIdx=sel, scroll=0,
             itemDraws={}, filtered={},
-            y=0, h=44*s,
+            y=0, h=52*s,
         }
-        -- cria os "slots" de item reaproveitáveis (no máximo DD_MAX_VIS na tela)
         for _ = 1, DD_MAX_VIS do
             local ob = cdraw(make("Square", {Filled=true, Color=Theme.BgWidget, Transparency=1, ZIndex=21}))
-            local ot = cdraw(make("Text",   {Text="", Color=Theme.Text, Size=12*s, Font=Font, ZIndex=22}))
+            local ot = cdraw(make("Text",   {Text="", Color=Theme.Text, Size=16*s, Font=Font, ZIndex=22}))
             table.insert(w.itemDraws, {bg=ob, txt=ot})
         end
-        -- aplica o filtro da busca sobre as opções -> preenche w.filtered (índices originais)
         w.applyFilter = function(self)
             self.filtered = {}
             local q = string.lower(self.query or "")
@@ -602,9 +572,9 @@ local function newWidget(kind, props)
         local border  = cdraw(make("Square", {Filled=false, Color=Theme.Border,   Thickness=1, Transparency=1, ZIndex=16}))
         local inputBg = cdraw(make("Square", {Filled=true,  Color=Theme.BgInput,  Transparency=1, ZIndex=16}))
         local inputBd = cdraw(make("Square", {Filled=false, Color=Theme.Border,   Thickness=1, Transparency=1, ZIndex=17}))
-        local lbl     = cdraw(make("Text",   {Text=props.text or "TextBox", Color=Theme.Text, Size=13*s, Font=Font, ZIndex=17}))
-        local valTxt  = cdraw(make("Text",   {Text=props.placeholder or "Type here...", Color=Theme.TextMuted, Size=12*s, Font=Font, ZIndex=18}))
-        local cursor  = cdraw(make("Text",   {Text="|", Color=Theme.Accent, Size=14*s, Font=Font, ZIndex=19}))
+        local lbl     = cdraw(make("Text",   {Text=props.text or "TextBox", Color=Theme.Text, Size=17*s, Font=Font, ZIndex=17}))
+        local valTxt  = cdraw(make("Text",   {Text=props.placeholder or "Type here...", Color=Theme.TextMuted, Size=16*s, Font=Font, ZIndex=18}))
+        local cursor  = cdraw(make("Text",   {Text="|", Color=Theme.Accent, Size=18*s, Font=Font, ZIndex=19}))
         return {
             type="TextBox", bg=bg, border=border, inputBg=inputBg, inputBd=inputBd,
             label=lbl, valueText=valTxt, cursor=cursor,
@@ -616,20 +586,20 @@ local function newWidget(kind, props)
         }
 
     elseif kind == "Label" then
-        local lbl = cdraw(make("Text", {Text=props.text or "", Color=Theme.Text,    Size=13*s, Font=Font, ZIndex=16}))
-        return {type="Label", label=lbl, text=props.text or "", y=0, h=26*s,
+        local lbl = cdraw(make("Text", {Text=props.text or "", Color=Theme.Text,    Size=17*s, Font=Font, ZIndex=16}))
+        return {type="Label", label=lbl, text=props.text or "", y=0, h=32*s,
             updateText=function(self, newText) self.text = newText; self.label.Text = newText end,
             destroy=function() lbl:Remove() end}
 
     elseif kind == "Paragraph" then
-        local lbl = cdraw(make("Text", {Text=props.text or "", Color=Theme.TextSub, Size=11*s, Font=Font, ZIndex=16}))
-        local h = (props.text and #props.text > 60) and 50*s or 26*s
+        local lbl = cdraw(make("Text", {Text=props.text or "", Color=Theme.TextSub, Size=15*s, Font=Font, ZIndex=16}))
+        local h = (props.text and #props.text > 60) and 60*s or 32*s
         return {type="Paragraph", label=lbl, text=props.text or "", y=0, h=h,
             destroy=function() lbl:Remove() end}
 
     elseif kind == "Separator" then
         local line = cdraw(make("Square", {Filled=true, Color=Theme.Separator, Transparency=1, ZIndex=15}))
-        return {type="Separator", line=line, y=0, h=14*s,
+        return {type="Separator", line=line, y=0, h=18*s,
             destroy=function() line:Remove() end}
     end
     return nil
@@ -661,12 +631,11 @@ local function rebuildContent()
 end
 
 -- ========== DROPDOWN GEOMETRY ==========
--- calcula posição/tamanho do popup de um dropdown (mesma conta usada em todo lugar)
 local function dropdownGeom(w)
     local s      = state.scale
     local SIDE_W = 160 * s
     local cX     = state.framePos.X + SIDE_W + 1
-    local cY     = state.framePos.Y + 34 * s          -- HEADER_H
+    local cY     = state.framePos.Y + 34 * s
     local cW     = state.frameSize.X - SIDE_W - 1
     local ITEM_H = 32 * s
     local searchH= w.search and 30 * s or 0
@@ -703,7 +672,6 @@ end
 -- ========== API PÚBLICA ==========
 function LapoHub:AddTab(name, icon)
     table.insert(state.tabs, {name=name, icon=icon or "", widgets={}})
-    -- se o hub já foi inicializado, reconstrói o visual das tabs e o conteúdo
     if state.initialized then
         buildTabs()
         updateLayout()
@@ -742,15 +710,80 @@ function LapoHub:Notify(cfg)
     local s   = state.scale
     local id  = state.notifyId + 1
     state.notifyId = id
+
+    local WRAP_CHARS = 45
+    local rawText = cfg.content or ""
+    local wrappedLines = {}
+
+    for segment in string.gmatch(rawText .. "\n", "(.-)\n") do
+        if #segment <= WRAP_CHARS then
+            table.insert(wrappedLines, segment)
+        else
+            local remaining = segment
+            while #remaining > 0 do
+                if #remaining <= WRAP_CHARS then
+                    table.insert(wrappedLines, remaining)
+                    remaining = ""
+                else
+                    local cutAt = WRAP_CHARS
+                    local spacePos = nil
+                    for ci = WRAP_CHARS, 1, -1 do
+                        if string.sub(remaining, ci, ci) == " " then
+                            spacePos = ci
+                            break
+                        end
+                    end
+                    if spacePos and spacePos > 10 then
+                        cutAt = spacePos
+                    end
+                    table.insert(wrappedLines, string.sub(remaining, 1, cutAt))
+                    remaining = string.sub(remaining, cutAt + 1)
+                    if string.sub(remaining, 1, 1) == " " then
+                        remaining = string.sub(remaining, 2)
+                    end
+                end
+            end
+        end
+    end
+
+    if #wrappedLines > 8 then
+        local trimmed = {}
+        for li = 1, 7 do
+            table.insert(trimmed, wrappedLines[li])
+        end
+        table.insert(trimmed, "... +" .. (#wrappedLines - 7) .. " linhas")
+        wrappedLines = trimmed
+    end
+
+    if #wrappedLines == 0 then
+        table.insert(wrappedLines, "")
+    end
+
+    local LINE_H   = 18 * s
+    local TITLE_H  = 28 * s
+    local PAD_BOT  = 10 * s
+    local BAR_H    = 3  * s
+    local notifH   = TITLE_H + #wrappedLines * LINE_H + PAD_BOT + BAR_H
+
+    local lineDrawings = {}
+    for _, ln in ipairs(wrappedLines) do
+        table.insert(lineDrawings, make("Text", {
+            Text=ln, Color=Theme.TextSub, Size=15*s, Font=Font, ZIndex=9993
+        }))
+    end
+
     table.insert(state.notifyList, {
         id=id, title=cfg.title or "Lapo Hub X",
-        text=cfg.content or "", life=cfg.duration or 4,
+        text=rawText, life=cfg.duration or 4,
         maxLife=cfg.duration or 4, alpha=1, slideY=0,
+        notifH=notifH,
+        lineDrawings=lineDrawings,
+        lineH=LINE_H,
+        titleH=TITLE_H,
         bg      = make("Square", {Filled=true, Color=Theme.BgDeep,     Transparency=1,   ZIndex=9990}),
         accent  = make("Square", {Filled=true, Color=Theme.Accent,     Transparency=1,   ZIndex=9991}),
         border  = make("Square", {Filled=false,Color=Theme.Border,     Thickness=1, Transparency=1, ZIndex=9992}),
-        titleT  = make("Text",   {Text=cfg.title or "Lapo Hub X", Color=Theme.Text,  Size=13*s, Font=Font, ZIndex=9993}),
-        descT   = make("Text",   {Text=cfg.content or "",         Color=Theme.TextSub, Size=11*s, Font=Font, ZIndex=9993}),
+        titleT  = make("Text",   {Text=cfg.title or "Lapo Hub X", Color=Theme.Text,  Size=17*s, Font=Font, ZIndex=9993}),
         bar     = make("Square", {Filled=true, Color=Theme.Accent,     Transparency=1,   ZIndex=9994}),
     })
     return self
@@ -773,7 +806,6 @@ function LapoHub:ToggleVisibility()
     state.visible = not state.visible
     for _, d in ipairs(drgs)          do pcall(function() d.Visible = state.visible end) end
     for _, d in ipairs(contentDrawings) do pcall(function() d.Visible = state.visible end) end
-    -- botão mobile sempre visível
     if state.mobile and ui.mobileBtn then
         ui.mobileBtn.Visible       = true
         ui.mobileBtnBorder.Visible = true
@@ -788,7 +820,7 @@ function LapoHub:Destroy()
     for _, d in ipairs(drgs)            do pcall(function() d:Remove() end) end
     for _, d in ipairs(contentDrawings) do pcall(function() d:Remove() end) end
     for _, n in ipairs(state.notifyList) do
-        pcall(function() n.bg:Remove(); n.accent:Remove(); n.border:Remove(); n.titleT:Remove(); n.descT:Remove(); n.bar:Remove() end)
+        pcall(function() n.bg:Remove(); n.accent:Remove(); n.border:Remove(); n.titleT:Remove(); n.bar:Remove(); if n.lineDrawings then for _, ld in ipairs(n.lineDrawings) do pcall(function() ld:Remove() end) end end end)
     end
     for _, c in ipairs(state.connections) do pcall(function() c:Disconnect() end) end
     drgs, contentDrawings, tabBgList, tabTextList, tabAccentList = {},{},{},{},{}
@@ -804,7 +836,6 @@ local function setupInput()
     local function mp() return uis:GetMouseLocation() end
     local function inRect(px,py, rx,ry,rw,rh) return px>=rx and px<=rx+rw and py>=ry and py<=ry+rh end
 
-    -- toggle key
     local c1 = uis.InputBegan:Connect(function(inp, gpe)
         if gpe then return end
         if inp.KeyCode == Enum.KeyCode.End and not state.keyHeldDown then
@@ -818,7 +849,6 @@ local function setupInput()
     table.insert(state.connections, c1)
     table.insert(state.connections, c2)
 
-    -- mouse down
     local c3 = uis.InputBegan:Connect(function(inp, gpe)
         if gpe then return end
         if inp.UserInputType ~= Enum.UserInputType.MouseButton1
@@ -835,7 +865,6 @@ local function setupInput()
         local BTN_SZ   = 22*s
         local BTN_PAD  = 10*s
 
-        -- botão mobile
         if state.mobile and ui.mobileBtn then
             local BS = 44*s
             local BX = mw + fw + 8*s
@@ -848,15 +877,13 @@ local function setupInput()
 
         if not state.visible then return end
 
-        -- ── PRIORIDADE: dropdown aberto absorve o clique (corrige o "vazamento"
-        --    pro widget de baixo). Clique no popup seleciona; fora dele, fecha.
         if state.dropdownOpen and state.dropdownWidget then
             local w = state.dropdownWidget
             local g = dropdownGeom(w)
             local inSearch = w.search and inRect(px,py, g.popX, g.popY, g.popW, g.searchH)
             local inItems  = inRect(px,py, g.popX, g.popY + g.searchH, g.popW, g.visN * g.ITEM_H)
             if inSearch then
-                return  -- mantém aberto (a busca captura o teclado automaticamente)
+                return
             elseif inItems then
                 local slot   = math.floor((py - (g.popY + g.searchH)) / g.ITEM_H)
                 local optIdx = w.filtered[w.scroll + slot + 1]
@@ -868,16 +895,12 @@ local function setupInput()
                 w.open = false; state.dropdownOpen = false; state.dropdownWidget = nil
                 return
             else
-                -- fora do popup: fecha. Se clicou no próprio header do dropdown,
-                -- consome o clique (senão o loop de widgets reabriria embaixo).
                 w.open = false; state.dropdownOpen = false; state.dropdownWidget = nil
                 local wy = g.cY + w.y - state.contentOffset
                 if inRect(px,py, g.cX + 10*s, wy, g.cW - 20*s, w.h) then return end
-                -- senão, deixa o clique seguir o fluxo normal
             end
         end
 
-        -- header — drag ou botões
         if inRect(px,py, mw,mh, fw,HEADER_H) then
             local closeX = mw + fw - BTN_PAD - BTN_SZ
             local minX   = closeX - BTN_SZ - 6*s
@@ -893,7 +916,6 @@ local function setupInput()
             return
         end
 
-        -- sidebar — seleção de tabs
         if not state.minimized and inRect(px,py, mw,mh+HEADER_H, SIDE_W,fh-HEADER_H-FOOTER_H) then
             local TAB_H   = 38*s
             local TAB_PAD = 6*s
@@ -908,13 +930,11 @@ local function setupInput()
             return
         end
 
-        -- footer do sidebar
         if not state.minimized and inRect(px,py, mw,mh+fh-FOOTER_H, SIDE_W,FOOTER_H) then
             if state.userCallback then state.userCallback(state.userName, state.userRank) end
             return
         end
 
-        -- content area
         if not state.minimized then
             local cX = mw + SIDE_W + 1
             local cY = mh + HEADER_H
@@ -936,8 +956,6 @@ local function setupInput()
                             w:updateValue(w.min + math.clamp((px-trackX)/trackW,0,1)*(w.max-w.min))
                             return
                         elseif w.type == "Dropdown" then
-                            -- abre o dropdown; fechar/selecionar é tratado no
-                            -- bloco de PRIORIDADE no topo do InputBegan
                             w.open   = true
                             w.query  = ""
                             w.scroll = 0
@@ -968,7 +986,6 @@ local function setupInput()
                         end
                     end
                 end
-                -- clique fora de widgets — desfocar textbox / fechar dropdown
                 for _, w in ipairs(widgetList) do
                     if w.type=="TextBox" and w.focused then
                         w.focused = false
@@ -982,7 +999,6 @@ local function setupInput()
     end)
     table.insert(state.connections, c3)
 
-    -- mouse up
     local c4 = uis.InputEnded:Connect(function(inp)
         if inp.UserInputType==Enum.UserInputType.MouseButton1
         or inp.UserInputType==Enum.UserInputType.Touch then
@@ -993,7 +1009,6 @@ local function setupInput()
     end)
     table.insert(state.connections, c4)
 
-    -- mouse move
     local c5 = uis.InputChanged:Connect(function(inp)
         if not state.visible then return end
         local pos = mp()
@@ -1013,7 +1028,6 @@ local function setupInput()
             return
         end
 
-        -- hover em dropdown popup (a cor é aplicada no render via hoverIdx)
         if state.dropdownOpen and state.dropdownWidget then
             local dw = state.dropdownWidget
             local g  = dropdownGeom(dw)
@@ -1026,13 +1040,11 @@ local function setupInput()
     end)
     table.insert(state.connections, c5)
 
-    -- scroll
     local c6 = uis.InputChanged:Connect(function(inp)
         if inp.UserInputType ~= Enum.UserInputType.MouseWheel then return end
         if not state.visible or state.minimized then return end
         local pos = mp()
 
-        -- dropdown aberto sob o mouse -> rola a LISTA do dropdown
         if state.dropdownOpen and state.dropdownWidget then
             local w = state.dropdownWidget
             local g = dropdownGeom(w)
@@ -1055,7 +1067,6 @@ local function setupInput()
     end)
     table.insert(state.connections, c6)
 
-    -- converte um KeyCode em caractere imprimível ("" se não for)
     local function keyToChar(inp)
         local kc = inp.KeyCode
         local shift = uis:IsKeyDown(Enum.KeyCode.LeftShift) or uis:IsKeyDown(Enum.KeyCode.RightShift)
@@ -1071,12 +1082,10 @@ local function setupInput()
         return ""
     end
 
-    -- teclado — busca do dropdown e textbox
     local c7 = uis.InputBegan:Connect(function(inp, gpe)
         if gpe then return end
         if inp.UserInputType ~= Enum.UserInputType.Keyboard then return end
 
-        -- dropdown com busca aberto captura a digitação
         if state.dropdownOpen and state.dropdownWidget and state.dropdownWidget.search then
             local w = state.dropdownWidget
             if inp.KeyCode == Enum.KeyCode.Backspace then
@@ -1143,12 +1152,19 @@ local function startRenderLoop()
         local toRm = {}
         local screenW = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize.X or 1280
         local screenH = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize.Y or 720
-        local NW = 280 * state.scale
-        local NH = 72  * state.scale
-        local NX = screenW - NW - 16 * state.scale
+        local NW = 380 * state.scale
         local s  = state.scale
+        local NX = screenW - NW - 16 * s
+
+        local stackOffsets = {}
+        local totalStack = 0
+        for i = #state.notifyList, 1, -1 do
+            stackOffsets[i] = totalStack
+            totalStack = totalStack + (state.notifyList[i].notifH or 80*s) + 6*s
+        end
 
         for i, n in ipairs(state.notifyList) do
+            local NH = n.notifH or 80*s
             n.life = n.life - dt
             if n.life > n.maxLife - 0.25 then
                 local t = 1 - (n.life - (n.maxLife-0.25)) / 0.25
@@ -1157,7 +1173,7 @@ local function startRenderLoop()
                 n.alpha = math.max(0, n.alpha - dt*4)
             end
 
-            local ny = screenH - NH - 16*s - (#state.notifyList - i) * (NH + 6*s) + n.slideY
+            local ny = screenH - NH - 16*s - (stackOffsets[i] or 0) + n.slideY
             local al = n.alpha
 
             n.bg.Position     = Vector2.new(NX, ny)
@@ -1165,7 +1181,6 @@ local function startRenderLoop()
             n.bg.Transparency = al
             n.bg.Visible      = al > 0
 
-            -- accent stripe esquerda
             n.accent.Position     = Vector2.new(NX, ny)
             n.accent.Size         = Vector2.new(3*s, NH)
             n.accent.Transparency = al
@@ -1176,18 +1191,23 @@ local function startRenderLoop()
             n.border.Transparency = al * 0.6
             n.border.Visible      = al > 0
 
-            n.titleT.Position     = Vector2.new(NX + 10*s, ny + 10*s)
+            n.titleT.Position     = Vector2.new(NX + 12*s, ny + 8*s)
             n.titleT.Transparency = al
             n.titleT.Visible      = al > 0
 
-            n.descT.Position      = Vector2.new(NX + 10*s, ny + 30*s)
-            n.descT.Transparency  = al
-            n.descT.Visible       = al > 0
+            if n.lineDrawings then
+                local lineH  = n.lineH or 18*s
+                local titleH = n.titleH or 28*s
+                for li, ld in ipairs(n.lineDrawings) do
+                    ld.Position     = Vector2.new(NX + 12*s, ny + titleH + (li-1)*lineH)
+                    ld.Transparency = al
+                    ld.Visible      = al > 0
+                end
+            end
 
-            -- barra de progresso na base
             local prog = math.max(0, n.life / n.maxLife)
-            n.bar.Position     = Vector2.new(NX + 3*s, ny + NH - 2*s)
-            n.bar.Size         = Vector2.new((NW-3*s) * prog, 2*s)
+            n.bar.Position     = Vector2.new(NX + 3*s, ny + NH - 3*s)
+            n.bar.Size         = Vector2.new((NW-3*s) * prog, 3*s)
             n.bar.Transparency = al
             n.bar.Visible      = al > 0
 
@@ -1195,7 +1215,15 @@ local function startRenderLoop()
         end
         for i = #toRm, 1, -1 do
             local n = table.remove(state.notifyList, toRm[i])
-            pcall(function() n.bg:Remove(); n.accent:Remove(); n.border:Remove(); n.titleT:Remove(); n.descT:Remove(); n.bar:Remove() end)
+            pcall(function()
+                n.bg:Remove(); n.accent:Remove(); n.border:Remove()
+                n.titleT:Remove(); n.bar:Remove()
+                if n.lineDrawings then
+                    for _, ld in ipairs(n.lineDrawings) do
+                        pcall(function() ld:Remove() end)
+                    end
+                end
+            end)
         end
 
         if not state.visible then return end
@@ -1211,7 +1239,6 @@ local function startRenderLoop()
 
         if state.minimized then fh = HEADER_H end
 
-        -- estrutura
         ui.shadow.Position = Vector2.new(mw-8*ss, mh-8*ss)
         ui.shadow.Size     = Vector2.new(fw+16*ss, fh+16*ss)
 
@@ -1225,8 +1252,10 @@ local function startRenderLoop()
         ui.headerLine.Position  = Vector2.new(mw, mh+HEADER_H-1)
         ui.headerLine.Size      = Vector2.new(fw, 1)
 
-        ui.titleText.Position   = Vector2.new(mw+14*ss, mh+(HEADER_H-14*ss)/2 - 5*ss)
-        ui.subtitleText.Position= Vector2.new(mw+14*ss, mh+(HEADER_H-14*ss)/2 + 9*ss)
+        ui.titleText.Position   = Vector2.new(mw+14*ss, mh+(HEADER_H-19*ss)/2 - 5*ss)
+        ui.titleText.Size       = 18*ss
+        ui.subtitleText.Position= Vector2.new(mw+14*ss, mh+(HEADER_H-19*ss)/2 + 9*ss)
+        ui.subtitleText.Size    = 13*ss
 
         local btnSz  = 22*ss
         local btnPad = 10*ss
@@ -1237,9 +1266,12 @@ local function startRenderLoop()
         ui.closeBtn.Position = Vector2.new(closeX, btnY)
         ui.closeBtn.Size     = Vector2.new(btnSz, btnSz)
         ui.closeTxt.Position = Vector2.new(closeX + 5*ss, btnY + 3*ss)
+        ui.closeTxt.Size     = 16*ss
+
         ui.minBtn.Position   = Vector2.new(minX,   btnY)
         ui.minBtn.Size       = Vector2.new(btnSz,  btnSz)
         ui.minTxt.Position   = Vector2.new(minX + 4*ss, btnY + 2*ss)
+        ui.minTxt.Size       = 16*ss
 
         local showBody = not state.minimized
 
@@ -1280,7 +1312,7 @@ local function startRenderLoop()
                 bg.Color    = active and Theme.BgWidget or Color3.new(0,0,0)
                 bg.Transparency = active and 1 or 0
                 bg.Visible  = true
-                tabTextList[i].Position = Vector2.new(mw+22*ss, tabY+(TAB_H-12*ss)/2)
+                tabTextList[i].Position = Vector2.new(mw+22*ss, tabY+(TAB_H-16*ss)/2)
                 tabTextList[i].Color    = active and Theme.Text or Theme.TextSub
                 tabTextList[i].Visible  = true
                 tabAccentList[i].Position    = Vector2.new(mw+2*ss, tabY+6*ss)
@@ -1301,7 +1333,6 @@ local function startRenderLoop()
                 local wh  = w.h
                 local vis = wy+wh > cY and wy < cY+cH
 
-                -- helpers visibilidade
                 local function setVis(obj, v) if obj then obj.Visible = v end end
                 local function hide(...)
                     for _, o in ipairs({...}) do setVis(o,false) end
@@ -1332,7 +1363,6 @@ local function startRenderLoop()
                         w.label.Visible  = true
 
                     elseif w.type == "Button" then
-                        -- hover suave
                         local mpos = game:GetService("UserInputService"):GetMouseLocation()
                         local hovering = mpos.X>=cX+PAD and mpos.X<=cX+PAD+wW and mpos.Y>=wy and mpos.Y<=wy+wh
                         w.hoverT = lerp(w.hoverT or 0, hovering and 1 or 0, dt*10)
@@ -1346,13 +1376,13 @@ local function startRenderLoop()
                         w.border.Size     = Vector2.new(wW, wh)
                         w.border.Color    = lerpColor(Theme.Border, Theme.Accent, t)
                         w.border.Visible  = true
-                        -- barrinha accent na esquerda
                         w.bar.Position    = Vector2.new(cX+PAD, wy+4*ss)
                         w.bar.Size        = Vector2.new(3*ss, wh-8*ss)
                         w.bar.Color       = Theme.Accent
                         w.bar.Transparency= t
                         w.bar.Visible     = true
-                        w.label.Position  = Vector2.new(cX+PAD+14*ss, wy+(wh-13*ss)/2)
+                        w.label.Position  = Vector2.new(cX+PAD+14*ss, wy+(wh-17*ss)/2)
+                        w.label.Size      = 17*ss
                         w.label.Text      = w.text
                         w.label.Color     = lerpColor(Theme.Text, Theme.AccentGlow, t*0.5)
                         w.label.Visible   = true
@@ -1380,7 +1410,8 @@ local function startRenderLoop()
                         w.knob.Position    = Vector2.new(knobX, tY+2*ss)
                         w.knob.Size        = Vector2.new(knobSz, knobSz)
                         w.knob.Visible     = true
-                        w.label.Position   = Vector2.new(cX+PAD+10*ss, wy+(wh-13*ss)/2)
+                        w.label.Position   = Vector2.new(cX+PAD+10*ss, wy+(wh-17*ss)/2)
+                        w.label.Size       = 17*ss
                         w.label.Text       = w.text
                         w.label.Visible    = true
 
@@ -1398,9 +1429,11 @@ local function startRenderLoop()
                         w.border.Size       = Vector2.new(wW, wh)
                         w.border.Visible    = true
                         w.label.Position    = Vector2.new(cX+PAD+10*ss, wy+6*ss)
+                        w.label.Size        = 17*ss
                         w.label.Text        = w.text
                         w.label.Visible     = true
                         w.valText.Position  = Vector2.new(cX+PAD+wW-45*ss, wy+6*ss)
+                        w.valText.Size      = 15*ss
                         w.valText.Text      = tostring(math.floor(w.value))
                         w.valText.Visible   = true
                         w.track.Position    = Vector2.new(trkX, trkY)
@@ -1430,7 +1463,8 @@ local function startRenderLoop()
                         w.border.Size       = Vector2.new(wW, wh)
                         w.border.Color      = w.open and Theme.Accent or Theme.Border
                         w.border.Visible    = true
-                        w.label.Position    = Vector2.new(cX+PAD+10*ss, wy+(wh-13*ss)/2)
+                        w.label.Position    = Vector2.new(cX+PAD+10*ss, wy+(wh-17*ss)/2)
+                        w.label.Size        = 17*ss
                         w.label.Text        = w.text
                         w.label.Visible     = true
                         w.dispBg.Position   = Vector2.new(dispX, wy+8*ss)
@@ -1439,14 +1473,15 @@ local function startRenderLoop()
                         w.dispBd.Position   = Vector2.new(dispX, wy+8*ss)
                         w.dispBd.Size       = Vector2.new(DISPW, dispH)
                         w.dispBd.Visible    = true
-                        w.selectedText.Position = Vector2.new(dispX+8*ss, wy+(wh-12*ss)/2)
+                        w.selectedText.Position = Vector2.new(dispX+8*ss, wy+(wh-16*ss)/2)
+                        w.selectedText.Size = 16*ss
                         w.selectedText.Text = w.options[w.selected] or "Select"
                         w.selectedText.Visible  = true
-                        w.arrow.Position    = Vector2.new(dispX+DISPW-16*ss, wy+(wh-12*ss)/2)
+                        w.arrow.Position    = Vector2.new(dispX+DISPW-16*ss, wy+(wh-16*ss)/2)
+                        w.arrow.Size        = 16*ss
                         w.arrow.Text        = w.open and "▴" or "▾"
                         w.arrow.Visible     = true
 
-                        -- popup (busca + lista com scroll)
                         if w.open then
                             local g = dropdownGeom(w)
                             w.popupBg.Visible  = true
@@ -1456,7 +1491,6 @@ local function startRenderLoop()
                             w.popupBd.Position = Vector2.new(g.popX, g.popY)
                             w.popupBd.Size     = Vector2.new(g.popW, g.popH)
 
-                            -- caixa de busca (só se search=true)
                             if w.search then
                                 w.searchBg.Visible  = true
                                 w.searchBd.Visible  = true
@@ -1466,8 +1500,10 @@ local function startRenderLoop()
                                 w.searchBg.Size     = Vector2.new(g.popW, g.searchH)
                                 w.searchBd.Position = Vector2.new(g.popX, g.popY)
                                 w.searchBd.Size     = Vector2.new(g.popW, g.searchH)
-                                w.searchIc.Position = Vector2.new(g.popX+7*ss,  g.popY+(g.searchH-13*ss)/2)
-                                w.searchTx.Position = Vector2.new(g.popX+22*ss, g.popY+(g.searchH-12*ss)/2)
+                                w.searchIc.Position = Vector2.new(g.popX+7*ss,  g.popY+(g.searchH-17*ss)/2)
+                                w.searchIc.Size     = 17*ss
+                                w.searchTx.Position = Vector2.new(g.popX+22*ss, g.popY+(g.searchH-16*ss)/2)
+                                w.searchTx.Size     = 16*ss
                                 if w.query ~= "" then
                                     w.searchTx.Text  = w.query
                                     w.searchTx.Color = Theme.Text
@@ -1480,7 +1516,6 @@ local function startRenderLoop()
                                 w.searchIc.Visible=false; w.searchTx.Visible=false
                             end
 
-                            -- itens visíveis (janela de DD_MAX_VIS + scroll)
                             for k, slot in ipairs(w.itemDraws) do
                                 local optIdx = (k <= g.visN) and w.filtered[w.scroll + k] or nil
                                 if optIdx then
@@ -1492,7 +1527,8 @@ local function startRenderLoop()
                                     slot.bg.Size     = Vector2.new(g.popW, g.ITEM_H)
                                     slot.bg.Color    = hovered and Theme.BgPanel or (selected and Theme.BgWidget or Theme.BgDeep)
                                     slot.txt.Visible  = true
-                                    slot.txt.Position = Vector2.new(g.popX+10*ss, iy+(g.ITEM_H-12*ss)/2)
+                                    slot.txt.Position = Vector2.new(g.popX+10*ss, iy+(g.ITEM_H-16*ss)/2)
+                                    slot.txt.Size     = 16*ss
                                     slot.txt.Text     = tostring(w.options[optIdx])
                                     slot.txt.Color    = (hovered or selected) and Theme.Text or Theme.TextSub
                                 else
@@ -1520,6 +1556,7 @@ local function startRenderLoop()
                         w.border.Color      = w.focused and Theme.Accent or Theme.Border
                         w.border.Visible    = true
                         w.label.Position    = Vector2.new(cX+PAD+10*ss, wy+6*ss)
+                        w.label.Size        = 17*ss
                         w.label.Text        = w.text
                         w.label.Visible     = true
                         w.inputBg.Position  = Vector2.new(cX+PAD+8*ss, inputY)
@@ -1529,12 +1566,13 @@ local function startRenderLoop()
                         w.inputBd.Size      = Vector2.new(wW-16*ss, inputH)
                         w.inputBd.Visible   = true
                         local txtX = cX+PAD+14*ss
-                        local txtY = inputY+(inputH-12*ss)/2
+                        local txtY = inputY+(inputH-16*ss)/2
                         w.valueText.Position= Vector2.new(txtX, txtY)
+                        w.valueText.Size    = 16*ss
                         w.valueText.Visible = true
-                        -- cursor piscante
                         local cursorX = txtX + (#(w.valueText.Text or "")) * 7*ss
                         w.cursor.Position   = Vector2.new(cursorX, txtY-1)
+                        w.cursor.Size       = 18*ss
                         w.cursor.Visible    = w.focused and (math.floor(tick()*2)%2==0)
                     end
                 end
@@ -1559,7 +1597,6 @@ local function startRenderLoop()
             end
         end
 
-        -- botão mobile — sempre atualiza pos
         if state.mobile and ui.mobileBtn then
             local BS = 44*ss
             local BX = mw + fw + 8*ss
@@ -1589,10 +1626,10 @@ function LapoHub:Init(config)
 
     local s = state.scale
     if state.mobile then
-        state.frameSize = Vector2.new(460*s, 540*s)
+        state.frameSize = Vector2.new(500*s, 580*s)
         state.framePos  = Vector2.new(16, 40)
     else
-        state.frameSize = Vector2.new(820*s, 500*s)
+        state.frameSize = Vector2.new(960*s, 600*s)
         state.framePos  = Vector2.new(120, 80)
     end
 
