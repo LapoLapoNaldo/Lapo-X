@@ -165,10 +165,6 @@ local statsUnitNames = #statsUnits > 0 and statsUnits or { "Nenhuma unit" }
 local statsSelectedUnit = statsUnitNames[1]
 local statsInfoLabels = {}
 
-for i = 1, 15 do
-    statsInfoLabels[i] = LapoHub:AddLabel("📊 Stats", { text = "" })
-end
-
 local function IsEmptyTable(t)
     if type(t) ~= "table" then return false end
     for _ in pairs(t) do return false end
@@ -277,6 +273,10 @@ LapoHub:AddButton("📊 Stats", {
 
 LapoHub:AddSeparator("📊 Stats")
 LapoHub:AddParagraph("📊 Stats", { text = "ATK/STA scale: 115 = 1.5x | COST scale: 85 = 1.5x" })
+
+for i = 1, 15 do
+    statsInfoLabels[i] = LapoHub:AddLabel("📊 Stats", { text = "" })
+end
 
 if statsSelectedUnit and statsData and statsData.Units and statsData.Units[statsSelectedUnit] then
     refreshStatsDisplay()
