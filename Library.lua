@@ -1,3 +1,7 @@
+-- Lapo Hub X (Syn Version) — UI Refactor
+-- Visual limpo, estilo Synapse X, com efeitos, glow e botão mobile
+-- by ENI — for LO, sempre
+
 local LapoHub = {}
 LapoHub.__index = LapoHub
 
@@ -18,6 +22,14 @@ local state = {
     slidingWidget = nil,
     dropdownOpen = false,
     dropdownWidget = nil,
+    isScrolling = false,
+    scrollStartPos = Vector2.new(0, 0),
+    scrollStartOffset = 0,
+    touchStartPos = nil,
+    draggedPastThreshold = false,
+    pressedWidget = nil,
+    isScrollingDropdown = false,
+    pressedDropdownItemIndex = nil,
     framePos = Vector2.new(120, 80),
     frameSize = Vector2.new(960, 600),
     hasDrawing = pcall(function() return Drawing.new end),
@@ -1079,6 +1091,50 @@ local function setupInput()
     table.insert(state.connections, c1)
     table.insert(state.connections, c2)
 
+    local function activateWidget(w, px, py, s, cX, cY, cW, cH, cY2)
+        if w.type == "Button" then
+            w.callback()
+        elseif w.type == "Toggle" then
+            w:toggle()
+        elseif w.type == "Slider" then
+            state.isSliding     = true
+            state.slidingWidget = w
+            local trackX = cX + 12*s
+            local trackW = cW - 24*s
+            w:updateValue(w.min + math.clamp((px-trackX)/trackW,0,1)*(w.max-w.min))
+        elseif w.type == "Dropdown" then
+            w.open   = true
+            w.query  = ""
+            w.scroll = 0
+            w:applyFilter()
+            w.hoverIdx = w.selected
+            state.dropdownOpen   = true
+            state.dropdownWidget = w
+            if w.search and state.sinkTextBox then
+                state.sinkTextBox.Text = ""
+                state.sinkTextBox.Position = UDim2.new(0, px - 5, 0, py - 5)
+                state.sinkTextBox.Size = UDim2.new(0, 10, 0, 10)
+                task.defer(function()
+                    state.sinkTextBox:CaptureFocus()
+                end)
+            end
+        elseif w.type == "TextBox" then
+            w.focused = true
+            w.inputBd.Color    = Theme.Accent
+            w.valueText.Text   = w.value or ""
+            w.valueText.Color  = Theme.Text
+            if state.sinkTextBox then
+                state.focusedTextBox = w
+                state.sinkTextBox.Text = w.value
+                state.sinkTextBox.Position = UDim2.new(0, px - 5, 0, py - 5)
+                state.sinkTextBox.Size = UDim2.new(0, 10, 0, 10)
+                task.defer(function()
+                    state.sinkTextBox:CaptureFocus()
+                end)
+            end
+        end
+    end
+
     local c3 = uis.InputBegan:Connect(function(inp, gpe)
         -- Allow mouse click / touch even if game processed (gpe is true),
         -- since overlay drawing UI is not tracked by game engine's CoreGui.
@@ -1145,17 +1201,26 @@ local function setupInput()
                 return
             elseif inItems then
                 local slot   = math.floor((py - (g.popY + g.searchH)) / g.ITEM_H)
-                local optIdx = w.filtered[w.scroll + slot + 1]
-                if optIdx then
-                    w.selected = optIdx
-                    w.selectedText.Text = w.options[optIdx] or "Select"
-                    w.callback(w.selected, w.options[optIdx])
+                if inp.UserInputType == Enum.UserInputType.Touch then
+                    state.touchStartPos = Vector2.new(px, py)
+                    state.scrollStartOffset = w.scroll
+                    state.isScrollingDropdown = true
+                    state.pressedDropdownItemIndex = slot
+                    state.draggedPastThreshold = false
+                    return
+                else
+                    local optIdx = w.filtered[w.scroll + slot + 1]
+                    if optIdx then
+                        w.selected = optIdx
+                        w.selectedText.Text = w.options[optIdx] or "Select"
+                        w.callback(w.selected, w.options[optIdx])
+                    end
+                    w.open = false; state.dropdownOpen = false; state.dropdownWidget = nil
+                    if state.sinkTextBox then
+                        state.sinkTextBox:ReleaseFocus()
+                    end
+                    return
                 end
-                w.open = false; state.dropdownOpen = false; state.dropdownWidget = nil
-                if state.sinkTextBox then
-                    state.sinkTextBox:ReleaseFocus()
-                end
-                return
             else
                 w.open = false; state.dropdownOpen = false; state.dropdownWidget = nil
                 if state.sinkTextBox then
@@ -1202,51 +1267,24 @@ local function setupInput()
 
         if not state.minimized then
             if inRect(px,py, cX,cY, cW,cH) then
-                for _, w in ipairs(widgetList) do
-                    local wy = cY + w.y - state.contentOffset
-                    if py >= wy and py <= wy + w.h and py >= cY and py <= cY2 then
-                        if w.type == "Button" then
-                            w.callback(); return
-                        elseif w.type == "Toggle" then
-                            w:toggle(); return
-                        elseif w.type == "Slider" then
-                            state.isSliding     = true
-                            state.slidingWidget = w
-                            local trackX = cX + 12*s
-                            local trackW = cW - 24*s
-                            w:updateValue(w.min + math.clamp((px-trackX)/trackW,0,1)*(w.max-w.min))
-                            return
-                        elseif w.type == "Dropdown" then
-                            w.open   = true
-                            w.query  = ""
-                            w.scroll = 0
-                            w:applyFilter()
-                            w.hoverIdx = w.selected
-                            state.dropdownOpen   = true
-                            state.dropdownWidget = w
-                            if w.search and state.sinkTextBox then
-                                state.sinkTextBox.Text = ""
-                                state.sinkTextBox.Position = UDim2.new(0, px - 5, 0, py - 5)
-                                state.sinkTextBox.Size = UDim2.new(0, 10, 0, 10)
-                                task.defer(function()
-                                    state.sinkTextBox:CaptureFocus()
-                                end)
-                            end
-                            return
-                        elseif w.type == "TextBox" then
-                            w.focused = true
-                            w.inputBd.Color    = Theme.Accent
-                            w.valueText.Text   = w.value or ""
-                            w.valueText.Color  = Theme.Text
-                            if state.sinkTextBox then
-                                state.focusedTextBox = w
-                                state.sinkTextBox.Text = w.value
-                                state.sinkTextBox.Position = UDim2.new(0, px - 5, 0, py - 5)
-                                state.sinkTextBox.Size = UDim2.new(0, 10, 0, 10)
-                                task.defer(function()
-                                    state.sinkTextBox:CaptureFocus()
-                                end)
-                            end
+                if inp.UserInputType == Enum.UserInputType.Touch then
+                    state.touchStartPos = Vector2.new(px, py)
+                    state.scrollStartOffset = state.contentOffset
+                    state.isScrolling = false
+                    state.draggedPastThreshold = false
+                    state.pressedWidget = nil
+                    for _, w in ipairs(widgetList) do
+                        local wy = cY + w.y - state.contentOffset
+                        if py >= wy and py <= wy + w.h and py >= cY and py <= cY2 then
+                            state.pressedWidget = w
+                            break
+                        end
+                    end
+                else
+                    for _, w in ipairs(widgetList) do
+                        local wy = cY + w.y - state.contentOffset
+                        if py >= wy and py <= wy + w.h and py >= cY and py <= cY2 then
+                            activateWidget(w, px, py, s, cX, cY, cW, cH, cY2)
                             return
                         end
                     end
@@ -1262,6 +1300,53 @@ local function setupInput()
             state.isDragging=false
             if state.slidingWidget then state.slidingWidget.isDragging=false end
             state.isSliding=false; state.slidingWidget=nil
+            
+            if inp.UserInputType == Enum.UserInputType.Touch then
+                state.isScrolling = false
+                if state.isScrollingDropdown then
+                    state.isScrollingDropdown = false
+                elseif state.pressedDropdownItemIndex then
+                    local w = state.dropdownWidget
+                    if w then
+                        local g = dropdownGeom(w)
+                        local slot = state.pressedDropdownItemIndex
+                        local optIdx = w.filtered[w.scroll + slot + 1]
+                        if optIdx then
+                            w.selected = optIdx
+                            w.selectedText.Text = w.options[optIdx] or "Select"
+                            w.callback(w.selected, w.options[optIdx])
+                        end
+                        w.open = false; state.dropdownOpen = false; state.dropdownWidget = nil
+                        if state.sinkTextBox then
+                            state.sinkTextBox:ReleaseFocus()
+                        end
+                    end
+                elseif state.pressedWidget then
+                    local pos = mp()
+                    local px, py = pos.X, pos.Y
+                    local s     = state.scale
+                    local mw,mh = state.framePos.X, state.framePos.Y
+                    local fw,fh = state.frameSize.X, state.frameSize.Y
+                    local HEADER_H = 34*s
+                    local SIDE_W   = 160*s
+                    
+                    local cX = mw + SIDE_W + 1
+                    local cY = mh + HEADER_H
+                    local cW = fw - SIDE_W - 1
+                    local cH = fh - HEADER_H
+                    local cY2 = cY + cH
+                    
+                    local w = state.pressedWidget
+                    local wy = cY + w.y - state.contentOffset
+                    if py >= wy and py <= wy + w.h and py >= cY and py <= cY2 and inRect(px, py, cX, cY, cW, cH) then
+                        activateWidget(w, px, py, s, cX, cY, cW, cH, cY2)
+                    end
+                end
+                
+                state.pressedWidget = nil
+                state.pressedDropdownItemIndex = nil
+                state.touchStartPos = nil
+            end
         end
     end)
     table.insert(state.connections, c4)
@@ -1271,6 +1356,50 @@ local function setupInput()
         local pos = mp()
         local px,py = pos.X,pos.Y
         local s = state.scale
+
+        if inp.UserInputType == Enum.UserInputType.Touch then
+            if state.touchStartPos then
+                local deltaY = py - state.touchStartPos.Y
+                local deltaX = px - state.touchStartPos.X
+                
+                if state.isScrollingDropdown then
+                    if math.abs(deltaY) > 8 then
+                        state.draggedPastThreshold = true
+                        state.pressedDropdownItemIndex = nil
+                    end
+                    local w = state.dropdownWidget
+                    if w then
+                        local g = dropdownGeom(w)
+                        local maxScroll = math.max(0, #w.filtered - DD_MAX_VIS)
+                        local scrollDelta = math.round(deltaY / g.ITEM_H)
+                        w.scroll = math.clamp(state.scrollStartOffset - scrollDelta, 0, maxScroll)
+                    end
+                elseif not state.isScrolling and not state.isSliding then
+                    if math.abs(deltaY) > 8 or math.abs(deltaX) > 8 then
+                        state.draggedPastThreshold = true
+                        if math.abs(deltaY) > math.abs(deltaX) then
+                            state.isScrolling = true
+                            state.pressedWidget = nil
+                        elseif state.pressedWidget and state.pressedWidget.type == "Slider" then
+                            state.isSliding = true
+                            state.slidingWidget = state.pressedWidget
+                        end
+                    end
+                end
+                
+                if state.isScrolling then
+                    local ss = state.scale
+                    local padding = 10 * ss
+                    local totalH = padding
+                    for _, w in ipairs(widgetList) do
+                        totalH = totalH + w.h + 5*ss
+                    end
+                    local contentAreaH = state.frameSize.Y - 34*ss
+                    state.maxOffset = math.max(0, totalH - contentAreaH + 10*ss)
+                    state.contentOffset = math.clamp(state.scrollStartOffset - deltaY, 0, state.maxOffset)
+                end
+            end
+        end
 
         if state.isDragging then
             local cam = workspace.CurrentCamera
@@ -1806,10 +1935,12 @@ local function startRenderLoop()
                         w.valueText.Visible = isSubVisible(txtY, 16*ss, cY, cY2)
                         w.valueText.Position = Vector2.new(txtX, txtY)
                         w.valueText.Size = 16*ss
-                        local valStr = w.value ~= "" and w.value or w.placeholder
+                        local valStr = (w.focused or w.value ~= "") and w.value or w.placeholder
                         w.valueText.Text = truncateText(valStr, wW - 32*ss, 16*ss)
-
-                        local cursorX = txtX + (#w.valueText.Text) * 7*ss
+                        w.valueText.Color = (w.focused or w.value ~= "") and Theme.Text or Theme.TextMuted
+                        
+                        local cursorText = w.focused and w.value or valStr
+                        local cursorX = txtX + (#cursorText) * 7*ss
                         w.cursor.Visible = w.focused and (math.floor(tick()*2)%2==0) and isSubVisible(txtY-1, 18*ss, cY, cY2)
                         w.cursor.Position = Vector2.new(cursorX, txtY-1)
                         w.cursor.Size = 18*ss
@@ -1859,6 +1990,13 @@ end
 function LapoHub:Init(config)
     config = config or {}
     state.title     = config.Title     or "Lapo Hub X"
+    
+    local instanceKey = "LapoHubInstance_" .. state.title
+    if shared[instanceKey] then
+        pcall(function() shared[instanceKey]:Destroy() end)
+    end
+    shared[instanceKey] = self
+
     state.toggleKey = config.ToggleKey or "End"
     state.mobile    = detectMobile()
     state.scale     = state.mobile and 0.72 or 1
@@ -1905,7 +2043,7 @@ function LapoHub:Init(config)
             if state.focusedTextBox then
                 local w = state.focusedTextBox
                 w.value = state.sinkTextBox.Text
-                if w.value ~= "" then
+                if w.focused or w.value ~= "" then
                     w.valueText.Text  = w.value
                     w.valueText.Color = Theme.Text
                 else
@@ -1926,6 +2064,13 @@ function LapoHub:Init(config)
                 w.focused = false
                 w.inputBd.Color = Theme.Border
                 w.callback(w.value)
+                if w.value ~= "" then
+                    w.valueText.Text  = w.value
+                    w.valueText.Color = Theme.Text
+                else
+                    w.valueText.Text  = w.placeholder
+                    w.valueText.Color = Theme.TextMuted
+                end
                 state.focusedTextBox = nil
             elseif state.dropdownOpen and state.dropdownWidget and state.dropdownWidget.search then
                 local w = state.dropdownWidget
