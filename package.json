@@ -1,0 +1,16 @@
+{
+  "name": "lapohubx-docs",
+  "version": "1.0.0",
+  "description": "Documentation for Lapo Hub X UI Library",
+  "scripts": {
+    "dev": "python3 -m http.server 3000 --directory docs"
+  },
+  "keywords": [
+    "roblox",
+    "ui-library",
+    "drawing-api",
+    "documentation"
+  ],
+  "author": "",
+  "license": "ISC"
+}
