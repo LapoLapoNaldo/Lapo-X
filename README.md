@@ -1,4 +1,4 @@
-# Lapo Hub X
+# Lapo Library X
 
 Uma biblioteca de interface de usuário para Roblox construída sobre a Drawing API dos executores. Renderização por overlay, sem depender de CoreGui/PlayerGui.
 
