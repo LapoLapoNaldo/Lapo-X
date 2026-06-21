@@ -1,11 +1,5 @@
-// ==========================================================================
-// DOCUMENTATION DATA & PAGES CONTENT
-// ==========================================================================
-
 const PAGES = {
-    // ----------------------------------------------------------------------
-    // HOME PAGE
-    // ----------------------------------------------------------------------
+
     "home": {
         category: "Começando",
         title: "Lapo Hub X",
@@ -15,7 +9,7 @@ const PAGES = {
                 <span class="badge badge-primary">Biblioteca UI Profissional</span>
                 <h1 class="page-title" style="margin-top: 10px;">Lapo Hub X</h1>
                 <p class="page-description">Uma biblioteca de interface de usuário ultra-rápida de estilo executivo (Rayfield/Synapse vibes) para scripts de Roblox. Construída sobre a API de Drawing nativa dos executores para renderização de sobreposição perfeita e indetectável.</p>
-                
+
                 <div class="action-group">
                     <a href="#getting-started" class="btn btn-primary"><i class="ri-rocket-line"></i> Começar Agora</a>
                     <a href="#showcase" class="btn btn-outline"><i class="ri-gamepad-line"></i> Testar Simulador</a>
@@ -83,9 +77,6 @@ LapoHub:AddButton("Principal", {
         `
     },
 
-    // ----------------------------------------------------------------------
-    // GETTING STARTED
-    // ----------------------------------------------------------------------
     "getting-started": {
         category: "Começando",
         title: "Primeiros Passos",
@@ -165,9 +156,6 @@ LapoHub:AddToggle("Principal", {
         `
     },
 
-    // ----------------------------------------------------------------------
-    // INSTALLATION
-    // ----------------------------------------------------------------------
     "installation": {
         category: "Começando",
         title: "Instalação",
@@ -217,9 +205,6 @@ end</code></pre>
         `
     },
 
-    // ----------------------------------------------------------------------
-    // API: WINDOW
-    // ----------------------------------------------------------------------
     "api-window": {
         category: "Referência de API",
         title: "Window (Inicialização)",
@@ -289,9 +274,89 @@ end</code></pre>
         `
     },
 
-    // ----------------------------------------------------------------------
-    // API: TABS
-    // ----------------------------------------------------------------------
+    "cheatsheet": {
+        category: "Referência de API",
+        title: "Referência Rápida (Cheat Sheet)",
+        breadcrumb: "Cheat Sheet",
+        content: `
+            <h1 class="page-title">Referência Rápida (Cheat Sheet)</h1>
+            <p class="page-description">Toda a API pública do Lapo Hub X em uma única página, para consulta rápida. Pressione <code>/</code> para pesquisar qualquer função.</p>
+
+            <h2>Janela & Ciclo de Vida</h2>
+            <div class="table-wrapper">
+                <table class="api-table">
+                    <thead><tr><th>Função</th><th>Retorno</th><th>O que faz</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>LapoHub:AddTab(name, icon)</code></td><td><span class="type-badge table">self</span></td><td>Registra uma aba. Chame <strong>antes</strong> de <code>Init</code>.</td></tr>
+                        <tr><td><code>LapoHub:Init(config)</code></td><td><span class="type-badge table">self</span></td><td>Renderiza a janela. <code>config = { Title, ToggleKey }</code>.</td></tr>
+                        <tr><td><code>LapoHub:ToggleVisibility()</code></td><td><span class="type-badge table">self</span></td><td>Mostra/oculta toda a interface (igual à ToggleKey).</td></tr>
+                        <tr><td><code>LapoHub:Destroy()</code></td><td><code>nil</code></td><td>Limpa desenhos, conexões e sinks de input.</td></tr>
+                        <tr><td><code>LapoHub:SetUser(name, rank)</code></td><td><span class="type-badge table">self</span></td><td>Define nome/rank exibidos no rodapé.</td></tr>
+                        <tr><td><code>LapoHub:SetUserCallback(fn)</code></td><td><span class="type-badge table">self</span></td><td>Dispara <code>fn(name, rank)</code> ao clicar no rodapé.</td></tr>
+                        <tr><td><code>LapoHub:Notify(config)</code></td><td><span class="type-badge table">self</span></td><td>Balão flutuante. <code>config = { title, content, duration }</code>.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Widgets</h2>
+            <p>O primeiro argumento (<code>tabIdx</code>) é sempre o <strong>nome</strong> da aba (recomendado) ou o <strong>índice</strong> numérico dela.</p>
+            <div class="table-wrapper">
+                <table class="api-table">
+                    <thead><tr><th>Função</th><th>Campos de <code>config</code></th><th>Retorno</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>AddButton(tabIdx, config)</code></td><td><code>text</code>, <code>callback</code></td><td>handle</td></tr>
+                        <tr><td><code>AddToggle(tabIdx, config)</code></td><td><code>text</code>, <code>default</code>, <code>callback(state)</code></td><td>handle <code>:Set</code></td></tr>
+                        <tr><td><code>AddSlider(tabIdx, config)</code></td><td><code>text</code>, <code>min</code>, <code>max</code>, <code>default</code>, <code>callback(value)</code></td><td>handle <code>:Set</code></td></tr>
+                        <tr><td><code>AddDropdown(tabIdx, config)</code></td><td><code>text</code>, <code>options</code>, <code>default</code>, <code>search</code>, <code>callback(index, value)</code></td><td>handle <code>:Set</code></td></tr>
+                        <tr><td><code>AddTextBox(tabIdx, config)</code></td><td><code>text</code>, <code>placeholder</code>, <code>callback(value)</code></td><td>handle <code>:Set</code></td></tr>
+                        <tr><td><code>AddLabel(tabIdx, config)</code></td><td><code>text</code></td><td>handle <code>:updateText</code> / <code>:Set</code></td></tr>
+                        <tr><td><code>AddParagraph(tabIdx, config)</code></td><td><code>text</code></td><td>handle <code>:updateText</code> / <code>:Set</code></td></tr>
+                        <tr><td><code>AddSeparator(tabIdx)</code></td><td>—</td><td><span class="type-badge table">self</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Métodos dos Handles (atualização em tempo real)</h2>
+            <div class="table-wrapper">
+                <table class="api-table">
+                    <thead><tr><th>Handle</th><th>Método</th><th>Efeito</th></tr></thead>
+                    <tbody>
+                        <tr><td>Toggle</td><td><code>handle:Set(bool)</code></td><td>Muda o estado e <strong>dispara</strong> o callback.</td></tr>
+                        <tr><td>Slider</td><td><code>handle:Set(number)</code></td><td>Reposiciona a alça e dispara o callback.</td></tr>
+                        <tr><td>Dropdown</td><td><code>handle:Set("texto")</code></td><td>Seleciona a opção pelo texto.</td></tr>
+                        <tr><td>Dropdown</td><td><code>handle:Set({...})</code></td><td>Substitui toda a lista de opções e reinicia no item 1.</td></tr>
+                        <tr><td>TextBox</td><td><code>handle:Set("texto")</code></td><td>Define o valor/placeholder exibido.</td></tr>
+                        <tr><td>Label / Paragraph</td><td><code>handle:updateText(s)</code> · <code>handle:Set(s)</code></td><td>Troca o texto exibido (ótimo para status ao vivo).</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="alert tip">
+                <div class="alert-icon"><i class="ri-information-line"></i></div>
+                <div class="alert-content">
+                    <div class="alert-title">Importante sobre <code>:Set</code> em Dropdowns</div>
+                    <p class="alert-text">Trocar as opções com <code>handle:Set({...})</code> <strong>não</strong> dispara o callback do dropdown. Se o seu script guarda a seleção numa variável, atualize-a manualmente para <code>options[1]</code> após o <code>:Set</code>.</p>
+                </div>
+            </div>
+
+            <h2>Esqueleto Mínimo</h2>
+            <div class="code-block-container">
+                <div class="code-block-header">
+                    <span class="code-language-tag">Lua</span>
+                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
+                </div>
+                <pre class="language-lua"><code>local LapoHub = loadstring(game:HttpGet("https://raw.githubusercontent.com/LapoLapoNaldo/Lapo-X/refs/heads/main/Library.lua"))()
+
+LapoHub:AddTab("Principal", "🏠")   -- abas SEMPRE antes do Init
+LapoHub:Init({ Title = "Meu Hub", ToggleKey = "K" })
+
+LapoHub:AddButton("Principal", { text = "Olá", callback = function()
+    LapoHub:Notify({ title = "Hub", content = "Funcionou!", duration = 3 })
+end })</code></pre>
+            </div>
+        `
+    },
+
     "api-tabs": {
         category: "Referência de API",
         title: "Tabs (Abas)",
@@ -354,7 +419,7 @@ LapoHub:AddTab("Outros", "⚙️")</code></pre>
 
             <h2>Como Vincular Elementos</h2>
             <p>Ao criar qualquer widget posterior (botões, interruptores, sliders, etc.), o primeiro argumento deve ser o <strong>Índice numérico da Aba</strong> (iniciando em <code>1</code>) ou o <strong>Nome exato da aba</strong> criada. A biblioteca resolve o nome da aba automaticamente para maior legibilidade:</p>
-            
+
             <div class="code-block-container">
                 <div class="code-block-header">
                     <span class="code-language-tag">Lua</span>
@@ -369,9 +434,6 @@ LapoHub:AddButton(2, { text = "Kill Aura", callback = function() ... end })</cod
         `
     },
 
-    // ----------------------------------------------------------------------
-    // API: BUTTONS
-    // ----------------------------------------------------------------------
     "api-buttons": {
         category: "Referência de API",
         title: "Buttons (Botões)",
@@ -436,9 +498,6 @@ LapoHub:AddButton(2, { text = "Kill Aura", callback = function() ... end })</cod
         `
     },
 
-    // ----------------------------------------------------------------------
-    // API: TOGGLES
-    // ----------------------------------------------------------------------
     "api-toggles": {
         category: "Referência de API",
         title: "Toggles (Interruptores)",
@@ -538,9 +597,6 @@ end)</code></pre>
         `
     },
 
-    // ----------------------------------------------------------------------
-    // API: SLIDERS
-    // ----------------------------------------------------------------------
     "api-sliders": {
         category: "Referência de API",
         title: "Sliders (Barras Deslizantes)",
@@ -650,9 +706,6 @@ walkspeedSlider:Set(100)</code></pre>
         `
     },
 
-    // ----------------------------------------------------------------------
-    // API: DROPDOWNS
-    // ----------------------------------------------------------------------
     "api-dropdowns": {
         category: "Referência de API",
         title: "Dropdowns (Menu de Opções)",
@@ -767,9 +820,6 @@ itemDropdown:Set({"Novo Item 1", "Novo Item 2"})</code></pre>
         `
     },
 
-    // ----------------------------------------------------------------------
-    // API: INPUTS
-    // ----------------------------------------------------------------------
     "api-inputs": {
         category: "Referência de API",
         title: "Inputs (TextBoxes)",
@@ -871,9 +921,6 @@ itemDropdown:Set({"Novo Item 1", "Novo Item 2"})</code></pre>
         `
     },
 
-    // ----------------------------------------------------------------------
-    // API: LABELS & PARAGRAPHS
-    // ----------------------------------------------------------------------
     "api-paragraphs": {
         category: "Referência de API",
         title: "Labels & Paragraphs (Rótulos)",
@@ -922,7 +969,7 @@ LapoHub:AddParagraph(tabIdx, config)</code></pre>
 
             <h2>Retornos e Métodos do Handle</h2>
             <p>Ambos os widgets retornam handles idênticos que permitem a atualização do conteúdo textual em tempo real (como atualizar o número de moedas obtidas por segundo):</p>
-            
+
             <div class="table-wrapper">
                 <table class="api-table">
                     <thead>
@@ -972,9 +1019,6 @@ end)</code></pre>
         `
     },
 
-    // ----------------------------------------------------------------------
-    // API: SEPARATORS
-    // ----------------------------------------------------------------------
     "api-separators": {
         category: "Referência de API",
         title: "Separators (Linhas Divisórias)",
@@ -1033,9 +1077,6 @@ LapoHub:AddSlider("Aba1", { text = "Alcance do Pulo", min = 50, max = 200 })</co
         `
     },
 
-    // ----------------------------------------------------------------------
-    // API: NOTIFICATIONS
-    // ----------------------------------------------------------------------
     "api-notifications": {
         category: "Referência de API",
         title: "Notifications (Notificações)",
@@ -1112,9 +1153,6 @@ LapoHub:AddSlider("Aba1", { text = "Alcance do Pulo", min = 50, max = 200 })</co
         `
     },
 
-    // ----------------------------------------------------------------------
-    // API: USERPROFILE (FOOTER)
-    // ----------------------------------------------------------------------
     "api-userprofile": {
         category: "Referência de API",
         title: "Footer & Perfil de Usuário",
@@ -1203,9 +1241,80 @@ end)</code></pre>
         `
     },
 
-    // ----------------------------------------------------------------------
-    // API: THEMES & CUSTOMIZATION
-    // ----------------------------------------------------------------------
+    "api-window-controls": {
+        category: "Referência de API",
+        title: "Controles da Janela & Ciclo de Vida",
+        breadcrumb: "Controles da Janela",
+        content: `
+            <h1 class="page-title">Controles da Janela & Ciclo de Vida</h1>
+            <p class="page-description">Tudo que controla a janela depois de criada: mostrar/ocultar, minimizar, arrastar, rolar, a tecla de atalho e a destruição limpa da interface.</p>
+
+            <h2>Mostrar / Ocultar — <code>ToggleVisibility()</code></h2>
+            <p>Alterna a visibilidade de <strong>toda</strong> a interface. É exatamente o que a <code>ToggleKey</code> aciona internamente, mas você pode chamá-la pelo seu próprio código (ex.: um botão "Esconder Menu").</p>
+            <div class="code-block-container">
+                <div class="code-block-header"><span class="code-language-tag">Lua</span><button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button></div>
+                <pre class="language-lua"><code>-- Esconder por código
+LapoHub:ToggleVisibility()
+
+-- Botão dentro do próprio menu que o esconde
+LapoHub:AddButton("Ajustes", {
+    text = "Esconder Menu (use a ToggleKey para reabrir)",
+    callback = function() LapoHub:ToggleVisibility() end
+})</code></pre>
+            </div>
+            <div class="alert tip">
+                <div class="alert-icon"><i class="ri-shield-check-line"></i></div>
+                <div class="alert-content">
+                    <div class="alert-title">Foco é liberado ao ocultar</div>
+                    <p class="alert-text">Ao ocultar, a biblioteca libera automaticamente o foco de qualquer TextBox/pesquisa ativa e fecha dropdowns abertos — evitando que o teclado fique "preso" capturando digitação de um widget invisível.</p>
+                </div>
+            </div>
+
+            <h2>A Tecla de Atalho — <code>ToggleKey</code></h2>
+            <p>Definida no <code>Init</code>. Aceita o <strong>nome</strong> de qualquer tecla (string do <code>Enum.KeyCode</code>). Padrão: <code>"End"</code>.</p>
+            <div class="code-block-container">
+                <div class="code-block-header"><span class="code-language-tag">Lua</span><button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button></div>
+                <pre class="language-lua"><code>LapoHub:Init({ Title = "Hub", ToggleKey = "RightShift" })
+-- Exemplos válidos: "End", "K", "Insert", "RightControl", "F4", "Backquote"</code></pre>
+            </div>
+
+            <h2>Minimizar, Arrastar e Rolar (ações do usuário)</h2>
+            <p>Estas interações são feitas diretamente pelo usuário na janela desenhada — não exigem chamadas de API:</p>
+            <div class="table-wrapper">
+                <table class="api-table">
+                    <thead><tr><th>Ação</th><th>Como</th><th>Comportamento</th></tr></thead>
+                    <tbody>
+                        <tr><td>Minimizar</td><td>Botão <code>─</code> no cabeçalho</td><td>Recolhe a janela deixando só a barra de título. Clique de novo para restaurar.</td></tr>
+                        <tr><td>Fechar</td><td>Botão <code>✕</code> no cabeçalho</td><td>Chama <code>Destroy()</code> — encerra a interface por completo.</td></tr>
+                        <tr><td>Arrastar</td><td>Segurar e mover o cabeçalho</td><td>Reposiciona a janela; fica presa dentro da tela (clamp ao viewport).</td></tr>
+                        <tr><td>Rolar conteúdo</td><td>Roda do mouse ou arraste por toque</td><td>Faz scroll vertical dos widgets da aba ativa quando ultrapassam a altura visível.</td></tr>
+                        <tr><td>Mobile</td><td>Botão flutuante <code>☰ / ✕</code></td><td>Em telas touch, reabre/oculta a janela (a ToggleKey não existe sem teclado).</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Destruir a Interface — <code>Destroy()</code></h2>
+            <p>Encerra o hub por completo: remove todos os desenhos da tela, desconecta os <em>listeners</em> de input, desvincula o sink do <code>ContextActionService</code> e destrói a <code>ScreenGui</code> oculta usada para capturar texto. Use ao trocar de script ou fornecer um botão "Desligar".</p>
+            <div class="code-block-container">
+                <div class="code-block-header"><span class="code-language-tag">Lua</span><button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button></div>
+                <pre class="language-lua"><code>LapoHub:AddButton("Ajustes", {
+    text = "❌ Desligar Hub",
+    callback = function()
+        LapoHub:Notify({ title = "Hub", content = "Encerrando...", duration = 2 })
+        task.delay(1, function() LapoHub:Destroy() end)
+    end
+})</code></pre>
+            </div>
+            <div class="alert tip">
+                <div class="alert-icon"><i class="ri-recycle-line"></i></div>
+                <div class="alert-content">
+                    <div class="alert-title">Anti-duplicação automática</div>
+                    <p class="alert-text">Você raramente precisa chamar <code>Destroy()</code> antes de recarregar: o <code>Init</code> detecta uma instância anterior com o mesmo <code>Title</code> (via <code>shared</code>) e a destrói sozinho antes de desenhar a nova — então rodar o script duas vezes não empilha menus.</p>
+                </div>
+            </div>
+        `
+    },
+
     "customization": {
         category: "Guias",
         title: "Temas & Customização",
@@ -1260,9 +1369,6 @@ Theme.BorderAccent= Color3.fromRGB(6,   95,  70)</code></pre>
         `
     },
 
-    // ----------------------------------------------------------------------
-    // EXAMPLES
-    // ----------------------------------------------------------------------
     "examples": {
         category: "Guias",
         title: "Exemplos Práticos",
@@ -1304,12 +1410,12 @@ LapoHub:AddToggle("Rolador", {
         autoRollEnabled = state
         if state then
             LapoHub:Notify({ title = "Auto-Roll", content = "Rolamento automático iniciado para " .. selectedUnit, duration = 3 })
-            
+
             task.spawn(function()
                 while autoRollEnabled do
                     -- Simula o disparo de um remote de rolagem do jogo
                     game:GetService("ReplicatedStorage").Remote.RollTrait:FireServer(selectedUnit)
-                    
+
                     -- Intervalo seguro para evitar lag ou desconexões
                     task.wait(0.8)
                 end
@@ -1372,9 +1478,182 @@ LapoHub:AddButton("Skills", {
         `
     },
 
-    // ----------------------------------------------------------------------
-    // FAQ
-    // ----------------------------------------------------------------------
+    "automation-patterns": {
+        category: "Guias",
+        title: "Loops de Automação Seguros",
+        breadcrumb: "Loops de Automação",
+        content: `
+            <h1 class="page-title">Loops de Automação Seguros</h1>
+            <p class="page-description">A maioria dos scripts (auto-farm, auto-roll, auto-skill) é um loop ligado/desligado por um Toggle. Fazer isso errado cria loops que <strong>nunca param</strong> ou que <strong>duplicam</strong>. Este é o padrão correto.</p>
+
+            <h2>❌ O Erro Clássico</h2>
+            <p>O callback do Toggle recebe o estado <code>state</code> como <strong>parâmetro</strong>. Esse valor fica congelado dentro daquela execução. Se o loop checar o parâmetro, ele <strong>nunca</strong> vê o desligamento:</p>
+            <div class="code-block-container">
+                <div class="code-block-header"><span class="code-language-tag">Lua — NÃO faça</span><button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button></div>
+                <pre class="language-lua"><code>LapoHub:AddToggle("Farm", {
+    text = "Auto Farm",
+    callback = function(state)
+        task.spawn(function()
+            while state do          -- ❌ 'state' nunca muda aqui!
+                fazerFarm()
+                task.wait(1)
+            end
+        end)
+    end
+})
+-- Resultado: desligar o toggle NÃO para o loop, e ligar de novo cria um 2º loop.</code></pre>
+            </div>
+
+            <h2>✅ O Padrão Correto (flag externa)</h2>
+            <p>Guarde o estado numa variável <strong>fora</strong> do callback. O callback só atualiza a flag; o loop lê a flag a cada volta:</p>
+            <div class="code-block-container">
+                <div class="code-block-header"><span class="code-language-tag">Lua</span><button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button></div>
+                <pre class="language-lua"><code>local autoFarm = false   -- flag externa (estado real)
+
+LapoHub:AddToggle("Farm", {
+    text = "Auto Farm",
+    default = false,
+    callback = function(state)
+        autoFarm = state
+        if not state then return end
+        task.spawn(function()
+            while autoFarm do        -- ✅ lê a flag viva
+                fazerFarm()
+                task.wait(1)
+            end
+        end)
+    end
+})</code></pre>
+            </div>
+
+            <h2>🛡️ Blindagem contra Duplicação (re-toggle rápido)</h2>
+            <p>Se o usuário liga/desliga muito rápido, um loop antigo ainda parado em <code>task.wait</code> pode coexistir com o novo. Use uma flag de "rodando" e/ou um <em>token de geração</em>:</p>
+            <div class="code-block-container">
+                <div class="code-block-header"><span class="code-language-tag">Lua</span><button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button></div>
+                <pre class="language-lua"><code>local autoFarm = false
+local running = false
+
+LapoHub:AddToggle("Farm", {
+    text = "Auto Farm",
+    callback = function(state)
+        autoFarm = state
+        if not state or running then return end  -- evita 2º loop
+        running = true
+        task.spawn(function()
+            while autoFarm do
+                fazerFarm()
+                task.wait(1)
+            end
+            running = false                       -- libera ao sair
+        end)
+    end
+})</code></pre>
+            </div>
+
+            <h2>Parar por código</h2>
+            <p>Como o loop lê a flag, basta zerá-la de qualquer lugar (um botão "Parar", outro evento, etc.):</p>
+            <div class="code-block-container">
+                <div class="code-block-header"><span class="code-language-tag">Lua</span><button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button></div>
+                <pre class="language-lua"><code>LapoHub:AddButton("Farm", {
+    text = "⏹ Parar Tudo",
+    callback = function() autoFarm = false end
+})</code></pre>
+            </div>
+
+            <div class="alert warning">
+                <div class="alert-icon"><i class="ri-pulse-line"></i></div>
+                <div class="alert-content">
+                    <div class="alert-title">Sempre dê um <code>task.wait()</code></div>
+                    <p class="alert-text">Um <code>while</code> sem <code>task.wait</code> trava o jogo (loop infinito sem ceder). Mesmo em loops rápidos, use no mínimo <code>task.wait()</code> (um frame). Para chamadas de rede (<code>FireServer</code>/<code>InvokeServer</code>), prefira intervalos de <code>0.2s</code> ou mais para não tomar kick por flood.</p>
+                </div>
+            </div>
+        `
+    },
+
+    "performance": {
+        category: "Guias",
+        title: "Performance & Boas Práticas",
+        breadcrumb: "Performance",
+        content: `
+            <h1 class="page-title">Performance & Boas Práticas</h1>
+            <p class="page-description">A janela é redesenhada a cada frame e os seus callbacks rodam no meio das interações do usuário. Estas práticas mantêm tudo fluido e evitam travadas.</p>
+
+            <h2>1. Não bloqueie a rede dentro de callbacks visuais</h2>
+            <p>Chamar <code>Remote:InvokeServer()</code> em <strong>cada</strong> seleção de dropdown ou atualização de label congela a UI no round-trip do servidor. Busque os dados <strong>uma vez</strong>, guarde em cache e repinte a partir do cache.</p>
+            <div class="code-block-container">
+                <div class="code-block-header"><span class="code-language-tag">Lua</span><button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button></div>
+                <pre class="language-lua"><code>local cache = {}                       -- dados em memória
+
+local function refreshCache()           -- chamado por um BOTÃO, não a cada clique
+    local ok, data = pcall(function() return Remote.ReturnData:InvokeServer() end)
+    if ok and type(data) == "table" then cache = data end
+end
+refreshCache()
+
+LapoHub:AddDropdown("Stats", {
+    text = "Unidade",
+    options = listaDeUnidades,
+    callback = function(_, nome)
+        local u = cache[nome]             -- leitura instantânea do cache
+        infoLabel:Set(u and ("LB: " .. u.LimitBreak) or "N/A")
+    end
+})
+
+LapoHub:AddButton("Stats", { text = "🔄 Atualizar", callback = refreshCache })</code></pre>
+            </div>
+
+            <h2>2. Atualize widgets em vez de recriá-los</h2>
+            <p>Para status ao vivo (moedas/seg, contadores), guarde o <em>handle</em> e use <code>:Set</code> / <code>:updateText</code>. Recriar a aba inteira a cada segundo é caro e desnecessário.</p>
+            <div class="code-block-container">
+                <div class="code-block-header"><span class="code-language-tag">Lua</span><button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button></div>
+                <pre class="language-lua"><code>local contador = LapoHub:AddLabel("Status", { text = "Coletados: 0" })
+task.spawn(function()
+    local n = 0
+    while task.wait(1) do
+        n = n + 1
+        contador:Set("Coletados: " .. n)   -- atualiza só o texto
+    end
+end)</code></pre>
+            </div>
+
+            <h2>3. Adie varreduras pesadas do carregamento</h2>
+            <p>Operações caras no <em>load</em> (ex.: <code>require</code> em dezenas de módulos para listar skills/itens) atrasam a abertura do menu. Rode-as depois com <code>task.spawn</code> + <code>task.wait()</code> e preencha o dropdown quando terminar.</p>
+            <div class="code-block-container">
+                <div class="code-block-header"><span class="code-language-tag">Lua</span><button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button></div>
+                <pre class="language-lua"><code>local skillDropdown = LapoHub:AddDropdown("Skills", { text = "Skill", options = {"Carregando..."} })
+
+task.spawn(function()
+    task.wait()                          -- deixa a UI montar primeiro
+    local lista = escanearSkillsDoJogo() -- trabalho pesado
+    skillDropdown:Set(lista)
+end)</code></pre>
+            </div>
+
+            <h2>4. Debounce em buscas que disparam a cada tecla</h2>
+            <p>A barra de pesquisa do Dropdown filtra a lista a cada caractere. Em listas enormes, jogue o trabalho pesado para um <em>debounce</em> simples:</p>
+            <div class="code-block-container">
+                <div class="code-block-header"><span class="code-language-tag">Lua</span><button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button></div>
+                <pre class="language-lua"><code>local pending = 0
+local function debouncedFilter(texto)
+    pending = pending + 1
+    local id = pending
+    task.delay(0.15, function()
+        if id ~= pending then return end   -- digitou de novo? ignora o antigo
+        aplicarFiltroCaro(texto)
+    end)
+end</code></pre>
+            </div>
+
+            <div class="alert tip">
+                <div class="alert-icon"><i class="ri-flashlight-line"></i></div>
+                <div class="alert-content">
+                    <div class="alert-title">A biblioteca já faz a parte dela</div>
+                    <p class="alert-text">O render loop interno já memoiza textos truncados, recorta (clip) o que sai da área de conteúdo, lê o mouse uma única vez por frame e limpa todos os objetos de Drawing com <code>:Remove()</code>. Seguindo as práticas acima, o gargalo dificilmente será a UI.</p>
+                </div>
+            </div>
+        `
+    },
+
     "faq": {
         category: "Guias",
         title: "Perguntas Frequentes",
@@ -1411,13 +1690,46 @@ LapoHub:AddButton("Skills", {
                         <p>Você pode clicar no botão de fechar (✕) no cabeçalho ou chamar a função <code>LapoHub:Destroy()</code> de dentro do seu script. Isso limpa todos os desenhos da tela, remove os escutas de teclado e desvincula os sinks de cliques do ContextActionService.</p>
                     </div>
                 </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Meu Auto-Farm não para quando desligo o Toggle. Por quê?</span>
+                        <i class="ri-arrow-down-s-line faq-icon"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Quase sempre o loop está checando o <strong>parâmetro</strong> <code>state</code> do callback (que fica congelado) em vez de uma variável externa. Guarde o estado numa flag fora do callback e faça o <code>while</code> ler essa flag. O passo a passo completo está no guia <a href="#automation-patterns">Loops de Automação Seguros</a>.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Como troco a tecla que abre/fecha o menu?</span>
+                        <i class="ri-arrow-down-s-line faq-icon"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Passe <code>ToggleKey</code> no <code>Init</code> com o nome da tecla, ex.: <code>LapoHub:Init({ ToggleKey = "RightShift" })</code>. Aceita qualquer nome de <code>Enum.KeyCode</code> ("End", "K", "Insert", "F4"...). Você também pode alternar por código com <code>LapoHub:ToggleVisibility()</code>.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Como atualizo as opções de um Dropdown durante o jogo?</span>
+                        <i class="ri-arrow-down-s-line faq-icon"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Guarde o handle retornado e chame <code>handle:Set({ ...novasOpções })</code>. Lembre-se: trocar as opções <strong>não</strong> dispara o callback do dropdown, então se você guarda a seleção numa variável, redefina-a para a primeira opção manualmente após o <code>:Set</code>.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>O que acontece se eu executar o mesmo script duas vezes?</span>
+                        <i class="ri-arrow-down-s-line faq-icon"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Nada de menus empilhados: o <code>Init</code> identifica uma instância anterior com o mesmo <code>Title</code> (via tabela global <code>shared</code>) e chama <code>:Destroy()</code> nela antes de desenhar a nova. Para rodar dois hubs lado a lado de propósito, basta usar <code>Title</code> diferentes.</p>
+                    </div>
+                </div>
             </div>
         `
     },
 
-    // ----------------------------------------------------------------------
-    // TROUBLESHOOTING
-    // ----------------------------------------------------------------------
     "troubleshooting": {
         category: "Guias",
         title: "Resolução de Problemas",
@@ -1427,10 +1739,10 @@ LapoHub:AddButton("Skills", {
             <p class="page-description">Problemas comuns relatados e seus métodos rápidos de correção.</p>
 
             <h2>Problemas Comuns</h2>
-            
+
             <h3>1. A interface não carrega e gera o erro 'Drawing.new' is nil</h3>
             <p>Isso ocorre porque seu executor não suporta a biblioteca gráfica nativa de desenho <strong>Drawing API</strong> ou está operando com permissões restritas. Certifique-se de usar um executor compatível de nível avançado.</p>
-            
+
             <h3>2. Cliques passam através da interface para o jogo (Mouse Bleeding)</h3>
             <p>O Lapo Hub X tenta sequestrar a prioridade de toque registrando uma ação de ContextActionService de nível 2000. Se outras ações do jogo estiverem vinculadas acima desse nível ou se o executor redefinir os manipuladores de entrada, os cliques podem passar.</p>
             <div class="alert alert-warning">
@@ -1446,9 +1758,6 @@ LapoHub:AddButton("Skills", {
         `
     },
 
-    // ----------------------------------------------------------------------
-    // CHANGELOG
-    // ----------------------------------------------------------------------
     "changelog": {
         category: "Guias",
         title: "Histórico de Versões",
@@ -1458,7 +1767,40 @@ LapoHub:AddButton("Skills", {
             <p class="page-description">Acompanhe as atualizações e melhorias contínuas do Lapo Hub X.</p>
 
             <div class="changelog-item">
-                <h3>Versão v1.0.0 — Lançamento Oficial <span class="badge badge-accent">Atual</span></h3>
+                <h3>Versão v1.1.0 — Estabilidade & Performance <span class="badge badge-accent">Atual</span></h3>
+                <p class="changelog-meta">Lançado em 20 de Junho de 2026</p>
+                <p><strong>Correções visuais (clipping & foco)</strong></p>
+                <ul class="list-default">
+                    <li>Corrigido o popup de Dropdown que <strong>sumia (mas continuava clicável)</strong> quando a linha era rolada para fora da área visível — agora a visibilidade do popup é decidida pela área do próprio popup.</li>
+                    <li>Corrigido o cursor da TextBox que <strong>flutuava para fora da caixa</strong> (e até da tela) em textos longos.</li>
+                    <li>Eliminada a <strong>linha-fantasma</strong> que as bordas desenhavam no limite da área de conteúdo durante o scroll.</li>
+                    <li>Corrigido o <strong>double-callback</strong> ao clicar fora de uma TextBox (o callback disparava duas vezes).</li>
+                    <li>Foco do teclado agora é <strong>liberado de forma limpa</strong> ao ocultar/destruir a janela — sem mais inputs "presos".</li>
+                    <li>Corrigido o mapeamento de letras e números no fallback de digitação por teclado.</li>
+                </ul>
+                <p><strong>Performance (CPU & memória)</strong></p>
+                <ul class="list-default">
+                    <li>Leitura do mouse e da câmera <strong>uma única vez por frame</strong> (antes era por botão/por frame).</li>
+                    <li>Fim das alocações por frame no render loop: textos truncados agora são <strong>memoizados</strong> e helpers de visibilidade foram movidos para fora do loop.</li>
+                    <li>Corrigido <strong>vazamento de memória</strong> de referências de abas que se acumulavam a cada reconstrução.</li>
+                    <li>Cálculo do limite de rolagem (<code>maxOffset</code>) unificado em um único ponto, mais preciso e barato.</li>
+                </ul>
+                <p><strong>Comportamento dos widgets</strong></p>
+                <ul class="list-default">
+                    <li><code>Dropdown:Set({novasOpções})</code> agora reconstrói corretamente o estado interno (sem mais primeira-abertura com linhas em branco).</li>
+                    <li><code>:Destroy()</code> e <code>:ToggleVisibility()</code> agora limpam foco e estado de dropdown aberto.</li>
+                </ul>
+                <div class="alert tip" style="margin-top: 16px;">
+                    <div class="alert-icon"><i class="ri-checkbox-circle-line"></i></div>
+                    <div class="alert-content">
+                        <div class="alert-title">100% retrocompatível</div>
+                        <p class="alert-text">Nenhuma assinatura pública mudou. Scripts feitos para a v1.0.0 funcionam sem alteração — basta recarregar a biblioteca.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="changelog-item">
+                <h3>Versão v1.0.0 — Lançamento Oficial</h3>
                 <p class="changelog-meta">Lançado em 15 de Junho de 2026</p>
                 <ul class="list-default">
                     <li>Implementação do suporte completo a dispositivos móveis com escala adaptativa a viewports restritos.</li>
@@ -1471,9 +1813,6 @@ LapoHub:AddButton("Skills", {
         `
     },
 
-    // ----------------------------------------------------------------------
-    // SHOWCASE (INTERACTIVE SIMULATOR)
-    // ----------------------------------------------------------------------
     "showcase": {
         category: "Showcase",
         title: "Simulador Interativo",
@@ -1572,10 +1911,6 @@ LapoHub:AddButton("Skills", {
     }
 };
 
-// ==========================================================================
-// SIMULATOR CONFIGURATION & CONTENT STATE
-// ==========================================================================
-
 const SIM_TABS = [
     {
         id: "combat",
@@ -1631,10 +1966,6 @@ let simState = {
     }
 };
 
-// ==========================================================================
-// CENTRAL APPLICATION CONTROLLER
-// ==========================================================================
-
 document.addEventListener("DOMContentLoaded", () => {
     initApp();
 });
@@ -1647,14 +1978,10 @@ function initApp() {
     setupKeyboardShortcuts();
 }
 
-// ----------------------------------------------------------------------
-// THEME SWITCHER
-// ----------------------------------------------------------------------
 function setupTheme() {
     const themeToggleBtn = document.getElementById("themeToggleBtn");
     const html = document.documentElement;
 
-    // Load theme from localStorage
     const savedTheme = localStorage.getItem("theme") || "light";
     html.setAttribute("data-theme", savedTheme);
 
@@ -1666,13 +1993,9 @@ function setupTheme() {
     });
 }
 
-// ----------------------------------------------------------------------
-// ROUTING ENGINE
-// ----------------------------------------------------------------------
 function setupRouting() {
     window.addEventListener("hashchange", handleRouting);
-    
-    // Initial route check
+
     if (!window.location.hash) {
         window.location.hash = "#home";
     } else {
@@ -1683,53 +2006,51 @@ function setupRouting() {
 function handleRouting() {
     const rawHash = window.location.hash || "#home";
     const route = rawHash.replace("#", "");
-    
-    // Resolve page content
+
     const pageKey = PAGES[route] ? route : "home";
     const page = PAGES[pageKey];
-    
+
     renderPage(pageKey, page);
 }
 
 function renderPage(pageKey, page) {
     const viewport = document.getElementById("contentViewport");
-    
-    // Fade out effect
+
+    document.documentElement.style.scrollBehavior = 'auto';
+    window.scrollTo(0, 0);
+    document.documentElement.style.scrollBehavior = '';
+
     viewport.style.opacity = 0;
     viewport.style.transform = "translateY(8px)";
-    
+
     setTimeout(() => {
-        // Inject page content
+
         viewport.innerHTML = page.content;
-        
-        // Update breadcrumb
+
         updateBreadcrumbs(page.category, page.breadcrumb);
-        
-        // Highlight active sidebar link
+
         updateActiveNavLinks(pageKey);
-        
-        // Initialize syntax highlighting
+
         if (typeof Prism !== "undefined") {
             Prism.highlightAll();
         }
-        
-        // Setup code block copy handlers
+
         setupCodeCopyButtons();
-        
-        // If FAQ page, setup toggles
+
         if (pageKey === "faq") {
             setupFaqAccordion();
         }
-        
-        // If Showcase page, load simulator engine
+
         if (pageKey === "showcase") {
             initSimulator();
         }
 
-        // Fade in
+        document.documentElement.style.scrollBehavior = 'auto';
+        window.scrollTo(0, 0);
+        document.documentElement.style.scrollBehavior = '';
+
         viewport.style.opacity = 1;
         viewport.style.transform = "translateY(0)";
-        window.scrollTo(0, 0);
     }, 150);
 }
 
@@ -1740,8 +2061,7 @@ function updateBreadcrumbs(category, activeItem) {
         <span class="breadcrumb-separator">/</span>
         <span class="breadcrumb-item active">${activeItem}</span>
     `;
-    
-    // Update Document Title
+
     document.title = `Lapo Hub X | ${activeItem}`;
 }
 
@@ -1756,9 +2076,6 @@ function updateActiveNavLinks(pageKey) {
     });
 }
 
-// ----------------------------------------------------------------------
-// NAVIGATION & SIDEBAR (MOBILE)
-// ----------------------------------------------------------------------
 function setupNavigation() {
     const menuToggleBtn = document.getElementById("menuToggleBtn");
     const closeSidebarBtn = document.getElementById("closeSidebarBtn");
@@ -1779,7 +2096,6 @@ function setupNavigation() {
     closeSidebarBtn.addEventListener("click", closeSidebar);
     overlay.addEventListener("click", closeSidebar);
 
-    // Close sidebar on link click in mobile view
     const navLinks = document.querySelectorAll(".nav-link");
     navLinks.forEach(link => {
         link.addEventListener("click", () => {
@@ -1790,21 +2106,17 @@ function setupNavigation() {
     });
 }
 
-// ----------------------------------------------------------------------
-// GLOBAL SEARCH ENGINE (FULL-TEXT)
-// ----------------------------------------------------------------------
 function setupGlobalSearch() {
     const searchInput = document.getElementById("searchInput");
     const searchResults = document.getElementById("searchResults");
-    
-    // Pre-parse pages into search terms
+
     const searchDatabase = [];
     for (const [key, val] of Object.entries(PAGES)) {
-        // Remove HTML tags to search plain text
+
         const tempDiv = document.createElement("div");
         tempDiv.innerHTML = val.content;
         const text = tempDiv.textContent || tempDiv.innerText || "";
-        
+
         searchDatabase.push({
             key: key,
             title: val.title,
@@ -1816,7 +2128,7 @@ function setupGlobalSearch() {
 
     searchInput.addEventListener("input", (e) => {
         const query = e.target.value.toLowerCase().trim();
-        
+
         if (query === "") {
             searchResults.classList.remove("active");
             searchResults.innerHTML = "";
@@ -1824,7 +2136,7 @@ function setupGlobalSearch() {
         }
 
         const matches = searchDatabase.filter(item => {
-            return item.title.toLowerCase().includes(query) || 
+            return item.title.toLowerCase().includes(query) ||
                    item.content.toLowerCase().includes(query) ||
                    item.category.toLowerCase().includes(query);
         });
@@ -1832,14 +2144,12 @@ function setupGlobalSearch() {
         renderSearchResults(matches, query);
     });
 
-    // Close results when clicking outside
     document.addEventListener("click", (e) => {
         if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
             searchResults.classList.remove("active");
         }
     });
 
-    // Focus input on slash key
     document.addEventListener("keydown", (e) => {
         if (e.key === "/" && document.activeElement !== searchInput) {
             e.preventDefault();
@@ -1851,7 +2161,7 @@ function setupGlobalSearch() {
 function renderSearchResults(matches, query) {
     const searchResults = document.getElementById("searchResults");
     searchResults.innerHTML = "";
-    
+
     if (matches.length === 0) {
         searchResults.innerHTML = `<div class="search-result-empty">Nenhum resultado encontrado para "${query}"</div>`;
         searchResults.classList.add("active");
@@ -1861,8 +2171,7 @@ function renderSearchResults(matches, query) {
     matches.slice(0, 5).forEach(item => {
         const itemElement = document.createElement("div");
         itemElement.className = "search-result-item";
-        
-        // Find match location for snippet
+
         const idx = item.content.toLowerCase().indexOf(query);
         let snippet = "";
         if (idx !== -1) {
@@ -1878,7 +2187,7 @@ function renderSearchResults(matches, query) {
             <span class="search-result-title">${item.title}</span>
             <span class="search-result-snippet">${escapeHtml(snippet)}</span>
         `;
-        
+
         itemElement.addEventListener("click", () => {
             window.location.hash = `#${item.key}`;
             searchResults.classList.remove("active");
@@ -1905,13 +2214,13 @@ function escapeHtml(text) {
 // ----------------------------------------------------------------------
 function setupCodeCopyButtons() {
     const copyBtns = document.querySelectorAll(".copy-code-btn");
-    
+
     copyBtns.forEach(btn => {
         btn.addEventListener("click", () => {
             const container = btn.closest(".code-block-container");
             const codeEl = container.querySelector("pre code");
             const rawText = codeEl.textContent;
-            
+
             navigator.clipboard.writeText(rawText).then(() => {
                 btn.innerHTML = `<i class="ri-check-line" style="color: var(--success)"></i> Copiado!`;
                 setTimeout(() => {
@@ -1929,7 +2238,7 @@ function setupCodeCopyButtons() {
 // ----------------------------------------------------------------------
 function setupKeyboardShortcuts() {
     const searchInput = document.getElementById("searchInput");
-    
+
     document.addEventListener("keydown", (e) => {
         // Escape clear input
         if (e.key === "Escape" && document.activeElement === searchInput) {
@@ -1945,15 +2254,15 @@ function setupKeyboardShortcuts() {
 // ----------------------------------------------------------------------
 function setupFaqAccordion() {
     const questions = document.querySelectorAll(".faq-question");
-    
+
     questions.forEach(q => {
         q.addEventListener("click", () => {
             const item = q.closest(".faq-item");
             const isActive = item.classList.contains("active");
-            
+
             // Close all
             document.querySelectorAll(".faq-item").forEach(i => i.classList.remove("active"));
-            
+
             // Toggle current
             if (!isActive) {
                 item.classList.add("active");
@@ -1982,7 +2291,7 @@ function initSimulator() {
             fpsCap: 60
         }
     };
-    
+
     simLog("LapoHub:Init() executado via console virtual.");
     simLog("Aguardando interações na janela do Roblox...");
 
@@ -2007,12 +2316,12 @@ function simLog(msg) {
     if (!logBox) return;
 
     const timestamp = new Date().toLocaleTimeString();
-    
+
     // Check if default info text is present
     if (logBox.textContent.includes("-- Console pronto")) {
         logBox.textContent = "";
     }
-    
+
     logBox.textContent += `[${timestamp}] ${msg}\n`;
     logBox.scrollTop = logBox.scrollHeight;
 }
@@ -2089,12 +2398,12 @@ function resetSimWindow() {
     const mobileBtn = document.getElementById("simMobileBtn");
     const statusState = document.getElementById("simStatusState");
     const toggleScaleBtn = document.getElementById("btnToggleSimScale");
-    
+
     simState.visible = true;
     simState.minimized = false;
     simState.mobile = false;
     simState.currentTabIdx = 0;
-    
+
     windowEl.classList.remove("minimized");
     windowEl.classList.remove("hidden");
     windowEl.style.transform = "scale(1)";
@@ -2103,7 +2412,7 @@ function resetSimWindow() {
     mobileBtn.style.display = "none";
     toggleScaleBtn.innerHTML = `<i class="ri-smartphone-line"></i> Simular Celular (Touch)`;
     statusState.innerHTML = "Ativo (Janela Aberta)";
-    
+
     renderSimTabs();
     renderSimWidgets();
     clearSimConsole();
@@ -2113,7 +2422,7 @@ function resetSimWindow() {
 function toggleSimMinimize() {
     const windowEl = document.getElementById("simWindow");
     simState.minimized = !simState.minimized;
-    
+
     if (simState.minimized) {
         windowEl.classList.add("minimized");
         document.getElementById("simBtnMin").innerText = "❐";
@@ -2163,7 +2472,7 @@ function renderSimTabs() {
         const item = document.createElement("div");
         item.className = `sim-tab-item ${index === simState.currentTabIdx ? 'active' : ''}`;
         item.innerHTML = `<span>${tab.icon}</span> ${tab.name}`;
-        
+
         item.addEventListener("click", () => {
             if (simState.currentTabIdx === index) return;
             simState.currentTabIdx = index;
@@ -2171,7 +2480,7 @@ function renderSimTabs() {
             renderSimWidgets();
             simLog(`[LapoHub Tab] Mudança de aba: "${tab.name}" (Index: ${index + 1})`);
         });
-        
+
         tabContainer.appendChild(item);
     });
 }
@@ -2185,33 +2494,33 @@ function renderSimWidgets() {
 
     contentContainer.innerHTML = "";
     const currentTab = SIM_TABS[simState.currentTabIdx];
-    
+
     currentTab.widgets.forEach(w => {
         let el = document.createElement("div");
-        
+
         if (w.type === "label") {
             el.className = "sim-widget-label";
             el.innerText = w.text;
-        } 
-        
+        }
+
         else if (w.type === "paragraph") {
             el.className = "sim-widget-paragraph";
             el.innerText = w.text;
-        } 
-        
+        }
+
         else if (w.type === "separator") {
             el.className = "sim-widget-separator";
-        } 
-        
+        }
+
         else if (w.type === "button") {
             el.className = "sim-widget button";
             el.innerHTML = `<span class="sim-widget-title">${w.text}</span>`;
-            
+
             el.addEventListener("click", () => {
                 simLog(`[LapoHub Callback] Botão acionado: "${w.text}"`);
             });
-        } 
-        
+        }
+
         else if (w.type === "toggle") {
             el.className = `sim-widget toggle ${simState.widgetValues[w.id] ? 'active' : ''}`;
             el.innerHTML = `
@@ -2220,18 +2529,18 @@ function renderSimWidgets() {
                     <div class="sim-toggle-knob"></div>
                 </div>
             `;
-            
+
             el.addEventListener("click", () => {
                 simState.widgetValues[w.id] = !simState.widgetValues[w.id];
                 el.classList.toggle("active");
                 simLog(`[LapoHub Callback] Toggle "${w.text}": ${simState.widgetValues[w.id]}`);
             });
-        } 
-        
+        }
+
         else if (w.type === "slider") {
             const val = simState.widgetValues[w.id];
             const pct = ((val - w.min) / (w.max - w.min)) * 100;
-            
+
             el.className = "sim-widget slider";
             el.innerHTML = `
                 <div class="sim-widget-header">
@@ -2254,9 +2563,9 @@ function renderSimWidgets() {
                     const valPct = Math.min(Math.max(0, (clientX - rect.left) / rect.width), 1);
                     const rawVal = w.min + valPct * (w.max - w.min);
                     const finalVal = Math.floor(rawVal);
-                    
+
                     simState.widgetValues[w.id] = finalVal;
-                    
+
                     track.querySelector(".sim-slider-fill").style.width = `${valPct * 100}%`;
                     track.querySelector(".sim-slider-thumb").style.left = `${valPct * 100}%`;
                     document.getElementById(`simVal_${w.id}`).innerText = finalVal;
@@ -2279,7 +2588,7 @@ function renderSimWidgets() {
                     window.addEventListener("mousemove", mouseMoveHandler);
                     window.addEventListener("mouseup", mouseUpHandler);
                 });
-                
+
                 // Add touch support
                 track.addEventListener("touchstart", (e) => {
                     updateSliderPosition(e.touches[0].clientX);
@@ -2299,11 +2608,11 @@ function renderSimWidgets() {
                     window.addEventListener("touchend", touchEndHandler);
                 });
             }, 0);
-        } 
-        
+        }
+
         else if (w.type === "dropdown") {
             const currentSel = simState.widgetValues[w.id];
-            
+
             el.className = "sim-widget dropdown";
             el.innerHTML = `
                 <span class="sim-widget-title">${w.text}</span>
@@ -2322,15 +2631,15 @@ function renderSimWidgets() {
             setTimeout(() => {
                 const display = el.querySelector(".sim-dropdown-display");
                 const popup = document.getElementById(`simPopup_${w.id}`);
-                
+
                 display.addEventListener("click", (e) => {
                     e.stopPropagation();
-                    
+
                     // Close other dropdowns first
                     document.querySelectorAll(".sim-dropdown-popup").forEach(p => {
                         if (p !== popup) p.classList.remove("active");
                     });
-                    
+
                     popup.classList.toggle("active");
                 });
 
@@ -2341,14 +2650,14 @@ function renderSimWidgets() {
                         e.stopPropagation();
                         const val = item.getAttribute("data-value");
                         simState.widgetValues[w.id] = val;
-                        
+
                         document.getElementById(`simDisplay_${w.id}`).innerText = val;
                         popup.classList.remove("active");
-                        
+
                         // Update selected class
                         items.forEach(i => i.classList.remove("selected"));
                         item.classList.add("selected");
-                        
+
                         simLog(`[LapoHub Callback] Dropdown "${w.text}" item selecionado: "${val}" (Index: ${index + 1})`);
                     });
                 });
@@ -2358,8 +2667,8 @@ function renderSimWidgets() {
                     popup.classList.remove("active");
                 });
             }, 0);
-        } 
-        
+        }
+
         else if (w.type === "textbox") {
             const currentVal = simState.widgetValues[w.id];
             el.className = "sim-widget textbox";
@@ -2373,10 +2682,10 @@ function renderSimWidgets() {
 
             setTimeout(() => {
                 const inputArea = el.querySelector(".sim-textbox-input");
-                
+
                 inputArea.addEventListener("click", (e) => {
                     e.stopPropagation();
-                    
+
                     // Defocus all other textboxes first
                     document.querySelectorAll(".sim-widget.textbox").forEach(box => {
                         box.classList.remove("active");
@@ -2384,12 +2693,12 @@ function renderSimWidgets() {
 
                     el.classList.add("active");
                     simLog(`[LapoHub Input] TextBox "${w.text}" em foco.`);
-                    
+
                     // Create a prompt to simulate Roblox input typing in the browser
                     setTimeout(() => {
                         const userText = prompt(`[Simulador Roblox] Digite o valor para a TextBox "${w.text}":`, simState.widgetValues[w.id]);
                         el.classList.remove("active");
-                        
+
                         if (userText !== null) {
                             simState.widgetValues[w.id] = userText;
                             document.getElementById(`simVal_${w.id}`).innerText = userText || w.placeholder;
