@@ -1,7 +1,6 @@
 local LapoHub = {}
 LapoHub.__index = LapoHub
 
--- ========== INTERNAL STATE ==========
 local state = {
     visible = true,
     minimized = false,
@@ -49,7 +48,6 @@ local state = {
     dropdownInputFrame = nil,
 }
 
--- ========== TEMA REFINADO (Synapse X vibes) ==========
 local Theme = {
     BgDeep      = Color3.fromRGB(10,  10,  18),
     BgBase      = Color3.fromRGB(14,  14,  26),
@@ -81,12 +79,16 @@ if not math.clamp then
     end
 end
 
--- ========== HELPERS ==========
 local function detectMobile()
     local ok, uis = pcall(function() return game:GetService("UserInputService") end)
     if ok then return uis.TouchEnabled and not uis.KeyboardEnabled end
     return false
 end
+
+local UIS_SVC = (function()
+    local ok, s = pcall(function() return game:GetService("UserInputService") end)
+    return ok and s or nil
+end)()
 
 local function lerp(a, b, t) return a + (b - a) * t end
 local function lerpColor(a, b, t)
@@ -115,6 +117,20 @@ local function truncateText(txt, maxW, fontSize)
     return txt
 end
 
+local function truncCached(w, key, txt, maxW, fontSize)
+    local ck = w._trunc
+    if not ck then ck = {}; w._trunc = ck end
+    local e = ck[key]
+    if e and e.txt == txt and e.maxW == maxW and e.fs == fontSize then return e.out end
+    local out = truncateText(txt, maxW, fontSize)
+    if e then
+        e.txt, e.maxW, e.fs, e.out = txt, maxW, fontSize, out
+    else
+        ck[key] = {txt = txt, maxW = maxW, fs = fontSize, out = out}
+    end
+    return out
+end
+
 local function renderClippedSquare(squareObj, posX, posY, sizeX, sizeY, cY, cY2)
     local top = posY
     local bottom = posY + sizeY
@@ -134,8 +150,26 @@ local function renderClippedSquare(squareObj, posX, posY, sizeX, sizeY, cY, cY2)
     end
 end
 
+local function renderClippedOutline(obj, posX, posY, sizeX, sizeY, cY, cY2)
+    if posY >= cY and (posY + sizeY) <= cY2 then
+        obj.Position = Vector2.new(posX, posY)
+        obj.Size = Vector2.new(sizeX, sizeY)
+        obj.Visible = true
+    else
+        obj.Visible = false
+    end
+end
+
 local function isSubVisible(y, h, cY, cY2)
     return y >= cY and (y + h) <= cY2
+end
+
+local function setVis(obj, v) if obj then obj.Visible = v end end
+local function hide(...)
+    for i = 1, select("#", ...) do
+        local o = select(i, ...)
+        if o then o.Visible = false end
+    end
 end
 
 local function getGuiParent()
@@ -177,7 +211,6 @@ local function loadConfig()
     return {}
 end
 
--- ========== DRAWING POOLS ==========
 local drgs           = {}
 local tabBgList      = {}
 local tabTextList    = {}
@@ -190,7 +223,9 @@ local DD_MAX_VIS = 6
 local function pool(obj) table.insert(drgs, obj); return obj end
 local function cdraw(obj) table.insert(contentDrawings, obj); return obj end
 
--- ========== ESTRUTURA PRINCIPAL ==========
+local tabDrawings = {}
+local function tpool(obj) table.insert(tabDrawings, obj); return obj end
+
 local ui = {}
 
 local function buildStructure()
@@ -312,25 +347,25 @@ local function buildStructure()
     end
 end
 
--- ========== TABS ==========
 local function buildTabs()
     for _, b in ipairs(tabBgList)     do pcall(function() b:Remove() end) end
     for _, t in ipairs(tabTextList)   do pcall(function() t:Remove() end) end
     for _, a in ipairs(tabAccentList) do pcall(function() a:Remove() end) end
     tabBgList, tabTextList, tabAccentList = {}, {}, {}
+    tabDrawings = {}
 
     local s = state.scale
     for i, tab in ipairs(state.tabs) do
-        local bg = pool(make("Square", {
+        local bg = tpool(make("Square", {
             Filled = true, Color = Color3.new(0,0,0),
             Transparency = 0, ZIndex = 12, Visible = state.visible
         }))
-        local txt = pool(make("Text", {
+        local txt = tpool(make("Text", {
             Text = (tab.icon and tab.icon ~= "" and (tab.icon .. "  ") or "") .. (tab.name or "Tab"),
             Color = Theme.TextSub, Size = 16 * s, Font = Font,
             ZIndex = 13, Visible = state.visible
         }))
-        local accent = pool(make("Square", {
+        local accent = tpool(make("Square", {
             Filled = true, Color = Theme.Accent,
             Transparency = 1, ZIndex = 14, Visible = state.visible
         }))
@@ -340,7 +375,6 @@ local function buildTabs()
     end
 end
 
--- ========== LAYOUT UPDATE ==========
 local function updateLayout()
     local s   = state.scale
     local pos = state.framePos
@@ -490,7 +524,6 @@ local function updateLayout()
     end
 end
 
--- ========== WIDGETS ==========
 local function newWidget(kind, props)
     local s = state.scale
 
@@ -650,7 +683,15 @@ local function newWidget(kind, props)
     return nil
 end
 
--- ========== REBUILD CONTENT ==========
+local function recalcMaxOffset()
+    local ss = state.scale
+    local totalH = 10 * ss
+    for _, w in ipairs(widgetList) do totalH = totalH + w.h + 5 * ss end
+    local contentAreaH = state.frameSize.Y - 34 * ss
+    state.maxOffset = math.max(0, totalH - contentAreaH + 10 * ss)
+    return state.maxOffset
+end
+
 local function rebuildContent()
     for _, d in ipairs(contentDrawings) do pcall(function() d:Remove() end) end
     contentDrawings, widgetList = {}, {}
@@ -672,12 +713,9 @@ local function rebuildContent()
             curY = curY + w.h + 5 * s
         end
     end
-    -- FIX: recalculate maxOffset properly using actual content area height
-    local contentH = state.frameSize.Y - (34 * s) -- header height
-    state.maxOffset = math.max(0, curY - contentH + 10 * s)
+    recalcMaxOffset()
 end
 
--- ========== DROPDOWN GEOMETRY ==========
 local function dropdownGeom(w)
     local s      = state.scale
     local SIDE_W = 160 * s
@@ -697,7 +735,63 @@ local function dropdownGeom(w)
     }
 end
 
--- ========== TAB HELPERS ==========
+local function renderDropdownPopup(w, ss, cY, cY2)
+    local function hidePopup()
+        setVis(w.popupBg, false);  setVis(w.popupBd, false)
+        setVis(w.searchBg, false); setVis(w.searchBd, false)
+        setVis(w.searchIc, false); setVis(w.searchTx, false)
+        for _, slot in ipairs(w.itemDraws) do setVis(slot.bg, false); setVis(slot.txt, false) end
+    end
+    if not w.open then hidePopup(); return end
+    local g = dropdownGeom(w)
+    local popupVis = (g.popY + g.popH > cY) and (g.popY < cY2)
+    if not popupVis then hidePopup(); return end
+
+    renderClippedSquare(w.popupBg, g.popX, g.popY, g.popW, g.popH, cY, cY2)
+    renderClippedOutline(w.popupBd, g.popX, g.popY, g.popW, g.popH, cY, cY2)
+
+    if w.search then
+        renderClippedSquare(w.searchBg, g.popX, g.popY, g.popW, g.searchH, cY, cY2)
+        renderClippedOutline(w.searchBd, g.popX, g.popY, g.popW, g.searchH, cY, cY2)
+
+        w.searchIc.Visible = isSubVisible(g.popY+(g.searchH-17*ss)/2, 17*ss, cY, cY2)
+        w.searchIc.Position = Vector2.new(g.popX+7*ss,  g.popY+(g.searchH-17*ss)/2)
+        w.searchIc.Size     = 17*ss
+
+        w.searchTx.Visible = isSubVisible(g.popY+(g.searchH-16*ss)/2, 16*ss, cY, cY2)
+        w.searchTx.Position = Vector2.new(g.popX+22*ss, g.popY+(g.searchH-16*ss)/2)
+        w.searchTx.Size     = 16*ss
+        local queryStr = w.query ~= "" and w.query or "Pesquisar..."
+        local st = truncCached(w, "search", queryStr, g.popW - 30*ss, 16*ss)
+        if w.searchTx.Text ~= st then w.searchTx.Text = st end
+        w.searchTx.Color = w.query ~= "" and Theme.Text or Theme.TextMuted
+    else
+        setVis(w.searchBg, false); setVis(w.searchBd, false)
+        setVis(w.searchIc, false); setVis(w.searchTx, false)
+    end
+
+    for k, slot in ipairs(w.itemDraws) do
+        local optIdx = (k <= g.visN) and w.filtered[w.scroll + k] or nil
+        if optIdx then
+            local iy       = g.popY + g.searchH + (k-1)*g.ITEM_H
+            local hovered  = (optIdx == w.hoverIdx)
+            local selected = (optIdx == w.selected)
+
+            renderClippedSquare(slot.bg, g.popX, iy, g.popW, g.ITEM_H, cY, cY2)
+            slot.bg.Color = hovered and Theme.BgPanel or (selected and Theme.BgWidget or Theme.BgDeep)
+
+            slot.txt.Visible = isSubVisible(iy+(g.ITEM_H-16*ss)/2, 16*ss, cY, cY2)
+            slot.txt.Position = Vector2.new(g.popX+10*ss, iy+(g.ITEM_H-16*ss)/2)
+            slot.txt.Size     = 16*ss
+            local it = truncCached(w, "item"..k, tostring(w.options[optIdx]), g.popW - 20*ss, 16*ss)
+            if slot.txt.Text ~= it then slot.txt.Text = it end
+            slot.txt.Color    = (hovered or selected) and Theme.Text or Theme.TextSub
+        else
+            setVis(slot.bg, false); setVis(slot.txt, false)
+        end
+    end
+end
+
 local function resolveTab(tabIdx)
     if type(tabIdx) == "string" then
         for i, t in ipairs(state.tabs) do
@@ -716,7 +810,6 @@ local function addWidget(tabIdx, kind, props)
     if state.initialized then rebuildContent() end
 end
 
--- ========== API PÚBLICA ==========
 function LapoHub:AddTab(name, icon)
     table.insert(state.tabs, {name=name, icon=icon or "", widgets={}})
     if state.initialized then
@@ -778,8 +871,10 @@ function LapoHub:AddDropdown(tabIdx, cfg)
             for _, w in ipairs(widgetList) do
                 if w.desc and w.desc.props == cfg and w.type == "Dropdown" then
                     w.options = valOrOptions
-                    w.filtered = valOrOptions
                     w.selected = 1
+                    w.query = ""
+                    w.scroll = 0
+                    w:applyFilter()
                     w.selectedText.Text = valOrOptions[1] or "Select"
                     break
                 end
@@ -863,6 +958,7 @@ function LapoHub:AddSeparator(tabIdx)
 end
 
 function LapoHub:Notify(cfg)
+    if not state.hasDrawing then return self end
     cfg = cfg or {}
     local s   = state.scale
     local id  = state.notifyId + 1
@@ -961,8 +1057,22 @@ end
 
 function LapoHub:ToggleVisibility()
     state.visible = not state.visible
+    if not state.visible then
+
+        if state.sinkTextBox then pcall(function() state.sinkTextBox:ReleaseFocus() end) end
+        if state.focusedTextBox then
+            local w = state.focusedTextBox
+            w.focused = false
+            pcall(function() w.inputBd.Color = Theme.Border end)
+            state.focusedTextBox = nil
+        end
+        if state.dropdownWidget then state.dropdownWidget.open = false end
+        state.dropdownOpen   = false
+        state.dropdownWidget = nil
+    end
     for _, d in ipairs(drgs)          do pcall(function() d.Visible = state.visible end) end
     for _, d in ipairs(contentDrawings) do pcall(function() d.Visible = state.visible end) end
+    for _, d in ipairs(tabDrawings)   do pcall(function() d.Visible = state.visible end) end
     if state.mobile and ui.mobileBtn then
         ui.mobileBtn.Visible       = true
         ui.mobileBtnBorder.Visible = true
@@ -974,6 +1084,10 @@ end
 
 function LapoHub:Destroy()
     state.destroyFlag = true
+    if state.sinkTextBox then pcall(function() state.sinkTextBox:ReleaseFocus() end) end
+    state.focusedTextBox = nil
+    state.dropdownOpen   = false
+    state.dropdownWidget = nil
     pcall(function() game:GetService("ContextActionService"):UnbindAction("LapoHubX_MouseSink") end)
     local sgParent = getGuiParent()
     if sgParent then
@@ -982,13 +1096,16 @@ function LapoHub:Destroy()
     end
     for _, d in ipairs(drgs)            do pcall(function() d:Remove() end) end
     for _, d in ipairs(contentDrawings) do pcall(function() d:Remove() end) end
+    for _, d in ipairs(tabDrawings)     do pcall(function() d:Remove() end) end
     for _, n in ipairs(state.notifyList) do
         pcall(function() n.bg:Remove(); n.accent:Remove(); n.border:Remove(); n.titleT:Remove(); n.bar:Remove(); if n.lineDrawings then for _, ld in ipairs(n.lineDrawings) do pcall(function() ld:Remove() end) end end end)
     end
     for _, c in ipairs(state.connections) do pcall(function() c:Disconnect() end) end
-    drgs, contentDrawings, tabBgList, tabTextList, tabAccentList = {},{},{},{},{}
+    drgs, contentDrawings, tabBgList, tabTextList, tabAccentList, tabDrawings = {},{},{},{},{},{}
     state.connections, widgetList, state.notifyList = {},{},{}
     state.initialized = false
+    state.sinkTextBox = nil
+    state.mainInputFrame, state.mobileInputFrame, state.dropdownInputFrame = nil, nil, nil
 end
 
 local function mouseSinkHandler(actionName, inputState, inputObject)
@@ -1004,12 +1121,10 @@ local function mouseSinkHandler(actionName, inputState, inputObject)
     local mw, mh = state.framePos.X, state.framePos.Y
     local fw, fh = state.frameSize.X, state.frameSize.Y
 
-    -- Check if mouse is inside UI frame (accounting for minimize)
     local headerH = 34 * s
     local actualHeight = state.minimized and headerH or fh
     local insideUI = inRect(px, py, mw, mh, fw, actualHeight)
 
-    -- Check if mouse is inside mobile button
     local insideMobile = false
     if state.mobile and ui and ui.mobileBtn then
         local BS = 44 * s
@@ -1018,7 +1133,6 @@ local function mouseSinkHandler(actionName, inputState, inputObject)
         insideMobile = inRect(px, py, BX, BY, BS, BS)
     end
 
-    -- Check if mouse is inside any active notification
     local insideNotification = false
     for _, n in ipairs(state.notifyList) do
         if n.bg and n.bg.Visible then
@@ -1031,7 +1145,6 @@ local function mouseSinkHandler(actionName, inputState, inputObject)
         end
     end
 
-    -- If a dropdown is open, its popup might be drawn outside the main UI bounds
     local insideDropdownPopup = false
     if state.dropdownOpen and state.dropdownWidget then
         local w = state.dropdownWidget
@@ -1046,7 +1159,6 @@ local function mouseSinkHandler(actionName, inputState, inputObject)
     return Enum.ContextActionResult.Pass
 end
 
--- ========== INPUT ==========
 local function setupInput()
     local uis    = game:GetService("UserInputService")
     local runSvc = game:GetService("RunService")
@@ -1054,7 +1166,6 @@ local function setupInput()
 
     local function mp() return uis:GetMouseLocation() end
 
-    -- Bind ContextActionService mouse/wheel/touch sink to prevent input bleeding to the game
     pcall(function()
         cas:BindActionAtPriority(
             "LapoHubX_MouseSink",
@@ -1135,8 +1246,7 @@ local function setupInput()
     end
 
     local c3 = uis.InputBegan:Connect(function(inp, gpe)
-        -- Allow mouse click / touch even if game processed (gpe is true),
-        -- since overlay drawing UI is not tracked by game engine's CoreGui.
+
         if inp.UserInputType ~= Enum.UserInputType.MouseButton1
         and inp.UserInputType ~= Enum.UserInputType.Touch then return end
 
@@ -1169,25 +1279,24 @@ local function setupInput()
 
         if not state.visible then return end
 
-        -- Handle TextBox defocus if clicked outside
         if state.focusedTextBox then
             local w = state.focusedTextBox
             local wy = cY + w.y - state.contentOffset
             local insideTextBox = inRect(px, py, cX + 10*s, wy, cW - 20*s, w.h) and py >= cY and py <= cY2
             if not insideTextBox then
+                state.focusedTextBox = nil
                 w.focused = false
                 w.inputBd.Color = Theme.Border
                 if w.value ~= "" then
                     w.valueText.Color = Theme.Text
-                    w.callback(w.value)
                 else
                     w.valueText.Text = w.placeholder
                     w.valueText.Color = Theme.TextMuted
                 end
+                w.callback(w.value)
                 if state.sinkTextBox then
                     state.sinkTextBox:ReleaseFocus()
                 end
-                state.focusedTextBox = nil
             end
         end
 
@@ -1299,7 +1408,7 @@ local function setupInput()
             state.isDragging=false
             if state.slidingWidget then state.slidingWidget.isDragging=false end
             state.isSliding=false; state.slidingWidget=nil
-            
+
             if inp.UserInputType == Enum.UserInputType.Touch then
                 state.isScrolling = false
                 if state.isScrollingDropdown then
@@ -1329,20 +1438,20 @@ local function setupInput()
                     local fw,fh = state.frameSize.X, state.frameSize.Y
                     local HEADER_H = 34*s
                     local SIDE_W   = 160*s
-                    
+
                     local cX = mw + SIDE_W + 1
                     local cY = mh + HEADER_H
                     local cW = fw - SIDE_W - 1
                     local cH = fh - HEADER_H
                     local cY2 = cY + cH
-                    
+
                     local w = state.pressedWidget
                     local wy = cY + w.y - state.contentOffset
                     if py >= wy and py <= wy + w.h and py >= cY and py <= cY2 and inRect(px, py, cX, cY, cW, cH) then
                         activateWidget(w, px, py, s, cX, cY, cW, cH, cY2)
                     end
                 end
-                
+
                 state.pressedWidget = nil
                 state.pressedDropdownItemIndex = nil
                 state.touchStartPos = nil
@@ -1361,7 +1470,7 @@ local function setupInput()
             if state.touchStartPos then
                 local deltaY = py - state.touchStartPos.Y
                 local deltaX = px - state.touchStartPos.X
-                
+
                 if state.isScrollingDropdown then
                     if math.abs(deltaY) > 8 then
                         state.draggedPastThreshold = true
@@ -1386,16 +1495,9 @@ local function setupInput()
                         end
                     end
                 end
-                
+
                 if state.isScrolling then
-                    local ss = state.scale
-                    local padding = 10 * ss
-                    local totalH = padding
-                    for _, w in ipairs(widgetList) do
-                        totalH = totalH + w.h + 5*ss
-                    end
-                    local contentAreaH = state.frameSize.Y - 34*ss
-                    state.maxOffset = math.max(0, totalH - contentAreaH + 10*ss)
+                    recalcMaxOffset()
                     state.contentOffset = math.clamp(state.scrollStartOffset - deltaY, 0, state.maxOffset)
                 end
             end
@@ -1455,14 +1557,7 @@ local function setupInput()
         local cW     = state.frameSize.X - SIDE_W - 1
         local cH     = state.frameSize.Y - 34*s
         if inRect(pos.X,pos.Y, cX,cY, cW,cH) then
-            local ss = state.scale
-            local padding = 10 * ss
-            local totalH = padding
-            for _, w in ipairs(widgetList) do
-                totalH = totalH + w.h + 5*ss
-            end
-            local contentAreaH = state.frameSize.Y - 34*ss
-            state.maxOffset = math.max(0, totalH - contentAreaH + 10*ss)
+            recalcMaxOffset()
             state.contentOffset = math.clamp(state.contentOffset - delta*32, 0, state.maxOffset)
         end
     end)
@@ -1472,11 +1567,11 @@ local function setupInput()
         local kc = inp.KeyCode
         local shift = uis:IsKeyDown(Enum.KeyCode.LeftShift) or uis:IsKeyDown(Enum.KeyCode.RightShift)
         if kc >= Enum.KeyCode.A and kc <= Enum.KeyCode.Z then
-            local ch = string.char(string.byte("A") + (kc.Value - 8))
-            if not shift then ch = string.lower(ch) end
+            local ch = string.char(kc.Value)
+            if shift then ch = string.upper(ch) end
             return ch
-        elseif kc >= Enum.KeyCode.One and kc <= Enum.KeyCode.Zero then
-            return tostring((kc.Value - 9) % 10)
+        elseif kc >= Enum.KeyCode.Zero and kc <= Enum.KeyCode.Nine then
+            return tostring(kc.Value - Enum.KeyCode.Zero.Value)
         elseif kc == Enum.KeyCode.Space then
             return " "
         end
@@ -1486,7 +1581,7 @@ local function setupInput()
     local c7 = uis.InputBegan:Connect(function(inp, gpe)
         if gpe then return end
         if inp.UserInputType ~= Enum.UserInputType.Keyboard then return end
-        if state.sinkTextBox then return end -- Use native textbox sink instead
+        if state.sinkTextBox then return end
 
         if state.dropdownOpen and state.dropdownWidget and state.dropdownWidget.search then
             local w = state.dropdownWidget
@@ -1543,7 +1638,6 @@ local function setupInput()
     table.insert(state.connections, c7)
 end
 
--- ========== RENDER LOOP ==========
 local function startRenderLoop()
     local runSvc = game:GetService("RunService")
     local conn
@@ -1594,10 +1688,11 @@ local function startRenderLoop()
             end
         end
 
-        -- ---- notificações ----------------------------------------
         local toRm = {}
-        local screenW = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize.X or 1280
-        local screenH = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize.Y or 720
+        local cam = workspace.CurrentCamera
+        local vp = cam and cam.ViewportSize
+        local screenW = vp and vp.X or 1280
+        local screenH = vp and vp.Y or 720
         local NW = 380 * state.scale
         local s  = state.scale
         local NX = screenW - NW - 16 * s
@@ -1674,6 +1769,8 @@ local function startRenderLoop()
 
         if not state.visible then return end
 
+        local mouseLoc = UIS_SVC and UIS_SVC:GetMouseLocation() or Vector2.new(-1, -1)
+
         local ss    = state.scale
         local pos   = state.framePos
         local sz    = state.frameSize
@@ -1747,7 +1844,6 @@ local function startRenderLoop()
             ui.footerName.Position   = Vector2.new(mw+24*ss, mh+fh-FOOTER_H+11*ss)
             ui.footerRank.Position   = Vector2.new(mw+24*ss, mh+fh-FOOTER_H+27*ss)
 
-            -- tabs
             local TAB_H   = 38*ss
             local TAB_PAD = 6*ss
             for i, bg in ipairs(tabBgList) do
@@ -1767,7 +1863,6 @@ local function startRenderLoop()
                 tabAccentList[i].Visible     = true
             end
 
-            -- widgets
             local cX = mw + SIDE_W + 1
             local cY = mh + HEADER_H
             local cW = fw - SIDE_W - 1
@@ -1776,23 +1871,18 @@ local function startRenderLoop()
             local PAD = 10*ss
 
             for _, w in ipairs(widgetList) do
-                -- FIX: use absolute screen position for clipping check
+
                 local wy  = cY + w.y - state.contentOffset
                 local wh  = w.h
-                -- only show if widget overlaps the content area vertically
-                local vis = (wy + wh > cY) and (wy < cY2)
 
-                local function setVis(obj, v) if obj then obj.Visible = v end end
-                local function hide(...)
-                    for _, o in ipairs({...}) do setVis(o,false) end
-                end
+                local vis = (wy + wh > cY) and (wy < cY2)
 
                 if not vis then
                     hide(w.bg, w.label, w.border)
                     if w.type=="Button"    then hide(w.bar) end
                     if w.type=="Toggle"    then hide(w.trackBg,w.trackBd,w.knob) end
                     if w.type=="Slider"    then hide(w.track,w.fill,w.thumb,w.thumbGl,w.valText) end
-                    if w.type=="Dropdown"  then hide(w.dispBg,w.dispBd,w.selectedText,w.arrow,w.popupBg,w.popupBd,w.searchBg,w.searchBd,w.searchIc,w.searchTx) for _,it in ipairs(w.itemDraws) do setVis(it.bg,false); setVis(it.txt,false) end end
+                    if w.type=="Dropdown"  then hide(w.dispBg,w.dispBd,w.selectedText,w.arrow) renderDropdownPopup(w, ss, cY, cY2) end
                     if w.type=="TextBox"   then hide(w.inputBg,w.inputBd,w.valueText,w.cursor) end
                     if w.type=="Separator" then hide(w.line) end
                 else
@@ -1804,23 +1894,24 @@ local function startRenderLoop()
                     elseif w.type == "Label" then
                         w.label.Visible = isSubVisible(wy+4*ss, 17*ss, cY, cY2)
                         w.label.Position = Vector2.new(cX+PAD, wy+4*ss)
-                        w.label.Text = truncateText(w.text, wW - 16*ss, 17*ss)
+                        local nt = truncCached(w, "label", w.text, wW - 16*ss, 17*ss)
+                        if w.label.Text ~= nt then w.label.Text = nt end
 
                     elseif w.type == "Paragraph" then
                         w.label.Visible = isSubVisible(wy+4*ss, 15*ss, cY, cY2)
                         w.label.Position = Vector2.new(cX+PAD, wy+4*ss)
-                        w.label.Text = truncateText(w.text, wW - 16*ss, 15*ss)
+                        local nt = truncCached(w, "label", w.text, wW - 16*ss, 15*ss)
+                        if w.label.Text ~= nt then w.label.Text = nt end
 
                     elseif w.type == "Button" then
-                        local mpos = game:GetService("UserInputService"):GetMouseLocation()
-                        local hovering = mpos.X>=cX+PAD and mpos.X<=cX+PAD+wW and mpos.Y>=wy and mpos.Y<=wy+wh
+                        local hovering = mouseLoc.X>=cX+PAD and mouseLoc.X<=cX+PAD+wW and mouseLoc.Y>=wy and mouseLoc.Y<=wy+wh
                         w.hoverT = lerp(w.hoverT or 0, hovering and 1 or 0, dt*10)
                         local t  = w.hoverT
 
                         renderClippedSquare(w.bg, cX+PAD, wy, wW, wh, cY, cY2)
                         w.bg.Color = lerpColor(Theme.BgWidget, Theme.BgPanel, t)
 
-                        renderClippedSquare(w.border, cX+PAD, wy, wW, wh, cY, cY2)
+                        renderClippedOutline(w.border, cX+PAD, wy, wW, wh, cY, cY2)
                         w.border.Color = lerpColor(Theme.Border, Theme.Accent, t)
 
                         renderClippedSquare(w.bar, cX+PAD, wy+4*ss, 3*ss, wh-8*ss, cY, cY2)
@@ -1830,7 +1921,8 @@ local function startRenderLoop()
                         w.label.Visible = isSubVisible(wy+(wh-17*ss)/2, 17*ss, cY, cY2)
                         w.label.Position = Vector2.new(cX+PAD+14*ss, wy+(wh-17*ss)/2)
                         w.label.Size = 17*ss
-                        w.label.Text = truncateText(w.text, wW - 24*ss, 17*ss)
+                        local nt = truncCached(w, "label", w.text, wW - 24*ss, 17*ss)
+                        if w.label.Text ~= nt then w.label.Text = nt end
                         w.label.Color = lerpColor(Theme.Text, Theme.AccentGlow, t*0.5)
 
                     elseif w.type == "Toggle" then
@@ -1842,17 +1934,18 @@ local function startRenderLoop()
                         local knobX   = w.value and (tX+TRACK_W-knobSz-2*ss) or (tX+2*ss)
 
                         renderClippedSquare(w.bg, cX+PAD, wy, wW, wh, cY, cY2)
-                        renderClippedSquare(w.border, cX+PAD, wy, wW, wh, cY, cY2)
+                        renderClippedOutline(w.border, cX+PAD, wy, wW, wh, cY, cY2)
 
                         renderClippedSquare(w.trackBg, tX, tY, TRACK_W, TRACK_H, cY, cY2)
-                        renderClippedSquare(w.trackBd, tX, tY, TRACK_W, TRACK_H, cY, cY2)
+                        renderClippedOutline(w.trackBd, tX, tY, TRACK_W, TRACK_H, cY, cY2)
 
                         renderClippedSquare(w.knob, knobX, tY+2*ss, knobSz, knobSz, cY, cY2)
 
                         w.label.Visible = isSubVisible(wy+(wh-17*ss)/2, 17*ss, cY, cY2)
                         w.label.Position = Vector2.new(cX+PAD+10*ss, wy+(wh-17*ss)/2)
                         w.label.Size = 17*ss
-                        w.label.Text = truncateText(w.text, wW - TRACK_W - 24*ss, 17*ss)
+                        local nt = truncCached(w, "label", w.text, wW - TRACK_W - 24*ss, 17*ss)
+                        if w.label.Text ~= nt then w.label.Text = nt end
 
                     elseif w.type == "Slider" then
                         local trkX = cX+PAD+10*ss
@@ -1862,12 +1955,13 @@ local function startRenderLoop()
                         local ratio= (w.value-w.min)/(w.max-w.min)
 
                         renderClippedSquare(w.bg, cX+PAD, wy, wW, wh, cY, cY2)
-                        renderClippedSquare(w.border, cX+PAD, wy, wW, wh, cY, cY2)
+                        renderClippedOutline(w.border, cX+PAD, wy, wW, wh, cY, cY2)
 
                         w.label.Visible = isSubVisible(wy+6*ss, 17*ss, cY, cY2)
                         w.label.Position = Vector2.new(cX+PAD+10*ss, wy+6*ss)
                         w.label.Size = 17*ss
-                        w.label.Text = truncateText(w.text, wW - 60*ss, 17*ss)
+                        local nt = truncCached(w, "label", w.text, wW - 60*ss, 17*ss)
+                        if w.label.Text ~= nt then w.label.Text = nt end
 
                         w.valText.Visible = isSubVisible(wy+6*ss, 15*ss, cY, cY2)
                         w.valText.Position = Vector2.new(cX+PAD+wW-45*ss, wy+6*ss)
@@ -1880,7 +1974,7 @@ local function startRenderLoop()
                         local thumbSz = 12*ss
                         local thumbX  = trkX + trkW*ratio - thumbSz/2
                         renderClippedSquare(w.thumb, thumbX, trkY - (thumbSz-trkH)/2, thumbSz, thumbSz, cY, cY2)
-                        renderClippedSquare(w.thumbGl, thumbX-1, trkY-(thumbSz-trkH)/2-1, thumbSz+2, thumbSz+2, cY, cY2)
+                        renderClippedOutline(w.thumbGl, thumbX-1, trkY-(thumbSz-trkH)/2-1, thumbSz+2, thumbSz+2, cY, cY2)
 
                     elseif w.type == "Dropdown" then
                         local DISPW = 150*ss
@@ -1888,91 +1982,47 @@ local function startRenderLoop()
                         local dispH = wh - 16*ss
 
                         renderClippedSquare(w.bg, cX+PAD, wy, wW, wh, cY, cY2)
-                        renderClippedSquare(w.border, cX+PAD, wy, wW, wh, cY, cY2)
+                        renderClippedOutline(w.border, cX+PAD, wy, wW, wh, cY, cY2)
                         w.border.Color = w.open and Theme.Accent or Theme.Border
 
                         w.label.Visible = isSubVisible(wy+(wh-17*ss)/2, 17*ss, cY, cY2)
                         w.label.Position = Vector2.new(cX+PAD+10*ss, wy+(wh-17*ss)/2)
                         w.label.Size = 17*ss
-                        w.label.Text = truncateText(w.text, wW - DISPW - 24*ss, 17*ss)
+                        local nlbl = truncCached(w, "label", w.text, wW - DISPW - 24*ss, 17*ss)
+                        if w.label.Text ~= nlbl then w.label.Text = nlbl end
 
                         renderClippedSquare(w.dispBg, dispX, wy+8*ss, DISPW, dispH, cY, cY2)
-                        renderClippedSquare(w.dispBd, dispX, wy+8*ss, DISPW, dispH, cY, cY2)
+                        renderClippedOutline(w.dispBd, dispX, wy+8*ss, DISPW, dispH, cY, cY2)
 
                         w.selectedText.Visible = isSubVisible(wy+(wh-16*ss)/2, 16*ss, cY, cY2)
                         w.selectedText.Position = Vector2.new(dispX+8*ss, wy+(wh-16*ss)/2)
                         w.selectedText.Size = 16*ss
-                        w.selectedText.Text = truncateText(w.options[w.selected] or "Select", DISPW-24*ss, 16*ss)
+                        local nsel = truncCached(w, "sel", w.options[w.selected] or "Select", DISPW-24*ss, 16*ss)
+                        if w.selectedText.Text ~= nsel then w.selectedText.Text = nsel end
 
                         w.arrow.Visible = isSubVisible(wy+(wh-16*ss)/2, 16*ss, cY, cY2)
                         w.arrow.Position = Vector2.new(dispX+DISPW-16*ss, wy+(wh-16*ss)/2)
                         w.arrow.Size = 16*ss
                         w.arrow.Text = w.open and "▴" or "▾"
 
-                        if w.open then
-                            local g = dropdownGeom(w)
-                            renderClippedSquare(w.popupBg, g.popX, g.popY, g.popW, g.popH, cY, cY2)
-                            renderClippedSquare(w.popupBd, g.popX, g.popY, g.popW, g.popH, cY, cY2)
-
-                            if w.search then
-                                renderClippedSquare(w.searchBg, g.popX, g.popY, g.popW, g.searchH, cY, cY2)
-                                renderClippedSquare(w.searchBd, g.popX, g.popY, g.popW, g.searchH, cY, cY2)
-
-                                w.searchIc.Visible = isSubVisible(g.popY+(g.searchH-17*ss)/2, 17*ss, cY, cY2)
-                                w.searchIc.Position = Vector2.new(g.popX+7*ss,  g.popY+(g.searchH-17*ss)/2)
-                                w.searchIc.Size     = 17*ss
-
-                                w.searchTx.Visible = isSubVisible(g.popY+(g.searchH-16*ss)/2, 16*ss, cY, cY2)
-                                w.searchTx.Position = Vector2.new(g.popX+22*ss, g.popY+(g.searchH-16*ss)/2)
-                                w.searchTx.Size     = 16*ss
-                                local queryStr = w.query ~= "" and w.query or "Pesquisar..."
-                                w.searchTx.Text = truncateText(queryStr, g.popW - 30*ss, 16*ss)
-                                w.searchTx.Color = w.query ~= "" and Theme.Text or Theme.TextMuted
-                            else
-                                hide(w.searchBg, w.searchBd, w.searchIc, w.searchTx)
-                            end
-
-                            for k, slot in ipairs(w.itemDraws) do
-                                local optIdx = (k <= g.visN) and w.filtered[w.scroll + k] or nil
-                                if optIdx then
-                                    local iy       = g.popY + g.searchH + (k-1)*g.ITEM_H
-                                    local hovered  = (optIdx == w.hoverIdx)
-                                    local selected = (optIdx == w.selected)
-
-                                    renderClippedSquare(slot.bg, g.popX, iy, g.popW, g.ITEM_H, cY, cY2)
-                                    slot.bg.Color = hovered and Theme.BgPanel or (selected and Theme.BgWidget or Theme.BgDeep)
-
-                                    slot.txt.Visible = isSubVisible(iy+(g.ITEM_H-16*ss)/2, 16*ss, cY, cY2)
-                                    slot.txt.Position = Vector2.new(g.popX+10*ss, iy+(g.ITEM_H-16*ss)/2)
-                                    slot.txt.Size     = 16*ss
-                                    slot.txt.Text     = truncateText(tostring(w.options[optIdx]), g.popW - 20*ss, 16*ss)
-                                    slot.txt.Color    = (hovered or selected) and Theme.Text or Theme.TextSub
-                                else
-                                    hide(slot.bg, slot.txt)
-                                end
-                            end
-                        else
-                            hide(w.popupBg, w.popupBd, w.searchBg, w.searchBd, w.searchIc, w.searchTx)
-                            for _, slot in ipairs(w.itemDraws) do
-                                hide(slot.bg, slot.txt)
-                            end
-                        end
+                        renderDropdownPopup(w, ss, cY, cY2)
 
                     elseif w.type == "TextBox" then
                         local inputY = wy+28*ss
                         local inputH = wh-34*ss
 
                         renderClippedSquare(w.bg, cX+PAD, wy, wW, wh, cY, cY2)
-                        renderClippedSquare(w.border, cX+PAD, wy, wW, wh, cY, cY2)
+                        renderClippedOutline(w.border, cX+PAD, wy, wW, wh, cY, cY2)
                         w.border.Color = w.focused and Theme.Accent or Theme.Border
 
                         w.label.Visible = isSubVisible(wy+6*ss, 17*ss, cY, cY2)
                         w.label.Position = Vector2.new(cX+PAD+10*ss, wy+6*ss)
                         w.label.Size = 17*ss
-                        w.label.Text = truncateText(w.text, wW - 16*ss, 17*ss)
+                        local nlbl = truncCached(w, "label", w.text, wW - 16*ss, 17*ss)
+                        if w.label.Text ~= nlbl then w.label.Text = nlbl end
 
                         renderClippedSquare(w.inputBg, cX+PAD+8*ss, inputY, wW-16*ss, inputH, cY, cY2)
-                        renderClippedSquare(w.inputBd, cX+PAD+8*ss, inputY, wW-16*ss, inputH, cY, cY2)
+                        renderClippedOutline(w.inputBd, cX+PAD+8*ss, inputY, wW-16*ss, inputH, cY, cY2)
 
                         local txtX = cX+PAD+14*ss
                         local txtY = inputY+(inputH-16*ss)/2
@@ -1980,12 +2030,17 @@ local function startRenderLoop()
                         w.valueText.Position = Vector2.new(txtX, txtY)
                         w.valueText.Size = 16*ss
                         local valStr = (w.focused or w.value ~= "") and w.value or w.placeholder
-                        w.valueText.Text = truncateText(valStr, wW - 32*ss, 16*ss)
+                        local nval = truncCached(w, "val", valStr, wW - 32*ss, 16*ss)
+                        if w.valueText.Text ~= nval then w.valueText.Text = nval end
                         w.valueText.Color = (w.focused or w.value ~= "") and Theme.Text or Theme.TextMuted
-                        
-                        local cursorText = w.focused and w.value or valStr
-                        local cursorX = txtX + (#cursorText) * 7*ss
-                        w.cursor.Visible = w.focused and (math.floor(tick()*2)%2==0) and isSubVisible(txtY-1, 18*ss, cY, cY2)
+
+                        local shownLen = #w.valueText.Text
+                        local inputRight = cX+PAD+8*ss + (wW-16*ss)
+                        local maxCursorX = inputRight - 6*ss
+                        local cursorX = math.min(txtX + shownLen * 7*ss, maxCursorX)
+                        w.cursor.Visible = w.focused and (math.floor(tick()*2)%2==0)
+                            and isSubVisible(txtY-1, 18*ss, cY, cY2)
+                            and (cursorX <= inputRight)
                         w.cursor.Position = Vector2.new(cursorX, txtY-1)
                         w.cursor.Size = 18*ss
                     end
@@ -2030,16 +2085,21 @@ local function startRenderLoop()
     table.insert(state.connections, conn)
 end
 
--- ========== INIT ==========
 function LapoHub:Init(config)
     config = config or {}
     state.title     = config.Title     or "Lapo Hub X"
-    
+
     local instanceKey = "LapoHubInstance_" .. state.title
     if shared[instanceKey] then
         pcall(function() shared[instanceKey]:Destroy() end)
     end
     shared[instanceKey] = self
+
+    state.destroyFlag = false
+    if not state.hasDrawing then
+        warn("[LapoHubX] Drawing API indisponível neste executor — UI não será carregada.")
+        return self
+    end
 
     state.toggleKey = config.ToggleKey or "End"
     state.mobile    = detectMobile()
@@ -2059,7 +2119,6 @@ function LapoHub:Init(config)
         state.framePos  = Vector2.new(120, 80)
     end
 
-    -- Setup text sink TextBox before building structure and setting up input
     local success, err = pcall(function()
         local sgParent = getGuiParent()
         if sgParent then
