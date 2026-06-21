@@ -2,18 +2,26 @@
 
 Uma biblioteca de interface de usuário para Roblox construída sobre a Drawing API dos executores. Renderização por overlay, sem depender de CoreGui/PlayerGui.
 
-## Carregamento
+Para ver a documentação interativa completa com o simulador de componentes, acesse a pasta `/docs` no navegador.
+
+## Carregamento (Local com Fallback GitHub)
 
 ```lua
-local LapoHub = loadstring(game:HttpGet(
-  "https://raw.githubusercontent.com/LapoLapoNaldo/Lapo-X/refs/heads/main/Library.lua"
-))()
+local LapoHub
+local success, err = pcall(function()
+    return loadstring(readfile("Library.lua"))()
+end)
+if success and err then
+    LapoHub = err
+else
+    LapoHub = loadstring(game:HttpGet("https://raw.githubusercontent.com/LapoLapoNaldo/Lapo-X/refs/heads/main/Library.lua"))()
+end
 ```
 
 ## API
 
 ### `LapoHub:Init(config)`
-Inicializa a janela. Deve ser chamada **após** declarar todas as abas.
+Inicializa a janela. Deve ser chamada após declarar todas as abas.
 
 | Parâmetro   | Tipo   | Padrão        | Descrição                    |
 |-------------|--------|---------------|------------------------------|
@@ -40,8 +48,8 @@ Adiciona uma aba na barra lateral.
 | Parâmetro   | Tipo     | Descrição                            |
 |-------------|----------|--------------------------------------|
 | `text`      | string   | Rótulo                              |
-| `default`   | boolean  | Estado inicial (`false`)             |
-| `callback`  | function | Recebe `(state)` ao alternar         |
+| `default`   | boolean  | Estado inicial                       |
+| `callback`  | function | Recebe o estado ao alternar          |
 
 **Métodos do handle:** `handle:Set(valor)`
 
@@ -50,10 +58,10 @@ Adiciona uma aba na barra lateral.
 | Parâmetro   | Tipo     | Descrição                    |
 |-------------|----------|------------------------------|
 | `text`      | string   | Rótulo                       |
-| `min`       | number   | Valor mínimo (`0`)           |
-| `max`       | number   | Valor máximo (`100`)         |
+| `min`       | number   | Valor mínimo                 |
+| `max`       | number   | Valor máximo                 |
 | `default`   | number   | Valor inicial                |
-| `callback`  | function | Recebe `(value)` ao arrastar |
+| `callback`  | function | Recebe o valor ao arrastar   |
 
 **Métodos do handle:** `handle:Set(valor)`
 
@@ -62,10 +70,10 @@ Adiciona uma aba na barra lateral.
 | Parâmetro   | Tipo     | Descrição                         |
 |-------------|----------|-----------------------------------|
 | `text`      | string   | Rótulo                            |
-| `options`   | table    | Lista de opções (`{"A", "B"}`)    |
-| `default`   | number   | Índice inicial (`1`)              |
-| `search`    | boolean  | Ativa barra de busca (`false`)    |
-| `callback`  | function | Recebe `(index, value)`           |
+| `options`   | table    | Lista de opções                   |
+| `default`   | number   | Índice inicial                    |
+| `search`    | boolean  | Ativa barra de busca              |
+| `callback`  | function | Recebe o índice e o valor         |
 
 **Métodos do handle:** `handle:Set(valor)` ou `handle:Set(novaTabela)`
 
@@ -75,7 +83,7 @@ Adiciona uma aba na barra lateral.
 |--------------|----------|------------------------------|
 | `text`       | string   | Rótulo                       |
 | `placeholder`| string   | Texto de fundo               |
-| `callback`   | function | Recebe `(texto)` ao confirmar|
+| `callback`   | function | Recebe o texto ao confirmar  |
 
 **Métodos do handle:** `handle:Set(texto)`
 
@@ -96,7 +104,7 @@ Insere uma linha horizontal divisória.
 |-------------|--------|-------------------------------|
 | `title`     | string | Título da notificação         |
 | `content`   | string | Mensagem (quebra automática)  |
-| `duration`  | number | Tempo em segundos (`4`)        |
+| `duration`  | number | Tempo em segundos             |
 
 ### `LapoHub:SetUser(name, rank)`
 Define o nome e cargo exibidos no rodapé.
@@ -119,7 +127,15 @@ Remove todos os desenhos e conexões.
 ## Exemplo mínimo
 
 ```lua
-local LapoHub = loadstring(game:HttpGet("https://raw.githubusercontent.com/LapoLapoNaldo/Lapo-X/refs/heads/main/Library.lua"))()
+local LapoHub
+local success, err = pcall(function()
+    return loadstring(readfile("Library.lua"))()
+end)
+if success and err then
+    LapoHub = err
+else
+    LapoHub = loadstring(game:HttpGet("https://raw.githubusercontent.com/LapoLapoNaldo/Lapo-X/refs/heads/main/Library.lua"))()
+end
 
 LapoHub:AddTab("Principal", "🏠")
 LapoHub:AddTab("Config", "⚙️")
