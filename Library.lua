@@ -2120,21 +2120,50 @@ local Loader = {
 local LOADER_DOTS = 8
 
 local function loaderLoadImage(obj, src)
-    if not obj or not src or src == "" then return false end
-    -- URL http(s): baixa os bytes crus e injeta em .Data
-    if type(src) == "string" and src:match("^https?://") then
-        local ok, body = pcall(function() return game:HttpGet(src) end)
-        if ok and body then
-            if pcall(function() obj.Data = body end) then return true end
-        end
-        -- alguns executores aceitam a URL direto via .Uri
-        if pcall(function() obj.Uri = src end) then return true end
+    Loader.imageErr = nil
+    if not obj then
+        Loader.imageErr = "Drawing Image nao suportado neste executor"
         return false
     end
-    -- rbxassetid:// ou similar
-    if pcall(function() obj.Uri = src end) then return true end
-    -- dados crus já fornecidos
+    if not src or src == "" then return false end
+
+    -- rbxassetid:// (ou getcustomasset) -> tenta via .Uri direto
+    if type(src) == "string" and (src:match("^rbxassetid://") or src:match("^rbxasset://")) then
+        if pcall(function() obj.Uri = src end) then return true end
+        Loader.imageErr = "executor nao aceita .Uri (rbxassetid)"
+        return false
+    end
+
+    -- URL http(s): baixa os bytes crus
+    if type(src) == "string" and src:match("^https?://") then
+        local ok, body = pcall(function() return game:HttpGet(src, true) end)
+        if not ok or type(body) ~= "string" or #body == 0 then
+            Loader.imageErr = "HttpGet falhou (host bloqueou, redirect ou sem internet)"
+            return false
+        end
+        -- veio HTML? entao a URL nao e um link DIRETO de imagem
+        local head = body:sub(1, 64):lower()
+        if head:find("<!doctype", 1, true) or head:find("<html", 1, true) then
+            Loader.imageErr = "URL nao e link DIRETO de imagem (veio HTML). Use o link .png/.jpg cru"
+            return false
+        end
+        -- valida assinatura real do arquivo
+        local b1, b2 = body:byte(1), body:byte(2)
+        local isPng = body:sub(1, 4) == "\137PNG"
+        local isJpg = (b1 == 0xFF and b2 == 0xD8)
+        if not (isPng or isJpg) then
+            Loader.imageErr = "conteudo baixado nao parece PNG/JPG valido"
+            -- mesmo assim tenta atribuir; alguns executores aceitam outros formatos
+        end
+        if pcall(function() obj.Data = body end) then return true end
+        if pcall(function() obj.Uri = src end) then return true end
+        Loader.imageErr = "executor nao suporta Drawing Image (.Data/.Uri)"
+        return false
+    end
+
+    -- dados crus (string de bytes) ja fornecidos
     if pcall(function() obj.Data = src end) then return true end
+    Loader.imageErr = "formato de imagem nao reconhecido"
     return false
 end
 
@@ -2173,9 +2202,16 @@ local function loaderBuild(cfg)
         Transparency = 0, ZIndex = 904, Visible = false
     }))
     Loader.hasImage = false
-    if cfg.Image and Loader.image then
-        Loader.hasImage = loaderLoadImage(Loader.image, cfg.Image)
-        if Loader.image then Loader.image.Visible = Loader.hasImage end
+    if cfg.Image then
+        if not Loader.image then
+            warn("[LapoHubX] Imagem do loading ignorada: este executor nao suporta Drawing.new(\"Image\"). Usando spinner.")
+        else
+            Loader.hasImage = loaderLoadImage(Loader.image, cfg.Image)
+            Loader.image.Visible = Loader.hasImage
+            if not Loader.hasImage then
+                warn("[LapoHubX] Imagem do loading nao carregou: " .. (Loader.imageErr or "motivo desconhecido") .. ". Usando spinner.")
+            end
+        end
     end
 
     -- spinner (anel de pontos) — usado sempre, é o destaque animado
