@@ -31,6 +31,7 @@ local state = {
     connections = {},
     initialized = false,
     destroyFlag = false,
+    batchMode = false,
     keyHeldDown = false,
     notifyId = 0,
     userName = "LapoLapoNaldo",
@@ -807,12 +808,12 @@ local function addWidget(tabIdx, kind, props)
     local tab = state.tabs[tabIdx]
     if not tab then return end
     table.insert(tab.widgets, {type=kind, props=props})
-    if state.initialized then rebuildContent() end
+    if state.initialized and not state.batchMode then rebuildContent() end
 end
 
 function LapoHub:AddTab(name, icon)
     table.insert(state.tabs, {name=name, icon=icon or "", widgets={}})
-    if state.initialized then
+    if state.initialized and not state.batchMode then
         buildTabs()
         updateLayout()
         rebuildContent()
@@ -2083,6 +2084,471 @@ local function startRenderLoop()
         end
     end)
     table.insert(state.connections, conn)
+end
+
+-- ============================================================
+--  LOADING SCREEN  (tela de carregamento)
+--  Tela independente desenhada com a Drawing API. Aparece
+--  antes da UI principal, permite imagem custom, mensagem,
+--  barra de progresso e spinner. Inclui uma fila de tarefas
+--  que distribui o carregamento ao longo de vários frames
+--  para evitar travadas e erros.
+-- ============================================================
+local Loader = {
+    objs            = {},
+    conn            = nil,
+    active          = false,
+    progress        = 0,      -- alvo (0..1)
+    shownProgress   = 0,      -- valor animado
+    message         = "Carregando...",
+    title           = "Lapo Hub X",
+    subtitle        = "",
+    spin            = 0,
+    pulse           = 0,
+    fadingOut       = false,
+    fade            = 0,      -- 0 = invisível, 1 = totalmente visível
+    onDone          = nil,
+    hasImage        = false,
+    -- fila de tarefas
+    queue           = {},
+    queueIndex      = 0,
+    running         = false,
+    frameGap        = 2,      -- frames de espera entre tarefas (respira)
+    frameCounter    = 0,
+}
+
+local LOADER_DOTS = 8
+
+local function loaderLoadImage(obj, src)
+    if not obj or not src or src == "" then return false end
+    -- URL http(s): baixa os bytes crus e injeta em .Data
+    if type(src) == "string" and src:match("^https?://") then
+        local ok, body = pcall(function() return game:HttpGet(src) end)
+        if ok and body then
+            if pcall(function() obj.Data = body end) then return true end
+        end
+        -- alguns executores aceitam a URL direto via .Uri
+        if pcall(function() obj.Uri = src end) then return true end
+        return false
+    end
+    -- rbxassetid:// ou similar
+    if pcall(function() obj.Uri = src end) then return true end
+    -- dados crus já fornecidos
+    if pcall(function() obj.Data = src end) then return true end
+    return false
+end
+
+-- versão à prova de falhas: nem todo executor suporta "Image"/"Circle"
+local function safeMake(kind, props)
+    local ok, obj = pcall(make, kind, props)
+    if ok then return obj end
+    return nil
+end
+
+local function loaderBuild(cfg)
+    Loader.objs = {}
+    local function add(obj) if obj then table.insert(Loader.objs, obj) end return obj end
+
+    -- fundo escuro cobrindo toda a tela
+    Loader.overlay = add(make("Square", {
+        Filled = true, Color = Theme.BgDeep,
+        Transparency = 0, ZIndex = 900, Visible = true
+    }))
+    -- card central
+    Loader.card = add(make("Square", {
+        Filled = true, Color = Theme.BgBase,
+        Transparency = 0, ZIndex = 901, Visible = true
+    }))
+    Loader.cardBorder = add(make("Square", {
+        Filled = false, Color = Theme.BorderAccent, Thickness = 1,
+        Transparency = 0, ZIndex = 902, Visible = true
+    }))
+    Loader.topAccent = add(make("Square", {
+        Filled = true, Color = Theme.Accent,
+        Transparency = 0, ZIndex = 903, Visible = true
+    }))
+
+    -- imagem custom (se houver)
+    Loader.image = add(safeMake("Image", {
+        Transparency = 0, ZIndex = 904, Visible = false
+    }))
+    Loader.hasImage = false
+    if cfg.Image and Loader.image then
+        Loader.hasImage = loaderLoadImage(Loader.image, cfg.Image)
+        if Loader.image then Loader.image.Visible = Loader.hasImage end
+    end
+
+    -- spinner (anel de pontos) — usado sempre, é o destaque animado
+    Loader.dots = {}
+    for i = 1, LOADER_DOTS do
+        local d = add(safeMake("Circle", {
+            Filled = true, Color = Theme.Accent, Radius = 4,
+            Transparency = 0, ZIndex = 905, Visible = true,
+            NumSides = 16
+        }))
+        if d then table.insert(Loader.dots, d) end
+    end
+
+    -- textos
+    Loader.titleTxt = add(make("Text", {
+        Text = cfg.Title or "Lapo Hub X", Color = Theme.Text,
+        Size = 26, Font = Font, Center = true,
+        Transparency = 0, ZIndex = 906, Visible = true
+    }))
+    Loader.subTxt = add(make("Text", {
+        Text = cfg.Subtitle or "", Color = Theme.Accent,
+        Size = 14, Font = Font, Center = true,
+        Transparency = 0, ZIndex = 906, Visible = (cfg.Subtitle and cfg.Subtitle ~= "")
+    }))
+    Loader.msgTxt = add(make("Text", {
+        Text = Loader.message, Color = Theme.TextSub,
+        Size = 15, Font = Font, Center = true,
+        Transparency = 0, ZIndex = 906, Visible = true
+    }))
+    Loader.pctTxt = add(make("Text", {
+        Text = "0%", Color = Theme.AccentGlow,
+        Size = 13, Font = Font, Center = true,
+        Transparency = 0, ZIndex = 906, Visible = true
+    }))
+
+    -- barra de progresso
+    Loader.barBg = add(make("Square", {
+        Filled = true, Color = Theme.BgInput,
+        Transparency = 0, ZIndex = 905, Visible = true
+    }))
+    Loader.barBorder = add(make("Square", {
+        Filled = false, Color = Theme.Border, Thickness = 1,
+        Transparency = 0, ZIndex = 905, Visible = true
+    }))
+    Loader.barFill = add(make("Square", {
+        Filled = true, Color = Theme.Accent,
+        Transparency = 0, ZIndex = 906, Visible = true
+    }))
+end
+
+local function loaderSetAlpha(a)
+    -- aplica fade (0..1) em todos os objetos respeitando seus máximos
+    for _, o in ipairs(Loader.objs) do
+        if o then
+            pcall(function()
+                if o == Loader.overlay then
+                    o.Transparency = 0.92 * a
+                else
+                    o.Transparency = a
+                end
+            end)
+        end
+    end
+end
+
+local function loaderLayout()
+    local cam = workspace.CurrentCamera
+    local vp  = cam and cam.ViewportSize
+    local sw  = vp and vp.X or 1280
+    local sh  = vp and vp.Y or 720
+
+    if Loader.overlay then
+        Loader.overlay.Position = Vector2.new(0, 0)
+        Loader.overlay.Size     = Vector2.new(sw, sh)
+    end
+
+    local CW = math.clamp(sw * 0.34, 320, 460)
+    local CH = math.clamp(sh * 0.5, 300, 380)
+    local CX = (sw - CW) / 2
+    local CY = (sh - CH) / 2
+
+    if Loader.card then
+        Loader.card.Position = Vector2.new(CX, CY)
+        Loader.card.Size     = Vector2.new(CW, CH)
+    end
+    if Loader.cardBorder then
+        Loader.cardBorder.Position = Vector2.new(CX, CY)
+        Loader.cardBorder.Size     = Vector2.new(CW, CH)
+    end
+    if Loader.topAccent then
+        Loader.topAccent.Position = Vector2.new(CX, CY)
+        Loader.topAccent.Size     = Vector2.new(CW, 3)
+    end
+
+    local cx = CX + CW / 2
+
+    -- imagem / spinner no topo do card
+    local imgSize = math.clamp(CH * 0.28, 72, 110)
+    local imgY    = CY + CH * 0.12
+    local centerY = imgY + imgSize / 2
+    if Loader.hasImage and Loader.image then
+        Loader.image.Position = Vector2.new(cx - imgSize / 2, imgY)
+        Loader.image.Size     = Vector2.new(imgSize, imgSize)
+    end
+
+    -- spinner em volta (ou no lugar) da imagem
+    local ringR = imgSize / 2 + (Loader.hasImage and 16 or 0)
+    if not Loader.hasImage then ringR = imgSize * 0.42 end
+    for i, d in ipairs(Loader.dots) do
+        if d then
+            local ang = Loader.spin + (i / LOADER_DOTS) * math.pi * 2
+            d.Position = Vector2.new(cx + math.cos(ang) * ringR, centerY + math.sin(ang) * ringR)
+            -- pontos somem progressivamente criando o efeito de rotação
+            local t = (i / LOADER_DOTS)
+            d.Radius = (3 + t * 3)
+            d.Color = lerpColor(Theme.AccentDim, Theme.AccentGlow, t)
+        end
+    end
+
+    -- textos
+    local textY = centerY + ringR + 22
+    if Loader.titleTxt then
+        Loader.titleTxt.Position = Vector2.new(cx, textY)
+    end
+    if Loader.subTxt and Loader.subTxt.Visible then
+        Loader.subTxt.Position = Vector2.new(cx, textY + 30)
+    end
+
+    -- barra de progresso perto da base
+    local barW = CW - 56
+    local barH = 8
+    local barX = CX + 28
+    local barY = CY + CH - 58
+    if Loader.barBg then
+        Loader.barBg.Position = Vector2.new(barX, barY)
+        Loader.barBg.Size     = Vector2.new(barW, barH)
+    end
+    if Loader.barBorder then
+        Loader.barBorder.Position = Vector2.new(barX, barY)
+        Loader.barBorder.Size     = Vector2.new(barW, barH)
+    end
+    if Loader.barFill then
+        Loader.barFill.Position = Vector2.new(barX, barY)
+        Loader.barFill.Size     = Vector2.new(math.max(0, barW * Loader.shownProgress), barH)
+    end
+
+    -- mensagem acima da barra, porcentagem abaixo
+    if Loader.msgTxt then
+        Loader.msgTxt.Position = Vector2.new(cx, barY - 26)
+    end
+    if Loader.pctTxt then
+        Loader.pctTxt.Position = Vector2.new(cx, barY + 14)
+    end
+end
+
+local function loaderStop()
+    if Loader.conn then pcall(function() Loader.conn:Disconnect() end) Loader.conn = nil end
+    for _, o in ipairs(Loader.objs) do
+        pcall(function() o:Remove() end)
+    end
+    Loader.objs = {}
+    Loader.dots = {}
+    Loader.active = false
+    Loader.running = false
+    local cb = Loader.onDone
+    Loader.onDone = nil
+    if cb then pcall(cb) end
+end
+
+-- inicia o fade out, garantindo que a UI principal seja construída
+-- uma única vez (sai do batch mode) antes da tela de load sumir
+local function loaderBeginFade()
+    if state.batchMode then
+        state.batchMode = false
+        if state.initialized then
+            pcall(buildTabs)
+            pcall(updateLayout)
+            pcall(rebuildContent)
+        end
+    end
+    Loader.fadingOut = true
+end
+
+local function loaderStartLoop()
+    if Loader.conn then return end
+    local runSvc = game:GetService("RunService")
+    Loader.conn = runSvc.RenderStepped:Connect(function(dt)
+        if not Loader.active then return end
+        dt = math.clamp(dt or (1/60), 0, 0.1)
+
+        -- animações
+        Loader.spin  = Loader.spin + dt * 4
+        Loader.pulse = Loader.pulse + dt * 3
+
+        -- fade in / out
+        if Loader.fadingOut then
+            Loader.fade = math.clamp(Loader.fade - dt * 3, 0, 1)
+            loaderSetAlpha(Loader.fade)
+            if Loader.fade <= 0 then
+                loaderStop()
+                return
+            end
+        else
+            if Loader.fade < 1 then
+                Loader.fade = math.clamp(Loader.fade + dt * 4, 0, 1)
+                loaderSetAlpha(Loader.fade)
+            end
+        end
+
+        -- progresso animado em direção ao alvo
+        Loader.shownProgress = lerp(Loader.shownProgress, Loader.progress, math.clamp(dt * 8, 0, 1))
+        if Loader.shownProgress > Loader.progress - 0.002 and Loader.shownProgress < Loader.progress + 0.002 then
+            Loader.shownProgress = Loader.progress
+        end
+
+        -- executa a fila de tarefas (uma por vez, com respiro entre elas)
+        if Loader.running and not Loader.fadingOut then
+            Loader.frameCounter = Loader.frameCounter + 1
+            if Loader.frameCounter >= Loader.frameGap then
+                Loader.frameCounter = 0
+                Loader.queueIndex = Loader.queueIndex + 1
+                local step = Loader.queue[Loader.queueIndex]
+                if step then
+                    if step.label and Loader.msgTxt then
+                        Loader.message = step.label
+                        Loader.msgTxt.Text = step.label
+                    end
+                    if step.fn then pcall(step.fn) end
+                    Loader.progress = Loader.queueIndex / #Loader.queue
+                else
+                    -- fila concluída
+                    Loader.running = false
+                    Loader.progress = 1
+                    Loader.message = "Pronto!"
+                    if Loader.msgTxt then Loader.msgTxt.Text = "Pronto!" end
+                    -- espera o progresso visual chegar perto de 100% e some
+                    task.spawn(function()
+                        local t0 = tick()
+                        while Loader.shownProgress < 0.99 and tick() - t0 < 1.5 do
+                            task.wait()
+                        end
+                        loaderBeginFade()
+                    end)
+                end
+            end
+        end
+
+        if Loader.pctTxt then
+            Loader.pctTxt.Text = math.floor(Loader.shownProgress * 100 + 0.5) .. "%"
+        end
+
+        loaderLayout()
+    end)
+end
+
+-- ativa modo batch manualmente: adições de tabs/widgets não reconstroem
+-- a UI a cada chamada (muito mais rápido para muitos widgets)
+function LapoHub:BeginBatch()
+    state.batchMode = true
+    return self
+end
+
+-- encerra o modo batch e reconstrói a UI uma única vez
+function LapoHub:EndBatch()
+    if not state.batchMode then return self end
+    state.batchMode = false
+    if state.initialized then
+        pcall(buildTabs)
+        pcall(updateLayout)
+        pcall(rebuildContent)
+    end
+    return self
+end
+
+function LapoHub:ShowLoading(config)
+    config = config or {}
+    if not state.hasDrawing then
+        warn("[LapoHubX] Drawing API indisponível — tela de load ignorada.")
+        return self
+    end
+    -- evita duplicar
+    if Loader.active then loaderStop() end
+
+    Loader.message       = config.Message or "Carregando módulos..."
+    Loader.title         = config.Title or state.title or "Lapo Hub X"
+    Loader.subtitle      = config.Subtitle or ""
+    Loader.progress      = 0
+    Loader.shownProgress = 0
+    Loader.spin          = 0
+    Loader.pulse         = 0
+    Loader.fade          = 0
+    Loader.fadingOut     = false
+    Loader.running       = false
+    Loader.queue         = {}
+    Loader.queueIndex    = 0
+    Loader.frameCounter  = 0
+    Loader.onDone        = nil
+    Loader.frameGap      = config.FrameGap or 2
+
+    -- suprime rebuilds da UI enquanto carrega (evita reconstruir a cada widget)
+    state.batchMode = true
+
+    loaderBuild(config)
+    Loader.message = config.Message or "Carregando módulos..."
+    if Loader.msgTxt then Loader.msgTxt.Text = Loader.message end
+    loaderSetAlpha(0)
+    Loader.active = true
+    loaderLayout()
+    loaderStartLoop()
+    return self
+end
+
+-- atualiza manualmente o progresso (0..1) e opcionalmente a mensagem
+function LapoHub:SetLoadingProgress(pct, msg)
+    if not Loader.active then return self end
+    Loader.progress = math.clamp(tonumber(pct) or 0, 0, 1)
+    if msg and Loader.msgTxt then
+        Loader.message = tostring(msg)
+        Loader.msgTxt.Text = Loader.message
+    end
+    return self
+end
+
+function LapoHub:SetLoadingMessage(msg)
+    if not Loader.active then return self end
+    if msg and Loader.msgTxt then
+        Loader.message = tostring(msg)
+        Loader.msgTxt.Text = Loader.message
+    end
+    return self
+end
+
+-- adiciona uma tarefa à fila de carregamento
+-- label: texto mostrado;  fn: função executada nesse passo
+function LapoHub:QueueLoad(label, fn)
+    table.insert(Loader.queue, { label = label, fn = fn })
+    return self
+end
+
+-- roda a fila: uma tarefa por vez, espalhada em frames (sem pressa)
+-- onComplete é chamado depois do fade out
+function LapoHub:RunLoadQueue(onComplete)
+    if not Loader.active then
+        if onComplete then pcall(onComplete) end
+        return self
+    end
+    Loader.onDone     = onComplete
+    Loader.queueIndex = 0
+    Loader.running    = true
+    if #Loader.queue == 0 then
+        Loader.progress = 1
+        loaderBeginFade()
+    end
+    return self
+end
+
+-- encerra a tela de load manualmente (fade out) e chama onComplete
+function LapoHub:FinishLoading(onComplete)
+    if not Loader.active then
+        if onComplete then pcall(onComplete) end
+        return self
+    end
+    Loader.progress  = 1
+    Loader.onDone    = onComplete
+    Loader.running   = false
+    task.spawn(function()
+        local t0 = tick()
+        while Loader.shownProgress < 0.99 and tick() - t0 < 1.2 do
+            task.wait()
+        end
+        loaderBeginFade()
+    end)
+    return self
 end
 
 function LapoHub:Init(config)
