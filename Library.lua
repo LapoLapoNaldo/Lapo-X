@@ -1,5 +1,5 @@
-local LapoHub = {}
-LapoHub.__index = LapoHub
+local LapoX = {}
+LapoX.__index = LapoX
 
 local state = {
     visible = true,
@@ -37,7 +37,7 @@ local state = {
     userName = "LapoLapoNaldo",
     userRank = "Lapo Newba",
     userCallback = nil,
-    title = "Lapo Hub X",
+    title = "Lapo Library X",
     toggleKey = "End",
     mobileBtn = nil,
     focusedTextBox = nil,
@@ -197,13 +197,13 @@ end
 
 local function saveConfig(data)
     pcall(function()
-        writefile("LapoHubX_Config.txt", game:GetService("HttpService"):JSONEncode(data))
+        writefile("LapoLibraryX_Config.txt", game:GetService("HttpService"):JSONEncode(data))
     end)
 end
 
 local function loadConfig()
     local ok, data = pcall(function()
-        return game:GetService("HttpService"):JSONDecode(readfile("LapoHubX_Config.txt"))
+        return game:GetService("HttpService"):JSONDecode(readfile("LapoLibraryX_Config.txt"))
     end)
     if ok and type(data) == "table" then return data end
     return {}
@@ -558,7 +558,7 @@ local function newWidget(kind, props)
             self.trackBd.Color = self.value and Theme.On    or Theme.Border
             self.knob.Color    = self.value and Theme.On    or Theme.TextSub
             local ok, err = pcall(self.callback, self.value)
-            if not ok then warn("[LapoHubX] Toggle callback error: " .. tostring(err)) end
+            if not ok then warn("[LapoLibraryX] Toggle callback error: " .. tostring(err)) end
         end
         return w
 
@@ -586,7 +586,7 @@ local function newWidget(kind, props)
             self.value = math.clamp(v, self.min, self.max)
             self.valText.Text = tostring(math.floor(self.value))
             local ok, err = pcall(self.callback, self.value)
-            if not ok then warn("[LapoHubX] Slider callback error: " .. tostring(err)) end
+            if not ok then warn("[LapoLibraryX] Slider callback error: " .. tostring(err)) end
         end
         return w
 
@@ -833,7 +833,7 @@ local function addWidget(tabIdx, kind, props)
     if state.initialized and not state.batchMode then rebuildContent() end
 end
 
-function LapoHub:AddTab(name, icon)
+function LapoX:AddTab(name, icon)
     table.insert(state.tabs, {name=name, icon=icon or "", widgets={}})
     if state.initialized and not state.batchMode then
         buildTabs()
@@ -843,14 +843,14 @@ function LapoHub:AddTab(name, icon)
     return self
 end
 
-function LapoHub:AddButton(tabIdx, cfg)
+function LapoX:AddButton(tabIdx, cfg)
     cfg = cfg or {}
     addWidget(tabIdx, "Button", cfg)
     local handle = { _tabIdx = resolveTab(tabIdx) }
     return handle
 end
 
-function LapoHub:AddToggle(tabIdx, cfg)
+function LapoX:AddToggle(tabIdx, cfg)
     cfg = cfg or {}
     addWidget(tabIdx, "Toggle", cfg)
     local handle = { _tabIdx = resolveTab(tabIdx) }
@@ -868,7 +868,7 @@ function LapoHub:AddToggle(tabIdx, cfg)
     return handle
 end
 
-function LapoHub:AddSlider(tabIdx, cfg)
+function LapoX:AddSlider(tabIdx, cfg)
     cfg = cfg or {}
     addWidget(tabIdx, "Slider", cfg)
     local handle = { _tabIdx = resolveTab(tabIdx) }
@@ -884,7 +884,7 @@ function LapoHub:AddSlider(tabIdx, cfg)
     return handle
 end
 
-function LapoHub:AddDropdown(tabIdx, cfg)
+function LapoX:AddDropdown(tabIdx, cfg)
     cfg = cfg or {}
     addWidget(tabIdx, "Dropdown", cfg)
     local handle = { _tabIdx = resolveTab(tabIdx) }
@@ -917,7 +917,7 @@ function LapoHub:AddDropdown(tabIdx, cfg)
     return handle
 end
 
-function LapoHub:AddTextBox(tabIdx, cfg)
+function LapoX:AddTextBox(tabIdx, cfg)
     cfg = cfg or {}
     addWidget(tabIdx, "TextBox", cfg)
     local handle = { _tabIdx = resolveTab(tabIdx) }
@@ -935,7 +935,7 @@ function LapoHub:AddTextBox(tabIdx, cfg)
     return handle
 end
 
-function LapoHub:AddLabel(tabIdx, cfg)
+function LapoX:AddLabel(tabIdx, cfg)
     cfg = cfg or {}
     addWidget(tabIdx, "Label", cfg)
     local handle = { _tabIdx = resolveTab(tabIdx) }
@@ -955,7 +955,7 @@ function LapoHub:AddLabel(tabIdx, cfg)
     return handle
 end
 
-function LapoHub:AddParagraph(tabIdx, cfg)
+function LapoX:AddParagraph(tabIdx, cfg)
     cfg = cfg or {}
     addWidget(tabIdx, "Paragraph", cfg)
     local handle = { _tabIdx = resolveTab(tabIdx) }
@@ -975,12 +975,12 @@ function LapoHub:AddParagraph(tabIdx, cfg)
     return handle
 end
 
-function LapoHub:AddSeparator(tabIdx)
+function LapoX:AddSeparator(tabIdx)
     addWidget(tabIdx, "Separator", {})
     return self
 end
 
-function LapoHub:Notify(cfg)
+function LapoX:Notify(cfg)
     if not state.hasDrawing then return self end
     cfg = cfg or {}
     local s   = state.scale
@@ -1049,7 +1049,7 @@ function LapoHub:Notify(cfg)
     end
 
     table.insert(state.notifyList, {
-        id=id, title=cfg.title or "Lapo Hub X",
+        id=id, title=cfg.title or "Lapo Library X",
         text=rawText, life=cfg.duration or 4,
         maxLife=cfg.duration or 4, alpha=1, slideY=0,
         notifH=notifH,
@@ -1059,13 +1059,13 @@ function LapoHub:Notify(cfg)
         bg      = make("Square", {Filled=true, Color=Theme.BgDeep,     Transparency=1,   ZIndex=9990}),
         accent  = make("Square", {Filled=true, Color=Theme.Accent,     Transparency=1,   ZIndex=9991}),
         border  = make("Square", {Filled=false,Color=Theme.Border,     Thickness=1, Transparency=1, ZIndex=9992}),
-        titleT  = make("Text",   {Text=cfg.title or "Lapo Hub X", Color=Theme.Text,  Size=17*s, Font=Font, ZIndex=9993}),
+        titleT  = make("Text",   {Text=cfg.title or "Lapo Library X", Color=Theme.Text,  Size=17*s, Font=Font, ZIndex=9993}),
         bar     = make("Square", {Filled=true, Color=Theme.Accent,     Transparency=1,   ZIndex=9994}),
     })
     return self
 end
 
-function LapoHub:SetUser(name, rank)
+function LapoX:SetUser(name, rank)
     state.userName = name or state.userName
     state.userRank = rank or state.userRank
     if ui.footerName then ui.footerName.Text = state.userName end
@@ -1073,12 +1073,12 @@ function LapoHub:SetUser(name, rank)
     return self
 end
 
-function LapoHub:SetUserCallback(cb)
+function LapoX:SetUserCallback(cb)
     state.userCallback = cb
     return self
 end
 
-function LapoHub:ToggleVisibility()
+function LapoX:ToggleVisibility()
     state.visible = not state.visible
     state.layoutDirty = true
     if not state.visible then
@@ -1106,16 +1106,16 @@ function LapoHub:ToggleVisibility()
     return self
 end
 
-function LapoHub:Destroy()
+function LapoX:Destroy()
     state.destroyFlag = true
     if state.sinkTextBox then pcall(function() state.sinkTextBox:ReleaseFocus() end) end
     state.focusedTextBox = nil
     state.dropdownOpen   = false
     state.dropdownWidget = nil
-    pcall(function() game:GetService("ContextActionService"):UnbindAction("LapoHubX_MouseSink") end)
+    pcall(function() game:GetService("ContextActionService"):UnbindAction("LapoLibraryX_MouseSink") end)
     local sgParent = getGuiParent()
     if sgParent then
-        local existing = sgParent:FindFirstChild("LapoHubX_InputSink")
+        local existing = sgParent:FindFirstChild("LapoLibraryX_InputSink")
         if existing then pcall(function() existing:Destroy() end) end
     end
     for _, d in ipairs(drgs)            do pcall(function() d:Remove() end) end
@@ -1190,10 +1190,10 @@ local function setupInput()
 
     local function mp() return uis:GetMouseLocation() end
 
-    pcall(function() cas:UnbindAction("LapoHubX_MouseSink") end)
+    pcall(function() cas:UnbindAction("LapoLibraryX_MouseSink") end)
     pcall(function()
         cas:BindActionAtPriority(
-            "LapoHubX_MouseSink",
+            "LapoLibraryX_MouseSink",
             mouseSinkHandler,
             false,
             2000,
@@ -1217,7 +1217,7 @@ local function setupInput()
         if gpe then return end
         if inp.KeyCode == toggleKeyCode and not state.keyHeldDown then
             state.keyHeldDown = true
-            LapoHub:ToggleVisibility()
+            LapoX:ToggleVisibility()
         end
     end)
     local c2 = uis.InputEnded:Connect(function(inp)
@@ -1229,7 +1229,7 @@ local function setupInput()
     local function activateWidget(w, px, py, s, cX, cY, cW, cH, cY2)
         if w.type == "Button" then
             local ok, err = pcall(w.callback)
-            if not ok then warn("[LapoHubX] Button callback error: " .. tostring(err)) end
+            if not ok then warn("[LapoLibraryX] Button callback error: " .. tostring(err)) end
         elseif w.type == "Toggle" then
             w:toggle()
         elseif w.type == "Slider" then
@@ -1298,7 +1298,7 @@ local function setupInput()
             local BX = mw + fw + 8*s
             local BY = mh + 4*s
             if inRect(px,py, BX,BY, BS,BS) then
-                LapoHub:ToggleVisibility()
+                LapoX:ToggleVisibility()
                 return
             end
         end
@@ -1332,6 +1332,19 @@ local function setupInput()
             local inSearch = w.search and inRect(px,py, g.popX, g.popY, g.popW, g.searchH) and py >= cY and py <= cY2
             local inItems  = inRect(px,py, g.popX, g.popY + g.searchH, g.popW, g.visN * g.ITEM_H) and py >= cY and py <= cY2
             if inSearch then
+                -- Clique na caixa de busca: o próprio clique tira o foco do TextBox
+                -- invisível, então re-capturamos o foco para a digitação continuar
+                -- funcionando. O return consome o clique para que ele NÃO vaze para
+                -- widgets que estejam atrás do popup.
+                if w.search and state.sinkTextBox then
+                    state.sinkTextBox.Position = UDim2.new(0, px - 5, 0, py - 5)
+                    state.sinkTextBox.Size = UDim2.new(0, 10, 0, 10)
+                    task.defer(function()
+                        if state.dropdownOpen and state.dropdownWidget == w then
+                            pcall(function() state.sinkTextBox:CaptureFocus() end)
+                        end
+                    end)
+                end
                 return
             elseif inItems then
                 local slot   = math.floor((py - (g.popY + g.searchH)) / g.ITEM_H)
@@ -1360,8 +1373,10 @@ local function setupInput()
                 if state.sinkTextBox then
                     state.sinkTextBox:ReleaseFocus()
                 end
-                local wy = g.cY + w.y - state.contentOffset
-                if inRect(px,py, g.cX + 10*s, wy, g.cW - 20*s, w.h) then return end
+                -- Sempre consome o clique que fecha o dropdown. Antes, fora da própria
+                -- linha do widget, o código "vazava" para o loop de widgets e podia
+                -- ativar o widget que estava atrás do popup (bug de Z-Index/focus).
+                return
             end
         end
 
@@ -1369,7 +1384,7 @@ local function setupInput()
             local closeX = mw + fw - BTN_PAD - BTN_SZ
             local minX   = closeX - BTN_SZ - 6*s
             if inRect(px,py, closeX, mh+(HEADER_H-BTN_SZ)/2, BTN_SZ,BTN_SZ) then
-                LapoHub:Destroy(); return
+                LapoX:Destroy(); return
             end
             if inRect(px,py, minX, mh+(HEADER_H-BTN_SZ)/2, BTN_SZ,BTN_SZ) then
                 state.minimized = not state.minimized
@@ -2143,7 +2158,7 @@ local Loader = {
     progress        = 0,      -- alvo (0..1)
     shownProgress   = 0,      -- valor animado
     message         = "Carregando...",
-    title           = "Lapo Hub X",
+    title           = "Lapo Library X",
     subtitle        = "",
     spin            = 0,
     pulse           = 0,
@@ -2246,12 +2261,12 @@ local function loaderBuild(cfg)
     Loader.hasImage = false
     if cfg.Image then
         if not Loader.image then
-            warn("[LapoHubX] Imagem do loading ignorada: este executor nao suporta Drawing.new(\"Image\"). Usando spinner.")
+            warn("[LapoLibraryX] Imagem do loading ignorada: este executor nao suporta Drawing.new(\"Image\"). Usando spinner.")
         else
             Loader.hasImage = loaderLoadImage(Loader.image, cfg.Image)
             Loader.image.Visible = Loader.hasImage
             if not Loader.hasImage then
-                warn("[LapoHubX] Imagem do loading nao carregou: " .. (Loader.imageErr or "motivo desconhecido") .. ". Usando spinner.")
+                warn("[LapoLibraryX] Imagem do loading nao carregou: " .. (Loader.imageErr or "motivo desconhecido") .. ". Usando spinner.")
             end
         end
     end
@@ -2269,7 +2284,7 @@ local function loaderBuild(cfg)
 
     -- textos
     Loader.titleTxt = add(make("Text", {
-        Text = cfg.Title or "Lapo Hub X", Color = Theme.Text,
+        Text = cfg.Title or "Lapo Library X", Color = Theme.Text,
         Size = 26, Font = Font, Center = true,
         Transparency = 0, ZIndex = 906, Visible = true
     }))
@@ -2511,13 +2526,13 @@ end
 
 -- ativa modo batch manualmente: adições de tabs/widgets não reconstroem
 -- a UI a cada chamada (muito mais rápido para muitos widgets)
-function LapoHub:BeginBatch()
+function LapoX:BeginBatch()
     state.batchMode = true
     return self
 end
 
 -- encerra o modo batch e reconstrói a UI uma única vez
-function LapoHub:EndBatch()
+function LapoX:EndBatch()
     if not state.batchMode then return self end
     state.batchMode = false
     if state.initialized then
@@ -2528,17 +2543,17 @@ function LapoHub:EndBatch()
     return self
 end
 
-function LapoHub:ShowLoading(config)
+function LapoX:ShowLoading(config)
     config = config or {}
     if not state.hasDrawing then
-        warn("[LapoHubX] Drawing API indisponível — tela de load ignorada.")
+        warn("[LapoLibraryX] Drawing API indisponível — tela de load ignorada.")
         return self
     end
     -- evita duplicar
     if Loader.active then loaderStop() end
 
     Loader.message       = config.Message or "Carregando módulos..."
-    Loader.title         = config.Title or state.title or "Lapo Hub X"
+    Loader.title         = config.Title or state.title or "Lapo Library X"
     Loader.subtitle      = config.Subtitle or ""
     Loader.progress      = 0
     Loader.shownProgress = 0
@@ -2567,7 +2582,7 @@ function LapoHub:ShowLoading(config)
 end
 
 -- atualiza manualmente o progresso (0..1) e opcionalmente a mensagem
-function LapoHub:SetLoadingProgress(pct, msg)
+function LapoX:SetLoadingProgress(pct, msg)
     if not Loader.active then return self end
     Loader.progress = math.clamp(tonumber(pct) or 0, 0, 1)
     if msg and Loader.msgTxt then
@@ -2577,7 +2592,7 @@ function LapoHub:SetLoadingProgress(pct, msg)
     return self
 end
 
-function LapoHub:SetLoadingMessage(msg)
+function LapoX:SetLoadingMessage(msg)
     if not Loader.active then return self end
     if msg and Loader.msgTxt then
         Loader.message = tostring(msg)
@@ -2588,14 +2603,14 @@ end
 
 -- adiciona uma tarefa à fila de carregamento
 -- label: texto mostrado;  fn: função executada nesse passo
-function LapoHub:QueueLoad(label, fn)
+function LapoX:QueueLoad(label, fn)
     table.insert(Loader.queue, { label = label, fn = fn })
     return self
 end
 
 -- roda a fila: uma tarefa por vez, espalhada em frames (sem pressa)
 -- onComplete é chamado depois do fade out
-function LapoHub:RunLoadQueue(onComplete)
+function LapoX:RunLoadQueue(onComplete)
     if not Loader.active then
         if onComplete then pcall(onComplete) end
         return self
@@ -2611,7 +2626,7 @@ function LapoHub:RunLoadQueue(onComplete)
 end
 
 -- encerra a tela de load manualmente (fade out) e chama onComplete
-function LapoHub:FinishLoading(onComplete)
+function LapoX:FinishLoading(onComplete)
     if not Loader.active then
         if onComplete then pcall(onComplete) end
         return self
@@ -2629,11 +2644,11 @@ function LapoHub:FinishLoading(onComplete)
     return self
 end
 
-function LapoHub:Init(config)
+function LapoX:Init(config)
     config = config or {}
-    state.title     = config.Title     or "Lapo Hub X"
+    state.title     = config.Title     or "Lapo Library X"
 
-    local instanceKey = "LapoHubInstance_" .. state.title
+    local instanceKey = "LapoLibraryInstance_" .. state.title
     if shared[instanceKey] then
         pcall(function() shared[instanceKey]:Destroy() end)
     end
@@ -2641,7 +2656,7 @@ function LapoHub:Init(config)
 
     state.destroyFlag = false
     if not state.hasDrawing then
-        warn("[LapoHubX] Drawing API indisponível neste executor — UI não será carregada.")
+        warn("[LapoLibraryX] Drawing API indisponível neste executor — UI não será carregada.")
         return self
     end
 
@@ -2667,11 +2682,11 @@ function LapoHub:Init(config)
     local success, err = pcall(function()
         local sgParent = getGuiParent()
         if sgParent then
-            local existing = sgParent:FindFirstChild("LapoHubX_InputSink")
+            local existing = sgParent:FindFirstChild("LapoLibraryX_InputSink")
             if existing then pcall(function() existing:Destroy() end) end
 
             local sg = Instance.new("ScreenGui")
-            sg.Name = "LapoHubX_InputSink"
+            sg.Name = "LapoLibraryX_InputSink"
             sg.ResetOnSpawn = false
             sg.Enabled = true
             sg.Parent = sgParent
@@ -2717,7 +2732,7 @@ function LapoHub:Init(config)
             state.dropdownInputFrame = dropdownFrame
         end
     end)
-    if not success then warn("[LapoHubX] Input sink setup failed: " .. tostring(err)) end
+    if not success then warn("[LapoLibraryX] Input sink setup failed: " .. tostring(err)) end
 
     if state.sinkTextBox then
         local cText = state.sinkTextBox:GetPropertyChangedSignal("Text"):Connect(function()
@@ -2756,16 +2771,23 @@ function LapoHub:Init(config)
             elseif state.dropdownOpen and state.dropdownWidget and state.dropdownWidget.search then
                 local w = state.dropdownWidget
                 if enterPressed then
+                    -- Enter confirma o primeiro item filtrado e fecha o dropdown.
                     local optIdx = w.filtered[1]
                     if optIdx then
                         w.selected = optIdx
                         w.selectedText.Text = w.options[optIdx] or "Select"
                         pcall(w.callback, w.selected, w.options[optIdx])
                     end
+                    w.open = false
+                    state.dropdownOpen = false
+                    state.dropdownWidget = nil
                 end
-                w.open = false
-                state.dropdownOpen = false
-                state.dropdownWidget = nil
+                -- Em perda de foco SEM Enter (ex.: clique na caixa de busca ou num
+                -- item) NÃO fechamos o dropdown aqui. O fechamento/seleção passa a
+                -- ser tratado exclusivamente pelo InputBegan, evitando a corrida de
+                -- eventos onde o dropdown fechava antes do clique ser processado
+                -- (itens "não selecionáveis") e o clique "atravessava" para o widget
+                -- de trás.
             end
         end)
         table.insert(state.connections, cFocusLost)
@@ -2786,7 +2808,7 @@ function LapoHub:Init(config)
     end
 
     self:Notify({
-        title   = "Lapo Hub X",
+        title   = "Lapo Library X",
         content = (state.mobile and "📱 Mobile" or "🖥 Desktop") .. " — pronto",
         duration= 3
     })
@@ -2794,4 +2816,4 @@ function LapoHub:Init(config)
     return self
 end
 
-return LapoHub
+return LapoX
