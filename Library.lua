@@ -1246,13 +1246,12 @@ local function setupInput()
             w.hoverIdx = w.selected
             state.dropdownOpen   = true
             state.dropdownWidget = w
+            -- Não captura o teclado ao abrir: ter busca não obriga a digitar.
+            -- A busca só ativa se o usuário clicar na caixa de busca (o clique
+            -- re-captura o foco no handler de InputBegan). Assim dá pra apenas
+            -- selecionar um item normalmente.
             if w.search and state.sinkTextBox then
                 state.sinkTextBox.Text = ""
-                state.sinkTextBox.Position = UDim2.new(0, px - 5, 0, py - 5)
-                state.sinkTextBox.Size = UDim2.new(0, 10, 0, 10)
-                task.defer(function()
-                    state.sinkTextBox:CaptureFocus()
-                end)
             end
         elseif w.type == "TextBox" then
             w.focused = true
