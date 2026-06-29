@@ -39,9 +39,7 @@ local state = {
     userCallback = nil,
     title = "Lapo Hub X",
     toggleKey = "End",
-    hoverAnims = {},
     mobileBtn = nil,
-    mobileBtnHover = false,
     focusedTextBox = nil,
     sinkTextBox = nil,
     mainInputFrame = nil,
@@ -73,7 +71,7 @@ local Theme = {
 local Font = Drawing.Fonts.Monospace or Drawing.Fonts.UI
 
 if not math.clamp then
-    math.clamp = function(v, min, max)
+    function math.clamp(v, min, max)
         if v < min then return min end
         if v > max then return max end
         return v
@@ -93,6 +91,8 @@ end)()
 
 local function lerp(a, b, t) return a + (b - a) * t end
 local function lerpColor(a, b, t)
+    if t <= 0 then return a end
+    if t >= 1 then return b end
     return Color3.new(
         lerp(a.R, b.R, t),
         lerp(a.G, b.G, t),
@@ -179,11 +179,8 @@ local function getGuiParent()
         local success, pg = pcall(function() return p:FindFirstChildOfClass("PlayerGui") end)
         if success and pg then return pg end
     end
-    local cl = pcall(function() return game:GetService("CoreGui") end)
-    if cl then
-        local success, cg = pcall(function() return game:GetService("CoreGui") end)
-        if success and cg then return cg end
-    end
+    local cl, cg = pcall(function() return game:GetService("CoreGui") end)
+    if cl and cg then return cg end
     return nil
 end
 
@@ -560,7 +557,8 @@ local function newWidget(kind, props)
             self.trackBg.Color = self.value and Theme.OnDim or Theme.BgInput
             self.trackBd.Color = self.value and Theme.On    or Theme.Border
             self.knob.Color    = self.value and Theme.On    or Theme.TextSub
-            self.callback(self.value)
+            local ok, err = pcall(self.callback, self.value)
+            if not ok then warn("[LapoHubX] Toggle callback error: " .. tostring(err)) end
         end
         return w
 
@@ -587,7 +585,8 @@ local function newWidget(kind, props)
         w.updateValue = function(self, v)
             self.value = math.clamp(v, self.min, self.max)
             self.valText.Text = tostring(math.floor(self.value))
-            self.callback(self.value)
+            local ok, err = pcall(self.callback, self.value)
+            if not ok then warn("[LapoHubX] Slider callback error: " .. tostring(err)) end
         end
         return w
 
@@ -685,11 +684,13 @@ local function newWidget(kind, props)
 end
 
 local function recalcMaxOffset()
+    if state._maxOffsetDirty == false then return state.maxOffset end
     local ss = state.scale
     local totalH = 10 * ss
     for _, w in ipairs(widgetList) do totalH = totalH + w.h + 5 * ss end
     local contentAreaH = state.frameSize.Y - 34 * ss
     state.maxOffset = math.max(0, totalH - contentAreaH + 10 * ss)
+    state._maxOffsetDirty = false
     return state.maxOffset
 end
 
@@ -697,6 +698,7 @@ local function rebuildContent()
     for _, d in ipairs(contentDrawings) do pcall(function() d:Remove() end) end
     contentDrawings, widgetList = {}, {}
     state.contentOffset, state.maxOffset = 0, 0
+    state._maxOffsetDirty = true
     if #state.tabs == 0 then return end
     local tab = state.tabs[state.currentTab]
     if not tab then return end
@@ -710,6 +712,16 @@ local function rebuildContent()
         if w then
             w.desc = wdesc
             w.y    = curY
+            -- pré-computar lista de Drawing objects para hide rápido
+            local all = {}
+            for _, o in pairs({w.bg,w.label,w.border,w.track,w.fill,w.thumb,w.thumbGl,
+                w.valText,w.trackBg,w.trackBd,w.knob,w.dispBg,w.dispBd,
+                w.selectedText,w.arrow,w.popupBg,w.popupBd,w.inputBg,w.inputBd,
+                w.valueText,w.cursor,w.bar,w.line,
+                w.searchBg,w.searchBd,w.searchIc,w.searchTx}) do
+                if o then all[#all+1] = o end
+            end
+            w._allDrawings = all
             table.insert(widgetList, w)
             curY = curY + w.h + 5 * s
         end
@@ -717,13 +729,23 @@ local function rebuildContent()
     recalcMaxOffset()
 end
 
+local function updateMetrics()
+    local s = state.scale
+    state.metrics = {
+        headerH = 34*s, sideW = 160*s, footerH = 52*s,
+        btnSz = 22*s, btnPad = 10*s, tabH = 38*s, tabPad = 6*s,
+        itemH = 32*s, pad = 10*s,
+    }
+end
+
 local function dropdownGeom(w)
+    local m      = state.metrics or {}
     local s      = state.scale
-    local SIDE_W = 160 * s
+    local SIDE_W = m.sideW or 160 * s
     local cX     = state.framePos.X + SIDE_W + 1
-    local cY     = state.framePos.Y + 34 * s
+    local cY     = state.framePos.Y + (m.headerH or 34 * s)
     local cW     = state.frameSize.X - SIDE_W - 1
-    local ITEM_H = 32 * s
+    local ITEM_H = m.itemH or 32 * s
     local searchH= w.search and 30 * s or 0
     local popX   = cX + 8 * s
     local popY   = cY + w.y - state.contentOffset + w.h
@@ -1058,6 +1080,7 @@ end
 
 function LapoHub:ToggleVisibility()
     state.visible = not state.visible
+    state.layoutDirty = true
     if not state.visible then
 
         if state.sinkTextBox then pcall(function() state.sinkTextBox:ReleaseFocus() end) end
@@ -1167,6 +1190,7 @@ local function setupInput()
 
     local function mp() return uis:GetMouseLocation() end
 
+    pcall(function() cas:UnbindAction("LapoHubX_MouseSink") end)
     pcall(function()
         cas:BindActionAtPriority(
             "LapoHubX_MouseSink",
@@ -1204,7 +1228,8 @@ local function setupInput()
 
     local function activateWidget(w, px, py, s, cX, cY, cW, cH, cY2)
         if w.type == "Button" then
-            w.callback()
+            local ok, err = pcall(w.callback)
+            if not ok then warn("[LapoHubX] Button callback error: " .. tostring(err)) end
         elseif w.type == "Toggle" then
             w:toggle()
         elseif w.type == "Slider" then
@@ -1294,7 +1319,7 @@ local function setupInput()
                     w.valueText.Text = w.placeholder
                     w.valueText.Color = Theme.TextMuted
                 end
-                w.callback(w.value)
+                pcall(w.callback, w.value)
                 if state.sinkTextBox then
                     state.sinkTextBox:ReleaseFocus()
                 end
@@ -1322,7 +1347,7 @@ local function setupInput()
                     if optIdx then
                         w.selected = optIdx
                         w.selectedText.Text = w.options[optIdx] or "Select"
-                        w.callback(w.selected, w.options[optIdx])
+                        pcall(w.callback, w.selected, w.options[optIdx])
                     end
                     w.open = false; state.dropdownOpen = false; state.dropdownWidget = nil
                     if state.sinkTextBox then
@@ -1348,6 +1373,7 @@ local function setupInput()
             end
             if inRect(px,py, minX, mh+(HEADER_H-BTN_SZ)/2, BTN_SZ,BTN_SZ) then
                 state.minimized = not state.minimized
+                state.layoutDirty = true
                 return
             end
             state.isDragging = true
@@ -1362,6 +1388,7 @@ local function setupInput()
                 local tabY = mh + HEADER_H + TAB_PAD + (i-1)*(TAB_H+2*s)
                 if inRect(px,py, mw+2*s,tabY, SIDE_W-4*s,TAB_H) then
                     state.currentTab = i
+                    state.layoutDirty = true
                     rebuildContent()
                     return
                 end
@@ -1423,7 +1450,7 @@ local function setupInput()
                             if optIdx then
                                 w.selected = optIdx
                                 w.selectedText.Text = w.options[optIdx] or "Select"
-                                w.callback(w.selected, w.options[optIdx])
+                                pcall(w.callback, w.selected, w.options[optIdx])
                             end
                             w.open = false; state.dropdownOpen = false; state.dropdownWidget = nil
                             if state.sinkTextBox then
@@ -1511,6 +1538,7 @@ local function setupInput()
             local newX = math.clamp(px - state.dragOffset.X, 0, sw - state.frameSize.X)
             local newY = math.clamp(py - state.dragOffset.Y, 0, sh - (34*s))
             state.framePos = Vector2.new(newX, newY)
+            state.layoutDirty = true
             return
         end
         if state.isSliding and state.slidingWidget then
@@ -1564,6 +1592,8 @@ local function setupInput()
     end)
     table.insert(state.connections, c6)
 
+    -- Fallback: só registra handler de teclado se sinkTextBox falhou ao ser criado
+    if not state.sinkTextBox then
     local function keyToChar(inp)
         local kc = inp.KeyCode
         local shift = uis:IsKeyDown(Enum.KeyCode.LeftShift) or uis:IsKeyDown(Enum.KeyCode.RightShift)
@@ -1582,7 +1612,6 @@ local function setupInput()
     local c7 = uis.InputBegan:Connect(function(inp, gpe)
         if gpe then return end
         if inp.UserInputType ~= Enum.UserInputType.Keyboard then return end
-        if state.sinkTextBox then return end
 
         if state.dropdownOpen and state.dropdownWidget and state.dropdownWidget.search then
             local w = state.dropdownWidget
@@ -1595,7 +1624,7 @@ local function setupInput()
                 if optIdx then
                     w.selected = optIdx
                     w.selectedText.Text = w.options[optIdx] or "Select"
-                    w.callback(w.selected, w.options[optIdx])
+                    pcall(w.callback, w.selected, w.options[optIdx])
                 end
                 w.open=false; state.dropdownOpen=false; state.dropdownWidget=nil
                 return
@@ -1621,7 +1650,7 @@ local function setupInput()
                 end
                 if inp.KeyCode == Enum.KeyCode.Return then
                     w.focused=false; w.inputBd.Color=Theme.Border
-                    w.callback(w.value)
+                    pcall(w.callback, w.value)
                     if w.value=="" then w.valueText.Text=w.placeholder; w.valueText.Color=Theme.TextMuted
                     else w.valueText.Color=Theme.Text end
                     return
@@ -1637,12 +1666,12 @@ local function setupInput()
         end
     end)
     table.insert(state.connections, c7)
+    end -- fim do if not state.sinkTextBox
 end
 
 local function startRenderLoop()
-    local runSvc = game:GetService("RunService")
     local conn
-    conn = runSvc.RenderStepped:Connect(function(dt)
+    conn = game:GetService("RunService").RenderStepped:Connect(function(dt)
         if state.destroyFlag then conn:Disconnect(); return end
 
         local ss = state.scale
@@ -1783,6 +1812,9 @@ local function startRenderLoop()
 
         if state.minimized then fh = HEADER_H end
 
+        if state.layoutDirty or state.layoutDirty == nil then
+        state.layoutDirty = false
+
         ui.shadow.Position = Vector2.new(mw-8*ss, mh-8*ss)
         ui.shadow.Size     = Vector2.new(fw+16*ss, fh+16*ss)
 
@@ -1863,7 +1895,11 @@ local function startRenderLoop()
                 tabAccentList[i].Transparency= active and 1 or 0
                 tabAccentList[i].Visible     = true
             end
+        end -- fim if showBody (layout estático)
+        end -- fim layoutDirty
 
+        local showBody = not state.minimized
+        if showBody then
             local cX = mw + SIDE_W + 1
             local cY = mh + HEADER_H
             local cW = fw - SIDE_W - 1
@@ -2052,12 +2088,18 @@ local function startRenderLoop()
             for _, tt in ipairs(tabTextList)   do tt.Visible = false end
             for _, ac in ipairs(tabAccentList) do ac.Visible = false end
             for _, w  in ipairs(widgetList) do
-                for _, o in pairs({w.bg,w.label,w.border,w.track,w.fill,w.thumb,w.thumbGl,
-                    w.valText,w.trackBg,w.trackBd,w.knob,w.dispBg,w.dispBd,
-                    w.selectedText,w.arrow,w.popupBg,w.popupBd,w.inputBg,w.inputBd,
-                    w.valueText,w.cursor,w.bar,w.line,
-                    w.searchBg,w.searchBd,w.searchIc,w.searchTx}) do
-                    if o then pcall(function() o.Visible=false end) end
+                if w._allDrawings then
+                    for _, o in ipairs(w._allDrawings) do
+                        if o then pcall(function() o.Visible=false end) end
+                    end
+                else
+                    for _, o in pairs({w.bg,w.label,w.border,w.track,w.fill,w.thumb,w.thumbGl,
+                        w.valText,w.trackBg,w.trackBd,w.knob,w.dispBg,w.dispBd,
+                        w.selectedText,w.arrow,w.popupBg,w.popupBd,w.inputBg,w.inputBd,
+                        w.valueText,w.cursor,w.bar,w.line,
+                        w.searchBg,w.searchBd,w.searchIc,w.searchTx}) do
+                        if o then pcall(function() o.Visible=false end) end
+                    end
                 end
                 if w.itemDraws then
                     for _, it in ipairs(w.itemDraws) do
@@ -2606,6 +2648,7 @@ function LapoHub:Init(config)
     state.toggleKey = config.ToggleKey or "End"
     state.mobile    = detectMobile()
     state.scale     = state.mobile and 0.72 or 1
+    updateMetrics()
 
     local s = state.scale
     if state.mobile then
@@ -2674,6 +2717,7 @@ function LapoHub:Init(config)
             state.dropdownInputFrame = dropdownFrame
         end
     end)
+    if not success then warn("[LapoHubX] Input sink setup failed: " .. tostring(err)) end
 
     if state.sinkTextBox then
         local cText = state.sinkTextBox:GetPropertyChangedSignal("Text"):Connect(function()
@@ -2700,7 +2744,7 @@ function LapoHub:Init(config)
                 local w = state.focusedTextBox
                 w.focused = false
                 w.inputBd.Color = Theme.Border
-                w.callback(w.value)
+                pcall(w.callback, w.value)
                 if w.value ~= "" then
                     w.valueText.Text  = w.value
                     w.valueText.Color = Theme.Text
@@ -2716,7 +2760,7 @@ function LapoHub:Init(config)
                     if optIdx then
                         w.selected = optIdx
                         w.selectedText.Text = w.options[optIdx] or "Select"
-                        w.callback(w.selected, w.options[optIdx])
+                        pcall(w.callback, w.selected, w.options[optIdx])
                     end
                 end
                 w.open = false
