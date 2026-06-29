@@ -7,28 +7,28 @@ Para ver a documentação interativa completa com o simulador de componentes, ac
 ## Carregamento (Local com Fallback GitHub)
 
 ```lua
-local LapoHub
+local LapoX
 local success, err = pcall(function()
     return loadstring(readfile("Library.lua"))()
 end)
 if success and err then
-    LapoHub = err
+    LapoX = err
 else
-    LapoHub = loadstring(game:HttpGet("https://raw.githubusercontent.com/LapoLapoNaldo/Lapo-X/refs/heads/main/Library.lua"))()
+    LapoX = loadstring(game:HttpGet("https://raw.githubusercontent.com/LapoLapoNaldo/Lapo-X/refs/heads/main/Library.lua"))()
 end
 ```
 
 ## API
 
-### `LapoHub:Init(config)`
+### `LapoX:Init(config)`
 Inicializa a janela. Deve ser chamada após declarar todas as abas.
 
-| Parâmetro   | Tipo   | Padrão        | Descrição                    |
-|-------------|--------|---------------|------------------------------|
-| `Title`     | string | `"Lapo Hub X"` | Título no cabeçalho          |
-| `ToggleKey` | string | `"End"`        | Tecla para mostrar/esconder  |
+| Parâmetro   | Tipo   | Padrão             | Descrição                    |
+|-------------|--------|--------------------|------------------------------|
+| `Title`     | string | `"Lapo Library X"` | Título no cabeçalho          |
+| `ToggleKey` | string | `"End"`            | Tecla para mostrar/esconder  |
 
-### `LapoHub:AddTab(name, icon)`
+### `LapoX:AddTab(name, icon)`
 Adiciona uma aba na barra lateral.
 
 | Parâmetro | Tipo   | Descrição                      |
@@ -36,14 +36,14 @@ Adiciona uma aba na barra lateral.
 | `name`    | string | Nome da aba (usado como ID)    |
 | `icon`    | string | Prefixo visual (emoji etc.)    |
 
-### `LapoHub:AddButton(tab, config)`
+### `LapoX:AddButton(tab, config)`
 
 | Parâmetro   | Tipo     | Descrição                     |
 |-------------|----------|-------------------------------|
 | `text`      | string   | Rótulo do botão               |
 | `callback`  | function | Função executada no clique    |
 
-### `LapoHub:AddToggle(tab, config)`
+### `LapoX:AddToggle(tab, config)`
 
 | Parâmetro   | Tipo     | Descrição                            |
 |-------------|----------|--------------------------------------|
@@ -53,7 +53,7 @@ Adiciona uma aba na barra lateral.
 
 **Métodos do handle:** `handle:Set(valor)`
 
-### `LapoHub:AddSlider(tab, config)`
+### `LapoX:AddSlider(tab, config)`
 
 | Parâmetro   | Tipo     | Descrição                    |
 |-------------|----------|------------------------------|
@@ -65,7 +65,7 @@ Adiciona uma aba na barra lateral.
 
 **Métodos do handle:** `handle:Set(valor)`
 
-### `LapoHub:AddDropdown(tab, config)`
+### `LapoX:AddDropdown(tab, config)`
 
 | Parâmetro   | Tipo     | Descrição                         |
 |-------------|----------|-----------------------------------|
@@ -77,7 +77,7 @@ Adiciona uma aba na barra lateral.
 
 **Métodos do handle:** `handle:Set(valor)` ou `handle:Set(novaTabela)`
 
-### `LapoHub:AddTextBox(tab, config)`
+### `LapoX:AddTextBox(tab, config)`
 
 | Parâmetro    | Tipo     | Descrição                    |
 |--------------|----------|------------------------------|
@@ -87,7 +87,7 @@ Adiciona uma aba na barra lateral.
 
 **Métodos do handle:** `handle:Set(texto)`
 
-### `LapoHub:AddLabel(tab, config)` / `LapoHub:AddParagraph(tab, config)`
+### `LapoX:AddLabel(tab, config)` / `LapoX:AddParagraph(tab, config)`
 
 | Parâmetro | Tipo   | Descrição      |
 |-----------|--------|----------------|
@@ -95,10 +95,10 @@ Adiciona uma aba na barra lateral.
 
 **Métodos do handle:** `handle:updateText(texto)` / `handle:Set(texto)`
 
-### `LapoHub:AddSeparator(tab)`
+### `LapoX:AddSeparator(tab)`
 Insere uma linha horizontal divisória.
 
-### `LapoHub:Notify(config)`
+### `LapoX:Notify(config)`
 
 | Parâmetro   | Tipo   | Descrição                     |
 |-------------|--------|-------------------------------|
@@ -106,16 +106,16 @@ Insere uma linha horizontal divisória.
 | `content`   | string | Mensagem (quebra automática)  |
 | `duration`  | number | Tempo em segundos             |
 
-### `LapoHub:SetUser(name, rank)`
+### `LapoX:SetUser(name, rank)`
 Define o nome e cargo exibidos no rodapé.
 
-### `LapoHub:SetUserCallback(callback)`
+### `LapoX:SetUserCallback(callback)`
 Callback chamada ao clicar no rodapé. Recebe `(name, rank)`.
 
-### `LapoHub:ToggleVisibility()`
+### `LapoX:ToggleVisibility()`
 Alterna a visibilidade da janela.
 
-### `LapoHub:Destroy()`
+### `LapoX:Destroy()`
 Remove todos os desenhos e conexões.
 
 ## Requisitos
@@ -127,27 +127,27 @@ Remove todos os desenhos e conexões.
 ## Exemplo mínimo
 
 ```lua
-local LapoHub
+local LapoX
 local success, err = pcall(function()
     return loadstring(readfile("Library.lua"))()
 end)
 if success and err then
-    LapoHub = err
+    LapoX = err
 else
-    LapoHub = loadstring(game:HttpGet("https://raw.githubusercontent.com/LapoLapoNaldo/Lapo-X/refs/heads/main/Library.lua"))()
+    LapoX = loadstring(game:HttpGet("https://raw.githubusercontent.com/LapoLapoNaldo/Lapo-X/refs/heads/main/Library.lua"))()
 end
 
-LapoHub:AddTab("Principal", "🏠")
-LapoHub:AddTab("Config", "⚙️")
+LapoX:AddTab("Principal", "🏠")
+LapoX:AddTab("Config", "⚙️")
 
-LapoHub:Init({ Title = "Meu Script", ToggleKey = "K" })
+LapoX:Init({ Title = "Meu Script", ToggleKey = "K" })
 
-LapoHub:SetUser("Player", "Dev")
+LapoX:SetUser("Player", "Dev")
 
-LapoHub:AddButton("Principal", {
+LapoX:AddButton("Principal", {
     text = "Clique",
     callback = function()
-        LapoHub:Notify({ title = "Olá", content = "Funcionou!", duration = 3 })
+        LapoX:Notify({ title = "Olá", content = "Funcionou!", duration = 3 })
     end,
 })
 ```
