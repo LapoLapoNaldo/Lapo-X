@@ -1,0 +1,887 @@
+#> StartFW
+include #> Standard;
+include #> Extensions;
+using Extensions.Coloring;
+using Extensions.PageContent;
+
+// Tema dark cinza-grafite (premium) via DocColors + acento índigo nas tabs/cards.
+Extensions: {
+    DocColors {
+        dark {
+            background: "#1a1d23";
+            sidebar: "#20242b";
+            header: "rgba(26, 29, 35, 0.85)";
+            card: "#252931";
+            code: "#15171d";
+            hover: "#2b303a";
+            border: "#31363f";
+        }
+    }
+
+    Coloring {
+        dark {
+            card { border: "#343a47"; }
+            tabs { active: "#818cf8"; }
+        }
+    }
+}
+
+Project: {
+    title: "Lapo Library X";
+    subtitle: "Made By Luvwas";
+    version: "v1.0.0";
+    status: "Estável";
+    github: "https://github.com/LapoLapoNaldo/Lapo-X";
+    description: "Documentação completa da Lapo Library X — biblioteca de UI para Roblox sobre a Drawing API: widgets, notificações, tela de loading animada, micro-interações e tema premium.";
+    lang: "pt-BR";
+}
+
+Docs: {
+    layout #> stnd;
+    #> PageContent;
+
+    section "Começando" {
+        page Sobre {
+            route: "home";
+            icon: "ri-home-4-line";
+            nav: "Sobre";
+            breadcrumb: "Sobre";
+            title: "Lapo Library X";
+
+            hero {
+                badge: "v1.0.0 — Drawing API";
+                title: "Lapo Library X";
+                desc: "Biblioteca de interface para Roblox renderizada 100% via Drawing API (overlay), sem depender de CoreGui/PlayerGui. Loading animado, micro-interações suaves, dropdown com busca, notificações e suporte a mobile — tudo numa API fluida.";
+                btn primary "Começar agora" -> inicio-rapido;
+                btn outline "GitHub" -> external "https://github.com/LapoLapoNaldo/Lapo-X";
+            }
+
+            h2 "Por que usar";
+            grid 2 {
+                card "Overlay puro" icon "ri-stack-line" {
+                    "Tudo desenhado com `Drawing.new`. Funciona onde GUI tradicional é bloqueada — sem CoreGui/PlayerGui.";
+                }
+                card "Loading cinematográfico" icon "ri-loader-4-line" {
+                    "Abertura com fade-in, scale-pop, spinner *comet* e barra de progresso com brilho.";
+                }
+                card "Micro-interações" icon "ri-cursor-line" {
+                    "Hover/press suaves em todos os widgets, knob e thumb animados, e indicador de aba que desliza.";
+                }
+                card "Mobile-ready" icon "ri-smartphone-line" {
+                    "Detecta toque, ajusta escala e mostra um botão flutuante para abrir/fechar.";
+                }
+            }
+
+            h2 "Índice de Métodos";
+            p "Tudo que a `LapoX` expõe. Os detalhes de cada um estão nas páginas seguintes.";
+            table {
+                header "Categoria" "Método" "O que faz";
+                row "Setup" "`Init(config)`" "Inicializa e exibe a janela.";
+                row "Setup" "`AddTab(name, icon)`" "Cria uma aba na sidebar.";
+                row "Widget" "`AddButton(tab, cfg)`" "Botão clicável.";
+                row "Widget" "`AddToggle(tab, cfg)`" "Interruptor on/off.";
+                row "Widget" "`AddSlider(tab, cfg)`" "Barra de valor.";
+                row "Widget" "`AddDropdown(tab, cfg)`" "Seleção com busca opcional.";
+                row "Widget" "`AddTextBox(tab, cfg)`" "Campo de texto.";
+                row "Widget" "`AddLabel(tab, cfg)`" "Rótulo de texto.";
+                row "Widget" "`AddParagraph(tab, cfg)`" "Parágrafo (texto longo).";
+                row "Widget" "`AddSeparator(tab)`" "Linha divisória.";
+                row "Feedback" "`Notify(cfg)`" "Notificação no canto da tela.";
+                row "Rodapé" "`SetUser(name, rank)`" "Nome/cargo no rodapé.";
+                row "Rodapé" "`SetUserCallback(cb)`" "Clique no rodapé.";
+                row "Janela" "`ToggleVisibility()`" "Mostra/esconde a UI.";
+                row "Janela" "`Destroy()`" "Remove tudo e desconecta eventos.";
+                row "Loading" "`ShowLoading(cfg)`" "Abre a tela de carregamento.";
+                row "Loading" "`SetLoadingProgress(pct, msg)`" "Progresso manual (0–1).";
+                row "Loading" "`SetLoadingMessage(msg)`" "Troca a mensagem.";
+                row "Loading" "`QueueLoad(label, fn)`" "Enfileira uma tarefa.";
+                row "Loading" "`RunLoadQueue(onDone)`" "Roda a fila e fecha.";
+                row "Loading" "`FinishLoading(onDone)`" "Fecha o loading manualmente.";
+                row "Perf" "`BeginBatch()` / `EndBatch()`" "Adiciona muitos widgets sem rebuild.";
+            }
+
+            alert tip "Encadeamento" {
+                "Métodos de setup (`Init`, `SetUser`, `AddTab`, `AddSeparator`, loading) retornam `self`, então dá pra encadear. Já os `Add*` de widget retornam um **handle** (veja **Handles & :Set()**).";
+            }
+        }
+
+        page Carregamento {
+            route: "carregamento";
+            icon: "ri-download-cloud-2-line";
+            nav: "Carregamento";
+            breadcrumb: "Carregamento";
+            title: "Carregar a Library";
+
+            h1 "Carregar a Library";
+            p "A lib retorna a tabela `LapoX`. Use o arquivo local quando existir e caia para o GitHub como fallback.";
+
+            tabs {
+                tab "Local + Fallback" icon "ri-git-repository-line" {
+                    code lua {
+local LapoX
+local ok, lib = pcall(function()
+    return loadstring(readfile("Library.lua"))()
+end)
+if ok and lib then
+    LapoX = lib
+else
+    LapoX = loadstring(game:HttpGet(
+        "https://raw.githubusercontent.com/LapoLapoNaldo/Lapo-X/refs/heads/main/Library.lua"
+    ))()
+end
+                    }
+                }
+                tab "Só GitHub" icon "ri-cloud-line" {
+                    code lua {
+local LapoX = loadstring(game:HttpGet(
+    "https://raw.githubusercontent.com/LapoLapoNaldo/Lapo-X/refs/heads/main/Library.lua"
+))()
+                    }
+                }
+            }
+
+            h2 "Reexecução sem duplicar";
+            p "Sempre destrua a instância anterior ao rodar o script de novo. A própria lib já faz isso por título (veja a nota), mas guardar num global é mais seguro:";
+            code lua {
+if _G._Lapo then pcall(function() _G._Lapo:Destroy() end) end
+-- ... carregar e montar a UI ...
+_G._Lapo = LapoX
+            }
+
+            alert info "Singleton por título" {
+                "No `Init`, a lib guarda a instância em `shared[\"LapoLibraryInstance_\" .. Title]` e **destrói automaticamente** uma instância anterior com o **mesmo título**. Títulos diferentes geram janelas independentes.";
+            }
+        }
+
+        page InicioRapido {
+            route: "inicio-rapido";
+            icon: "ri-rocket-line";
+            nav: "Início Rápido";
+            breadcrumb: "Início Rápido";
+            title: "Início Rápido";
+
+            h1 "Início Rápido";
+            p "Exemplo completo: abas, widgets variados, notificação e rodapé.";
+
+            code lua {
+local LapoX = loadstring(game:HttpGet(
+    "https://raw.githubusercontent.com/LapoLapoNaldo/Lapo-X/refs/heads/main/Library.lua"
+))()
+
+-- 1) Abas ANTES do Init
+LapoX:AddTab("Principal", "🏠")
+LapoX:AddTab("Config", "⚙️")
+
+-- 2) Inicializa
+LapoX:Init({ Title = "Meu Script", ToggleKey = "K" })
+LapoX:SetUser("Player", "Premium")
+
+-- 3) Widgets (podem vir depois do Init)
+LapoX:AddButton("Principal", {
+    text = "Executar",
+    callback = function()
+        LapoX:Notify({ title = "OK", content = "Rodou!", duration = 3 })
+    end,
+})
+
+local speed = LapoX:AddSlider("Config", {
+    text = "Velocidade", min = 0, max = 100, default = 50,
+    callback = function(v) print("speed:", v) end,
+})
+
+speed:Set(80) -- altera por código
+            }
+
+            alert important "Ordem recomendada" {
+                "`ShowLoading` (opcional) → `AddTab` (todas) → `Init` → `Add*` widgets. Abas adicionadas **depois** do `Init` também funcionam, mas declarar antes deixa o fluxo mais limpo.";
+            }
+        }
+
+        page CicloDeVida {
+            route: "ciclo-de-vida";
+            icon: "ri-loop-left-line";
+            nav: "Ciclo de Vida";
+            breadcrumb: "Ciclo de Vida";
+            title: "Ciclo de Vida";
+
+            h1 "Ciclo de Vida";
+            p "O caminho completo de uma sessão, do load ao destroy.";
+
+            ol {
+                "**Carregar** a lib (`loadstring`).";
+                "**(Opcional) `ShowLoading`** — abre a tela animada e ativa o modo batch internamente.";
+                "**`AddTab`** — registre as abas.";
+                "**`Init`** — cria a janela, detecta mobile, monta input e começa a renderizar.";
+                "**`Add*`** — adicione widgets nas abas.";
+                "**(Opcional) `QueueLoad` + `RunLoadQueue`** — roda tarefas e fecha o loading com fade-out.";
+                "**Runtime** — `:Set()` nos handles, `Notify`, `ToggleVisibility`...";
+                "**`Destroy`** — ao encerrar, limpa desenhos e conexões.";
+            }
+
+            alert tip "Loading suprime rebuilds" {
+                "Enquanto o loading está ativo, a UI entra em **modo batch** automaticamente — todos os widgets adicionados nesse período só são montados de uma vez quando o loading termina. Isso deixa a abertura bem mais rápida.";
+            }
+        }
+    }
+
+    section "Configuração" {
+        page Init {
+            route: "config-init";
+            icon: "ri-play-circle-line";
+            nav: "Init";
+            breadcrumb: "Init";
+            title: "Init";
+
+            h1 "Init";
+            p "Inicializa e exibe a janela. Chame **depois** de declarar as abas. Retorna `self`.";
+
+            code lua {
+LapoX:Init({
+    Title     = "Meu Script",
+    ToggleKey = "K",
+})
+            }
+
+            h2 "Config";
+            table config {
+                row "Title" string "\"Lapo Library X\"" "Título no cabeçalho. Também é a chave do singleton.";
+                row "ToggleKey" string "\"End\"" "Tecla que mostra/esconde a janela. Nome de KeyCode (ex.: \"K\") ou EnumItem.";
+            }
+
+            h2 "O que o Init faz";
+            ul {
+                "Registra o singleton e **destrói** uma instância anterior de mesmo `Title`.";
+                "Detecta **mobile** (`TouchEnabled` e sem teclado) e ajusta a escala (0.72 no mobile, 1 no desktop).";
+                "Define o tamanho/posição da janela (desktop: **960×600** em `(120, 80)`; mobile: proporcional à viewport).";
+                "Cria o *input sink* (captura de teclado/clique) e inicia o loop de render.";
+                "Restaura a aba atual salva, se houver config anterior.";
+            }
+
+            alert warning "Sem Drawing API" {
+                "Se o executor não tiver `Drawing.new`, o `Init` emite um `warn` e retorna sem montar a UI. Os `Add*` viram no-op visual. Cheque os **Requisitos**.";
+            }
+        }
+
+        page Tabs {
+            route: "config-tabs";
+            icon: "ri-layout-column-line";
+            nav: "Abas (AddTab)";
+            breadcrumb: "Abas";
+            title: "Abas (AddTab)";
+
+            h1 "Abas";
+            p "Cada aba é um item da sidebar. O indicador da aba ativa **desliza** ao trocar. Retorna `self`.";
+
+            code lua {
+LapoX:AddTab("Principal", "🏠")
+LapoX:AddTab("Config", "⚙️")
+            }
+
+            h2 "Parâmetros";
+            table {
+                header "Parâmetro" "Tipo" "Descrição";
+                row "`name`" "string" "Nome da aba — também é o ID usado nos `Add*`.";
+                row "`icon`" "string" "Prefixo visual opcional (emoji). Pode ser `\"\"`.";
+            }
+
+            h2 "Referenciando a aba";
+            p "Nos `Add*`, o primeiro argumento aceita o **nome** ou o **índice** da aba:";
+            code lua {
+LapoX:AddButton("Config", { text = "A" })  -- por nome
+LapoX:AddButton(2, { text = "B" })          -- por índice (2ª aba)
+            }
+            alert info "Abas dinâmicas" {
+                "Dá pra chamar `AddTab` **depois** do `Init` — a sidebar e o layout são reconstruídos na hora.";
+            }
+        }
+
+        page Tema {
+            route: "config-tema";
+            icon: "ri-palette-line";
+            nav: "Tema & Cores";
+            breadcrumb: "Tema";
+            title: "Tema & Paleta";
+
+            h1 "Tema & Paleta";
+            p "A lib usa uma paleta fixa (roxo/índigo sobre fundo quase-preto). Útil conhecer os tons ao combinar com seu projeto.";
+
+            table {
+                header "Token" "RGB" "Uso";
+                row "`Accent`" "120, 80, 255" "Cor principal (destaques, ativo, fill).";
+                row "`AccentGlow`" "140, 100, 255" "Brilho/realce do accent.";
+                row "`AccentDim`" "70, 45, 160" "Accent apagado (press).";
+                row "`BgDeep`" "10, 10, 18" "Fundo mais escuro (notify/loading).";
+                row "`BgBase`" "14, 14, 26" "Fundo da janela/conteúdo.";
+                row "`BgPanel`" "18, 18, 32" "Sidebar e hover de widget.";
+                row "`BgWidget`" "22, 22, 38" "Fundo dos widgets.";
+                row "`On`" "50, 220, 120" "Estado ligado (toggle).";
+                row "`Text`" "220, 220, 235" "Texto principal.";
+                row "`TextSub`" "110, 110, 140" "Texto secundário.";
+                row "`Danger`" "220, 55, 55" "Botão fechar.";
+            }
+
+            alert info "Paleta fixa" {
+                "A paleta não é exposta como API pública — está documentada aqui só para referência visual. Para temas customizados, edite a tabela `Theme` na fonte da lib.";
+            }
+        }
+    }
+
+    section "Widgets" {
+        page Handles {
+            route: "widget-handles";
+            icon: "ri-links-line";
+            nav: "Handles & :Set()";
+            breadcrumb: "Handles";
+            title: "Handles & :Set()";
+
+            h1 "Handles & :Set()";
+            p "Os `Add*` de widget retornam um **handle** — uma tabela pequena para controlar aquele widget por código depois de criado.";
+
+            h2 "O que cada widget devolve";
+            table {
+                header "Método" "Handle" "Métodos do handle";
+                row "`AddButton`" "Sim" "— (sem `:Set`)";
+                row "`AddToggle`" "Sim" "`:Set(bool)`";
+                row "`AddSlider`" "Sim" "`:Set(number)`";
+                row "`AddDropdown`" "Sim" "`:Set(valor)` ou `:Set({opções})`";
+                row "`AddTextBox`" "Sim" "`:Set(texto)`";
+                row "`AddLabel`" "Sim" "`:updateText(t)` / `:Set(t)`";
+                row "`AddParagraph`" "Sim" "`:updateText(t)` / `:Set(t)`";
+                row "`AddSeparator`" "Não" "retorna `self`";
+            }
+
+            h2 "Exemplo";
+            code lua {
+local toggle = LapoX:AddToggle("Geral", { text = "Modo Turbo" })
+local label  = LapoX:AddLabel("Geral", { text = "Status: —" })
+
+toggle:Set(true)
+label:Set("Status: ligado")
+            }
+
+            alert warning "Reutilizar a mesma config" {
+                "O handle encontra o widget pela **identidade da tabela de config** passada. Se você reaproveitar a **mesma** tabela `cfg` em dois widgets, o `:Set` afeta só o primeiro. Use uma tabela nova por widget.";
+            }
+        }
+
+        page Button {
+            route: "widget-button";
+            icon: "ri-cursor-line";
+            nav: "Button";
+            breadcrumb: "Button";
+            title: "Button";
+
+            h1 "Button";
+            p "Botão clicável com feedback de hover e clique (a barra lateral cresce e brilha no press). Altura 48px.";
+
+            code lua {
+LapoX:AddButton("Principal", {
+    text = "Salvar",
+    callback = function() print("clicou!") end,
+})
+            }
+
+            h2 "Config";
+            table config {
+                row "text" string "\"Button\"" "Rótulo do botão.";
+                row "callback" function "noop" "Chamado no clique (protegido por pcall).";
+            }
+            p "Sem handle `:Set` — o botão é uma ação, não um estado.";
+        }
+
+        page Toggle {
+            route: "widget-toggle";
+            icon: "ri-toggle-line";
+            nav: "Toggle";
+            breadcrumb: "Toggle";
+            title: "Toggle";
+
+            h1 "Toggle";
+            p "Interruptor on/off. O knob **desliza** ao alternar e o callback recebe o novo estado. Altura 48px.";
+
+            code lua {
+local t = LapoX:AddToggle("Principal", {
+    text    = "Ativar Recurso",
+    default = false,
+    callback = function(value) print("estado:", value) end,
+})
+
+t:Set(true)   -- alterna por código (dispara o callback se mudou)
+            }
+
+            h2 "Config";
+            table config {
+                row "text" string "\"Toggle\"" "Rótulo.";
+                row "default" boolean "false" "Estado inicial.";
+                row "callback" function "noop" "Recebe `(value: boolean)` ao alternar.";
+            }
+
+            h2 "Handle";
+            table {
+                header "Método" "Descrição";
+                row "`:Set(bool)`" "Define o estado. Só dispara o callback se o valor mudou.";
+            }
+        }
+
+        page Slider {
+            route: "widget-slider";
+            icon: "ri-equalizer-line";
+            nav: "Slider";
+            breadcrumb: "Slider";
+            title: "Slider";
+
+            h1 "Slider";
+            p "Barra de valor arrastável entre `min` e `max`. O thumb cresce no hover. Altura 64px.";
+
+            code lua {
+local s = LapoX:AddSlider("Principal", {
+    text    = "Velocidade",
+    min     = 0,
+    max     = 100,
+    default = 50,
+    callback = function(v) print("valor:", v) end,
+})
+
+s:Set(75)
+            }
+
+            h2 "Config";
+            table config {
+                row "text" string "\"Slider\"" "Rótulo.";
+                row "min" number "0" "Valor mínimo.";
+                row "max" number "100" "Valor máximo.";
+                row "default" number "(min+max)/2" "Valor inicial (arredondado).";
+                row "callback" function "noop" "Recebe `(value: number)` ao arrastar/mudar.";
+            }
+
+            h2 "Handle";
+            table {
+                header "Método" "Descrição";
+                row "`:Set(number)`" "Define o valor (clampado em min..max) e dispara o callback.";
+            }
+            alert info "Valor exibido" {
+                "O número mostrado ao lado é o valor **arredondado** (`math.floor`). O callback recebe o valor cru.";
+            }
+        }
+
+        page Dropdown {
+            route: "widget-dropdown";
+            icon: "ri-arrow-down-s-line";
+            nav: "Dropdown";
+            breadcrumb: "Dropdown";
+            title: "Dropdown";
+
+            h1 "Dropdown";
+            p "Menu de seleção com **busca** opcional e scroll. Mostra até **6** itens por vez; o resto rola (roda do mouse ou arraste no toque).";
+
+            code lua {
+local d = LapoX:AddDropdown("Principal", {
+    text    = "Modo",
+    options = { "Fácil", "Normal", "Difícil" },
+    default = 1,
+    search  = true,
+    callback = function(index, value)
+        print(index, value)
+    end,
+})
+
+d:Set("Difícil")                        -- seleciona por valor
+d:Set({ "Novo A", "Novo B", "Novo C" }) -- troca a lista inteira (reseta seleção)
+            }
+
+            h2 "Config";
+            table config {
+                row "text" string "\"Dropdown\"" "Rótulo.";
+                row "options" table "{}" "Lista de opções (strings).";
+                row "default" number "1" "Índice inicial selecionado.";
+                row "search" boolean "false" "Ativa a barra de busca (só ativa se for exatamente `true`).";
+                row "callback" function "noop" "Recebe `(index: number, value: string)` ao escolher.";
+            }
+
+            h2 "Handle";
+            table {
+                header "Método" "Descrição";
+                row "`:Set(valor)`" "Seleciona a opção igual ao valor (se existir).";
+                row "`:Set({...})`" "Substitui a lista de opções e reseta para o 1º item.";
+            }
+
+            alert tip "Busca não obriga a digitar" {
+                "Abrir um dropdown com `search = true` **não** captura o teclado. A busca só liga quando você clica na caixa de pesquisa — dá pra só rolar e escolher.";
+            }
+        }
+
+        page TextBox {
+            route: "widget-textbox";
+            icon: "ri-input-method-line";
+            nav: "TextBox";
+            breadcrumb: "TextBox";
+            title: "TextBox";
+
+            h1 "TextBox";
+            p "Campo de texto. Clique para focar (a borda acende), digite e confirme com **Enter** — aí o callback dispara. Altura 60px.";
+
+            code lua {
+local box = LapoX:AddTextBox("Principal", {
+    text        = "Seu nome",
+    placeholder = "Digite aqui...",
+    callback    = function(texto) print("digitou:", texto) end,
+})
+
+box:Set("valor inicial")
+            }
+
+            h2 "Config";
+            table config {
+                row "text" string "\"TextBox\"" "Rótulo acima do campo.";
+                row "placeholder" string "\"Type here...\"" "Texto-fantasma quando vazio.";
+                row "callback" function "noop" "Recebe `(texto: string)` ao confirmar (Enter / perder foco).";
+            }
+
+            h2 "Handle";
+            table {
+                header "Método" "Descrição";
+                row "`:Set(texto)`" "Preenche o valor do campo.";
+            }
+        }
+
+        page Texto {
+            route: "widget-texto";
+            icon: "ri-text";
+            nav: "Label / Paragraph / Separator";
+            breadcrumb: "Texto";
+            title: "Label, Paragraph e Separator";
+
+            h1 "Texto e Organização";
+            p "Elementos estáticos para rotular, descrever e dividir o conteúdo.";
+
+            tabs {
+                tab "Label" icon "ri-text" {
+                    p "Linha de texto curta (altura 32px). Atualizável.";
+                    code lua {
+local l = LapoX:AddLabel("Geral", { text = "Status: OK" })
+l:updateText("Status: Erro")   -- ou l:Set("...")
+                    }
+                }
+                tab "Paragraph" icon "ri-paragraph" {
+                    p "Texto descritivo. Fica mais alto (60px) quando passa de 60 caracteres.";
+                    code lua {
+local p = LapoX:AddParagraph("Geral", {
+    text = "Texto mais longo, que ocupa mais espaço vertical.",
+})
+p:Set("Novo texto.")
+                    }
+                }
+                tab "Separator" icon "ri-separator" {
+                    p "Linha divisória horizontal. Sem config e sem handle.";
+                    code lua {
+LapoX:AddSeparator("Geral")
+                    }
+                }
+            }
+
+            h2 "Config";
+            table config {
+                row "text" string "\"\"" "Conteúdo textual (Label e Paragraph).";
+            }
+
+            h2 "Handles";
+            table {
+                header "Widget" "Métodos";
+                row "`Label`" "`:updateText(t)` / `:Set(t)`";
+                row "`Paragraph`" "`:updateText(t)` / `:Set(t)`";
+                row "`Separator`" "— (retorna `self`)";
+            }
+        }
+    }
+
+    section "Feedback & Rodapé" {
+        page Notify {
+            route: "notify";
+            icon: "ri-notification-3-line";
+            nav: "Notify";
+            breadcrumb: "Notify";
+            title: "Notificações (Notify)";
+
+            h1 "Notify";
+            p "Empilha uma notificação no canto da tela, com barra de tempo e quebra de linha automática. Retorna `self`.";
+
+            code lua {
+LapoX:Notify({
+    title    = "Sucesso",
+    content  = "Operação concluída!",
+    duration = 3,
+})
+
+-- Multi-linha: use \n no content
+LapoX:Notify({ title = "Log", content = "Linha 1\nLinha 2" })
+            }
+
+            h2 "Config";
+            table config {
+                row "title" string "\"Lapo Library X\"" "Título da notificação.";
+                row "content" string "\"\"" "Mensagem. Aceita `\\n` para múltiplas linhas.";
+                row "duration" number "4" "Tempo em segundos antes de sumir.";
+            }
+
+            h2 "Comportamento";
+            ul {
+                "Quebra automática em **~45 caracteres** por linha (tenta cortar no espaço).";
+                "Máximo de **8 linhas** — o excedente vira `... +N linhas`.";
+                "Várias notificações **empilham** e somem com fade.";
+            }
+        }
+
+        page Usuario {
+            route: "usuario";
+            icon: "ri-user-3-line";
+            nav: "Usuário";
+            breadcrumb: "Usuário";
+            title: "Usuário (rodapé)";
+
+            h1 "Usuário";
+            p "Controla o cartão de usuário no rodapé da sidebar. Ambos retornam `self`.";
+
+            code lua {
+LapoX:SetUser("Player", "Premium")
+
+LapoX:SetUserCallback(function(name, rank)
+    LapoX:Notify({ title = "User", content = name .. " • " .. rank })
+end)
+            }
+
+            h2 "Métodos";
+            table {
+                header "Método" "Parâmetros" "Descrição";
+                row "`SetUser`" "`(name, rank)`" "Define nome e cargo no rodapé. `nil` mantém o valor atual.";
+                row "`SetUserCallback`" "`(cb)`" "Função chamada ao clicar no rodapé, recebe `(name, rank)`.";
+            }
+        }
+    }
+
+    section "Tela de Loading" {
+        page Loading {
+            route: "loading";
+            icon: "ri-loader-4-line";
+            nav: "ShowLoading";
+            breadcrumb: "Loading";
+            title: "Tela de Loading";
+
+            h1 "Tela de Loading";
+            p "Abertura animada: fade-in, **scale-pop**, spinner *comet*, barra de progresso com brilho e fade-out no fim. Chame `ShowLoading` **antes** do `Init`.";
+
+            code lua {
+LapoX:ShowLoading({
+    Title    = "Meu Script",
+    Subtitle = "by você",
+    Message  = "Inicializando...",
+    Image    = "https://i.imgur.com/xxxxx.png", -- opcional
+})
+            }
+
+            h2 "Config";
+            table config {
+                row "Title" string "Project/título" "Título grande no card.";
+                row "Subtitle" string "\"\"" "Subtítulo abaixo do título.";
+                row "Message" string "\"Carregando módulos...\"" "Mensagem de status (animável).";
+                row "Image" string "nil" "URL/asset de imagem central (opcional).";
+                row "FrameGap" number "2" "Frames de respiro entre tarefas da fila.";
+            }
+
+            alert info "Spinner opcional" {
+                "O anel usa `Drawing.new(\"Circle\")`. Sem suporte, o loading aparece sem o spinner — sem quebrar. A imagem aceita link **direto** de PNG/JPG (não página HTML).";
+            }
+        }
+
+        page LoadingFila {
+            route: "loading-fila";
+            icon: "ri-list-ordered";
+            nav: "Progresso & Fila";
+            breadcrumb: "Progresso & Fila";
+            title: "Progresso & Fila";
+
+            h1 "Progresso & Fila";
+            p "Duas formas de conduzir o loading: **fila de tarefas** (automática) ou **progresso manual**.";
+
+            h2 "Fila de tarefas (recomendado)";
+            code lua {
+LapoX:QueueLoad("Conectando...",  function() task.wait(0.3) end)
+LapoX:QueueLoad("Baixando dados...", function() task.wait(0.5) end)
+LapoX:QueueLoad("Montando UI...",  function() task.wait(0.2) end)
+
+LapoX:RunLoadQueue(function()
+    LapoX:Notify({ title = "Pronto", content = "Tudo carregado!" })
+end)
+            }
+
+            h2 "Progresso manual";
+            code lua {
+LapoX:SetLoadingProgress(0.25, "Etapa 1...")
+task.wait(0.5)
+LapoX:SetLoadingProgress(0.75, "Etapa 2...")
+task.wait(0.5)
+LapoX:FinishLoading(function() print("fim") end)
+            }
+
+            h2 "Métodos";
+            table {
+                header "Método" "Parâmetros" "Descrição";
+                row "`QueueLoad`" "`(label, fn)`" "Enfileira uma tarefa (texto + função executada nela).";
+                row "`RunLoadQueue`" "`(onDone)`" "Roda a fila (uma por frame) e faz fade-out; chama `onDone` no fim.";
+                row "`SetLoadingProgress`" "`(pct, msg?)`" "Define o progresso (0–1) e, opcionalmente, a mensagem.";
+                row "`SetLoadingMessage`" "`(msg)`" "Troca só a mensagem de status.";
+                row "`FinishLoading`" "`(onDone)`" "Força o fim do loading (fade-out) e chama `onDone`.";
+            }
+
+            alert tip "Tarefas pesadas" {
+                "Cada `fn` da fila roda dentro de um `pcall`. Evite travar o frame — use `task.wait` para operações longas e deixe a barra respirar.";
+            }
+        }
+    }
+
+    section "Janela & Performance" {
+        page Janela {
+            route: "janela";
+            icon: "ri-window-line";
+            nav: "Janela & Sistema";
+            breadcrumb: "Janela";
+            title: "Janela & Sistema";
+
+            h1 "Janela & Sistema";
+            p "Controle e comportamentos da janela em runtime.";
+
+            h2 "Visibilidade";
+            code lua {
+LapoX:ToggleVisibility()   -- mesmo efeito da ToggleKey
+            }
+
+            h2 "Destruir";
+            code lua {
+LapoX:Destroy()            -- remove desenhos e desconecta eventos
+            }
+
+            h2 "Interações nativas";
+            table {
+                header "Ação" "Como";
+                row "Mover" "Arraste pela barra de título (header).";
+                row "Minimizar" "Botão `─` no cabeçalho (mostra só o header).";
+                row "Fechar" "Botão `✕` no cabeçalho (chama `Destroy`).";
+                row "Mostrar/Esconder" "Tecla da `ToggleKey` (padrão `End`).";
+                row "Mobile" "Botão flutuante `☰` ao lado da janela.";
+                row "Rolar conteúdo" "Roda do mouse ou arraste (toque).";
+            }
+
+            alert warning "Sempre destrua ao sair" {
+                "Como a UI é desenhada por cima da tela, esquecer o `Destroy` deixa desenhos órfãos. Combine com o padrão de global da página **Carregamento**.";
+            }
+        }
+
+        page Batch {
+            route: "batch";
+            icon: "ri-stack-line";
+            nav: "Batch (perf)";
+            breadcrumb: "Batch";
+            title: "Batch — muitos widgets";
+
+            h1 "Batch";
+            p "Ao adicionar **muitos** widgets de uma vez, o modo batch evita reconstruir a UI a cada `Add*` — bem mais rápido.";
+
+            code lua {
+LapoX:BeginBatch()
+for i = 1, 80 do
+    LapoX:AddButton("Lista", { text = "Item " .. i })
+end
+LapoX:EndBatch()   -- reconstrói a UI UMA vez
+            }
+
+            table {
+                header "Método" "Descrição";
+                row "`BeginBatch()`" "Suspende a reconstrução automática da UI.";
+                row "`EndBatch()`" "Reativa e reconstrói tudo de uma vez.";
+            }
+
+            alert info "Loading já faz isso" {
+                "Enquanto a tela de loading está ativa, o modo batch é ligado sozinho. Você só precisa de `BeginBatch/EndBatch` quando adiciona muita coisa **fora** do loading.";
+            }
+        }
+    }
+
+    section "Referência" {
+        page Requisitos {
+            route: "requisitos";
+            icon: "ri-checkbox-circle-line";
+            nav: "Requisitos";
+            breadcrumb: "Requisitos";
+            title: "Requisitos";
+
+            h1 "Requisitos";
+            table {
+                header "Recurso" "Necessário?" "Para quê";
+                row "`Drawing.new`" "Obrigatório" "Renderizar toda a UI.";
+                row "`game:HttpGet`" "Recomendado" "Carregar a lib remotamente.";
+                row "`writefile`/`readfile`" "Opcional" "Carregar local / persistência futura.";
+                row "`Drawing \"Circle\"`" "Opcional" "Spinner da tela de loading.";
+            }
+            alert tip "Mobile" {
+                "A lib detecta toque (TouchEnabled e sem teclado), reduz a escala para 0.72 e exibe o botão flutuante de abrir/fechar.";
+            }
+        }
+
+        page FAQ {
+            route: "faq";
+            icon: "ri-questionnaire-line";
+            nav: "FAQ";
+            breadcrumb: "FAQ";
+            title: "Perguntas Frequentes";
+
+            h1 "FAQ";
+            faq {
+                q "Precisa de CoreGui ou PlayerGui?" {
+                    "Não. Tudo é desenhado via Drawing API (overlay). A lib só cria um ScreenGui invisível para capturar teclado em TextBox/busca.";
+                }
+                q "Como mudo um valor por código?" {
+                    "Os `Add*` de controle (Toggle, Slider, Dropdown, TextBox, Label, Paragraph) devolvem um handle com `:Set()`. Botões não têm `:Set`.";
+                }
+                q "Ter busca no Dropdown obriga a digitar?" {
+                    "Não. Abrir não captura o teclado — a busca só liga ao clicar na caixa de pesquisa.";
+                }
+                q "Posso adicionar abas/widgets depois do Init?" {
+                    "Pode. A UI é reconstruída na hora. Para muitos de uma vez, use `BeginBatch`/`EndBatch`.";
+                }
+                q "Como evito UI duplicada ao reexecutar?" {
+                    "Guarde a instância num global e chame `:Destroy()` antes de recriar. O `Init` também destrói uma instância anterior de mesmo `Title`.";
+                }
+                q "Qual a tecla para esconder a janela?" {
+                    "A definida em `ToggleKey` (padrão `End`), ou via `LapoX:ToggleVisibility()`.";
+                }
+            }
+        }
+
+        page Troubleshooting {
+            route: "troubleshooting";
+            icon: "ri-bug-line";
+            nav: "Solução de Problemas";
+            breadcrumb: "Troubleshooting";
+            title: "Solução de Problemas";
+
+            h1 "Solução de Problemas";
+
+            faq {
+                q "A UI não aparece" {
+                    "O executor provavelmente não suporta `Drawing.new`. A lib emite um `warn` e segue sem montar a UI. Teste num executor com Drawing API.";
+                }
+                q "Aparecem duas janelas / desenhos sobrepostos" {
+                    "Você rodou o script duas vezes sem destruir a anterior. Use o padrão de global + `:Destroy()` da página **Carregamento**.";
+                }
+                q "A imagem do loading não carrega" {
+                    "Use um link **direto** de imagem (`.png`/`.jpg`), não uma página HTML. Sem suporte a Drawing Image, a lib cai no spinner.";
+                }
+                q "O spinner do loading não aparece" {
+                    "Falta suporte a `Drawing.new(\"Circle\")` no executor. O resto do loading funciona normalmente.";
+                }
+                q "Meu :Set não funciona em um widget" {
+                    "Verifique se você não reutilizou a **mesma** tabela de config em dois widgets — o handle casa pela identidade da tabela. Use uma nova por widget.";
+                }
+            }
+        }
+    }
+}
