@@ -1,1968 +1,195 @@
-const PAGES = {
-
-    "home": {
-        category: "Começando",
-        title: "Lapo Hub X",
-        breadcrumb: "Início",
-        content: `
-            <div class="hero-section">
-                <span class="badge badge-primary">Biblioteca UI Profissional</span>
-                <h1 class="page-title" style="margin-top: 10px;">Lapo Hub X</h1>
-                <p class="page-description">Uma biblioteca de interface de usuário ultra-rápida de estilo executivo (Rayfield/Synapse vibes) para scripts de Roblox. Construída sobre a API de Drawing nativa dos executores para renderização de sobreposição perfeita e indetectável.</p>
-
-                <div class="action-group">
-                    <a href="#getting-started" class="btn btn-primary"><i class="ri-rocket-line"></i> Começar Agora</a>
-                    <a href="#showcase" class="btn btn-outline"><i class="ri-gamepad-line"></i> Testar Simulador</a>
-                </div>
-            </div>
-
-            <h2>Recursos Principais</h2>
-            <div class="grid-2">
-                <div class="card">
-                    <div class="card-title"><i class="ri-cpu-line"></i> Renderização em Drawing API</div>
-                    <p class="card-description">Bypassa a árvore do CoreGui padrão renderizando diretamente via tela sobreposta. Muito mais seguro contra detecção de UI do lado do servidor.</p>
-                </div>
-                <div class="card">
-                    <div class="card-title"><i class="ri-smartphone-line"></i> Otimização Mobile</div>
-                    <p class="card-description">Adapta automaticamente o layout, tamanho e escala da janela em dispositivos touch. Inclui um botão flutuante para reabrir o painel.</p>
-                </div>
-                <div class="card">
-                    <div class="card-title"><i class="ri-palette-line"></i> Tema Premium Synapse-Vibe</div>
-                    <p class="card-description">Interface escura e moderna com acentos em degradê violeta e glow discreto, elevando a experiência do usuário do seu script.</p>
-                </div>
-                <div class="card">
-                    <div class="card-title"><i class="ri-keyboard-line"></i> Input Sinking Avançado</div>
-                    <p class="card-description">Utiliza ContextActionService com prioridade máxima para afundar os cliques e impedir que as ações do mouse bleedem para o jogo.</p>
-                </div>
-            </div>
-
-            <h2>Visualização Rápida</h2>
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>-- Carrega a library da nuvem
-local LapoHub = loadstring(game:HttpGet("https://raw.githubusercontent.com/LapoLapoNaldo/Lapo-X/refs/heads/main/Library.lua"))()
-
--- Inicializa a janela principal
-LapoHub:Init({
-    Title = "Lapo Hub X",
-    ToggleKey = "End" -- Tecla para alternar visibilidade (computador)
-})
-
--- Adiciona abas
-LapoHub:AddTab("Principal", "🎮")
-
--- Adiciona widgets
-LapoHub:AddButton("Principal", {
-    text = "Executar Ação",
-    callback = function()
-        LapoHub:Notify({
-            title = "Ação Executada!",
-            content = "O código foi rodado com sucesso no executor.",
-            duration = 3
-        })
-    end
-})</code></pre>
-            </div>
-
-            <div class="alert alert-tip">
-                <div class="alert-icon"><i class="ri-lightbulb-line"></i></div>
-                <div class="alert-content">
-                    <div class="alert-title">Dica de Desenvolvimento</div>
-                    <p class="alert-text">Use nosso simulador interativo na aba <strong>Showcase</strong> para testar as abas, botões, sliders, dropdowns e textboxes da biblioteca diretamente no seu navegador antes de testá-los no jogo!</p>
-                </div>
-            </div>
-        `
-    },
-
-    "getting-started": {
-        category: "Começando",
-        title: "Primeiros Passos",
-        breadcrumb: "Introdução",
-        content: `
-            <h1 class="page-title">Primeiros Passos</h1>
-            <p class="page-description">Entenda os requisitos, carregamento básico e a estrutura para criar seu primeiro script usando Lapo Hub X.</p>
-
-            <h2>Requisitos Prévios</h2>
-            <p>Para executar scripts utilizando o <strong>Lapo Hub X</strong>, seu ambiente de execução Roblox deve atender aos seguintes requisitos mínimos:</p>
-            <ul class="list-default">
-                <li><strong>Executor compativel com Drawing API:</strong> Suporte completo às funções <code>Drawing.new()</code> (ex: Synapse X, Wave, Solara, MacSploit, Sober, etc.).</li>
-                <li><strong>Capacidade de escrita:</strong> Acesso à função <code>writefile</code> e <code>readfile</code> caso queira carregar configurações persistentes localmente.</li>
-                <li><strong>Acesso HTTP:</strong> O executor deve suportar <code>game:HttpGet</code> para obter os arquivos do repositório remoto.</li>
-            </ul>
-
-            <h2>Estrutura Básica de Script</h2>
-            <p>O fluxo de trabalho padrão do Lapo Hub X consiste em 5 etapas simples:</p>
-            <ol class="list-default">
-                <li>Carregar a biblioteca via HTTP ou arquivo local.</li>
-                <li>Adicionar as abas necessárias (Tabs).</li>
-                <li>Inicializar a janela da interface (Init).</li>
-                <li>Configurar perfil e callbacks adicionais do rodapé (opcional).</li>
-                <li>Adicionar elementos interativos (botões, toggles, sliders, etc.) associados às abas.</li>
-            </ol>
-
-            <h2>Seu Primeiro Script</h2>
-            <p>Abaixo está um script de demonstração completo que cria uma aba e adiciona um botão e um interruptor (toggle):</p>
-
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>-- 1. Carregamento
-local LapoHub = loadstring(game:HttpGet("https://raw.githubusercontent.com/LapoLapoNaldo/Lapo-X/refs/heads/main/Library.lua"))()
-
--- 2. Criação das Abas
-LapoHub:AddTab("Principal", "🏠")
-LapoHub:AddTab("Configurações", "⚙️")
-
--- 3. Inicialização do Painel
-LapoHub:Init({
-    Title = "Meu Script Premium",
-    ToggleKey = "K" -- Tecla 'K' esconde/mostra a UI
-})
-
--- 4. Definir rodapé personalizado
-LapoHub:SetUser("Jogador123", "Desenvolvedor")
-
--- 5. Adicionando Widgets na aba "Principal"
-LapoHub:AddButton("Principal", {
-    text = "Clique Aqui",
-    callback = function()
-        print("Botão clicado!")
-    end
-})
-
-local autoFarm = false
-LapoHub:AddToggle("Principal", {
-    text = "Auto Farm",
-    default = false,
-    callback = function(value)
-        autoFarm = value
-        print("Auto Farm definido para:", value)
-    end
-})</code></pre>
-            </div>
-
-            <div class="alert alert-warning">
-                <div class="alert-icon"><i class="ri-alert-line"></i></div>
-                <div class="alert-content">
-                    <div class="alert-title">Ordem de Chamadas Importante</div>
-                    <p class="alert-text">Você deve declarar <strong>todas as abas (AddTab) ANTES de chamar a função <code>LapoHub:Init()</code></strong>. Chamar <code>AddTab</code> depois de inicializar pode quebrar o layout das abas desenhado em tempo de carregamento.</p>
-                </div>
-            </div>
-        `
-    },
-
-    "installation": {
-        category: "Começando",
-        title: "Instalação",
-        breadcrumb: "Instalação",
-        content: `
-            <h1 class="page-title">Como Carregar a Biblioteca</h1>
-            <p class="page-description">Aprenda a importar o Lapo Hub X em seu executor, seja importando diretamente do GitHub ou mantendo um ambiente de desenvolvimento local.</p>
-
-            <h2>Método de Produção (GitHub Remoto)</h2>
-            <p>Para scripts que você planeja distribuir para outros usuários, o carregamento dinâmico via repositório Git garante que eles sempre usem a versão mais atualizada e livre de bugs:</p>
-
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>local LapoHub = loadstring(game:HttpGet("https://raw.githubusercontent.com/LapoLapoNaldo/Lapo-X/refs/heads/main/Library.lua"))()</code></pre>
-            </div>
-
-            <h2>Método Híbrido (Desenvolvimento Local)</h2>
-            <p>Se você estiver desenvolvendo ou fazendo modificações no código da própria biblioteca, use um pcall para tentar carregar o arquivo localmente do seu executor (da pasta <code>workspace</code>) primeiro, caindo de volta para a nuvem caso o arquivo não exista localmente. É o padrão utilizado em scripts como <strong>LapoHubX.lua</strong> e <strong>LapoSkillsX.lua</strong>:</p>
-
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>local LapoHub
-local success, err = pcall(function()
-    return loadstring(readfile("Library.lua"))()
-end)
-
-if success and err then
-    LapoHub = err
-else
-    LapoHub = loadstring(game:HttpGet("https://raw.githubusercontent.com/LapoLapoNaldo/Lapo-X/refs/heads/main/Library.lua"))()
-end</code></pre>
-            </div>
-
-            <div class="alert alert-tip">
-                <div class="alert-icon"><i class="ri-file-list-3-line"></i></div>
-                <div class="alert-content">
-                    <div class="alert-title">Nome do Arquivo</div>
-                    <p class="alert-text">Para utilizar o método híbrido local, o código da biblioteca deve ser salvo na pasta <code>workspace</code> do seu executor com o nome exato de <code>Library.lua</code>.</p>
-                </div>
-            </div>
-        `
-    },
-
-    "api-window": {
-        category: "Referência de API",
-        title: "Window (Inicialização)",
-        breadcrumb: "API Window",
-        content: `
-            <h1 class="page-title">Inicializando a Janela</h1>
-            <p class="page-description">A função <code>Init</code> configura e renderiza a janela principal do menu, aplicando escalas e registrando escutas de entrada no executor.</p>
-
-            <h2>Sintaxe</h2>
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>LapoHub:Init(config)</code></pre>
-            </div>
-
-            <h2>Argumentos da Configuração</h2>
-            <div class="table-wrapper">
-                <table class="api-table">
-                    <thead>
-                        <tr>
-                            <th>Parâmetro</th>
-                            <th>Tipo</th>
-                            <th>Padrão</th>
-                            <th>Descrição</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><code>Title</code></td>
-                            <td><span class="type-badge string">string</span></td>
-                            <td><code>"Lapo Hub X"</code></td>
-                            <td>O título exibido no canto superior esquerdo da barra de cabeçalho.</td>
-                        </tr>
-                        <tr>
-                            <td><code>ToggleKey</code></td>
-                            <td><span class="type-badge string">string</span></td>
-                            <td><code>"End"</code></td>
-                            <td>A tecla do teclado que esconde/mostra a interface. Pode ser uma string contendo a tecla (ex: <code>"End"</code>, <code>"K"</code>, <code>"RightShift"</code>).</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <h2>Retorno</h2>
-            <p>Retorna o objeto singleton da biblioteca (<code>LapoHub</code>) para permitir chamadas encadeadas.</p>
-
-            <h2>Exemplo de Uso</h2>
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>LapoHub:Init({
-    Title = "Lapo Hub X - Custom Script",
-    ToggleKey = "K"
-})</code></pre>
-            </div>
-
-            <h2>Observações Importantes</h2>
-            <ul class="list-default">
-                <li><strong>Instâncias Duplicadas:</strong> Para evitar sobreposição de desenhos antigos, a biblioteca detecta automaticamente se já existe um script ativo do mesmo título (<code>shared["LapoHubInstance_" .. Title]</code>) e chama <code>:Destroy()</code> na janela antiga antes de carregar a nova.</li>
-                <li><strong>Dispositivos Móveis:</strong> A biblioteca roda um teste de hardware. Caso seja mobile, reduz a escala global para <code>0.72</code>, redimensiona a janela de forma fluida para encaixar no viewport móvel e adiciona um botão de menu (☰/✕) no lado superior direito da tela.</li>
-                <li><strong>Segurança de Entrada:</strong> A janela cria frames invisíveis ativas no Roblox (CoreGui/PlayerGui) chamadas <code>LapoHubX_InputSink</code> contendo uma TextBox oculta para capturar e canalizar entradas de caixas de texto com segurança.</li>
-            </ul>
-        `
-    },
-
-    "cheatsheet": {
-        category: "Referência de API",
-        title: "Referência Rápida (Cheat Sheet)",
-        breadcrumb: "Cheat Sheet",
-        content: `
-            <h1 class="page-title">Referência Rápida (Cheat Sheet)</h1>
-            <p class="page-description">Toda a API pública do Lapo Hub X em uma única página, para consulta rápida. Pressione <code>/</code> para pesquisar qualquer função.</p>
-
-            <h2>Janela & Ciclo de Vida</h2>
-            <div class="table-wrapper">
-                <table class="api-table">
-                    <thead><tr><th>Função</th><th>Retorno</th><th>O que faz</th></tr></thead>
-                    <tbody>
-                        <tr><td><code>LapoHub:AddTab(name, icon)</code></td><td><span class="type-badge table">self</span></td><td>Registra uma aba. Chame <strong>antes</strong> de <code>Init</code>.</td></tr>
-                        <tr><td><code>LapoHub:Init(config)</code></td><td><span class="type-badge table">self</span></td><td>Renderiza a janela. <code>config = { Title, ToggleKey }</code>.</td></tr>
-                        <tr><td><code>LapoHub:ToggleVisibility()</code></td><td><span class="type-badge table">self</span></td><td>Mostra/oculta toda a interface (igual à ToggleKey).</td></tr>
-                        <tr><td><code>LapoHub:Destroy()</code></td><td><code>nil</code></td><td>Limpa desenhos, conexões e sinks de input.</td></tr>
-                        <tr><td><code>LapoHub:SetUser(name, rank)</code></td><td><span class="type-badge table">self</span></td><td>Define nome/rank exibidos no rodapé.</td></tr>
-                        <tr><td><code>LapoHub:SetUserCallback(fn)</code></td><td><span class="type-badge table">self</span></td><td>Dispara <code>fn(name, rank)</code> ao clicar no rodapé.</td></tr>
-                        <tr><td><code>LapoHub:Notify(config)</code></td><td><span class="type-badge table">self</span></td><td>Balão flutuante. <code>config = { title, content, duration }</code>.</td></tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <h2>Widgets</h2>
-            <p>O primeiro argumento (<code>tabIdx</code>) é sempre o <strong>nome</strong> da aba (recomendado) ou o <strong>índice</strong> numérico dela.</p>
-            <div class="table-wrapper">
-                <table class="api-table">
-                    <thead><tr><th>Função</th><th>Campos de <code>config</code></th><th>Retorno</th></tr></thead>
-                    <tbody>
-                        <tr><td><code>AddButton(tabIdx, config)</code></td><td><code>text</code>, <code>callback</code></td><td>handle</td></tr>
-                        <tr><td><code>AddToggle(tabIdx, config)</code></td><td><code>text</code>, <code>default</code>, <code>callback(state)</code></td><td>handle <code>:Set</code></td></tr>
-                        <tr><td><code>AddSlider(tabIdx, config)</code></td><td><code>text</code>, <code>min</code>, <code>max</code>, <code>default</code>, <code>callback(value)</code></td><td>handle <code>:Set</code></td></tr>
-                        <tr><td><code>AddDropdown(tabIdx, config)</code></td><td><code>text</code>, <code>options</code>, <code>default</code>, <code>search</code>, <code>callback(index, value)</code></td><td>handle <code>:Set</code></td></tr>
-                        <tr><td><code>AddTextBox(tabIdx, config)</code></td><td><code>text</code>, <code>placeholder</code>, <code>callback(value)</code></td><td>handle <code>:Set</code></td></tr>
-                        <tr><td><code>AddLabel(tabIdx, config)</code></td><td><code>text</code></td><td>handle <code>:updateText</code> / <code>:Set</code></td></tr>
-                        <tr><td><code>AddParagraph(tabIdx, config)</code></td><td><code>text</code></td><td>handle <code>:updateText</code> / <code>:Set</code></td></tr>
-                        <tr><td><code>AddSeparator(tabIdx)</code></td><td>—</td><td><span class="type-badge table">self</span></td></tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <h2>Métodos dos Handles (atualização em tempo real)</h2>
-            <div class="table-wrapper">
-                <table class="api-table">
-                    <thead><tr><th>Handle</th><th>Método</th><th>Efeito</th></tr></thead>
-                    <tbody>
-                        <tr><td>Toggle</td><td><code>handle:Set(bool)</code></td><td>Muda o estado e <strong>dispara</strong> o callback.</td></tr>
-                        <tr><td>Slider</td><td><code>handle:Set(number)</code></td><td>Reposiciona a alça e dispara o callback.</td></tr>
-                        <tr><td>Dropdown</td><td><code>handle:Set("texto")</code></td><td>Seleciona a opção pelo texto.</td></tr>
-                        <tr><td>Dropdown</td><td><code>handle:Set({...})</code></td><td>Substitui toda a lista de opções e reinicia no item 1.</td></tr>
-                        <tr><td>TextBox</td><td><code>handle:Set("texto")</code></td><td>Define o valor/placeholder exibido.</td></tr>
-                        <tr><td>Label / Paragraph</td><td><code>handle:updateText(s)</code> · <code>handle:Set(s)</code></td><td>Troca o texto exibido (ótimo para status ao vivo).</td></tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="alert tip">
-                <div class="alert-icon"><i class="ri-information-line"></i></div>
-                <div class="alert-content">
-                    <div class="alert-title">Importante sobre <code>:Set</code> em Dropdowns</div>
-                    <p class="alert-text">Trocar as opções com <code>handle:Set({...})</code> <strong>não</strong> dispara o callback do dropdown. Se o seu script guarda a seleção numa variável, atualize-a manualmente para <code>options[1]</code> após o <code>:Set</code>.</p>
-                </div>
-            </div>
-
-            <h2>Esqueleto Mínimo</h2>
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>local LapoHub = loadstring(game:HttpGet("https://raw.githubusercontent.com/LapoLapoNaldo/Lapo-X/refs/heads/main/Library.lua"))()
-
-LapoHub:AddTab("Principal", "🏠")   -- abas SEMPRE antes do Init
-LapoHub:Init({ Title = "Meu Hub", ToggleKey = "K" })
-
-LapoHub:AddButton("Principal", { text = "Olá", callback = function()
-    LapoHub:Notify({ title = "Hub", content = "Funcionou!", duration = 3 })
-end })</code></pre>
-            </div>
-        `
-    },
-
-    "api-tabs": {
-        category: "Referência de API",
-        title: "Tabs (Abas)",
-        breadcrumb: "API Tabs",
-        content: `
-            <h1 class="page-title">Gerenciando Abas</h1>
-            <p class="page-description">As abas (Tabs) fornecem a divisão categórica lateral na barra de menu, permitindo que você organize seus widgets em páginas independentes.</p>
-
-            <h2>Sintaxe</h2>
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>LapoHub:AddTab(name, icon)</code></pre>
-            </div>
-
-            <h2>Argumentos</h2>
-            <div class="table-wrapper">
-                <table class="api-table">
-                    <thead>
-                        <tr>
-                            <th>Parâmetro</th>
-                            <th>Tipo</th>
-                            <th>Padrão</th>
-                            <th>Descrição</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><code>name</code></td>
-                            <td><span class="type-badge string">string</span></td>
-                            <td>(Obrigatório)</td>
-                            <td>O nome identificador da aba que será impresso no texto lateral. Também serve como o ID para vincular widgets.</td>
-                        </tr>
-                        <tr>
-                            <td><code>icon</code></td>
-                            <td><span class="type-badge string">string</span></td>
-                            <td><code>""</code></td>
-                            <td>Prefixo de emoji ou ícone texto de string exibido à esquerda do nome da aba (ex: <code>"🏠"</code>, <code>"📊"</code>).</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <h2>Retorno</h2>
-            <p>Retorna o objeto da biblioteca (<code>LapoHub</code>) para chamadas em cascata.</p>
-
-            <h2>Exemplo de Uso</h2>
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>-- Registrando abas no menu
-LapoHub:AddTab("Status", "📊")
-LapoHub:AddTab("Combate", "⚔️")
-LapoHub:AddTab("Outros", "⚙️")</code></pre>
-            </div>
-
-            <h2>Como Vincular Elementos</h2>
-            <p>Ao criar qualquer widget posterior (botões, interruptores, sliders, etc.), o primeiro argumento deve ser o <strong>Índice numérico da Aba</strong> (iniciando em <code>1</code>) ou o <strong>Nome exato da aba</strong> criada. A biblioteca resolve o nome da aba automaticamente para maior legibilidade:</p>
-
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>-- Usando o nome da aba (Recomendado):
-LapoHub:AddButton("Status", { text = "Farmar", callback = function() ... end })
-
--- Usando o índice (1 = Status, 2 = Combate):
-LapoHub:AddButton(2, { text = "Kill Aura", callback = function() ... end })</code></pre>
-            </div>
-        `
-    },
-
-    "api-buttons": {
-        category: "Referência de API",
-        title: "Buttons (Botões)",
-        breadcrumb: "API Buttons",
-        content: `
-            <h1 class="page-title">Botão (Button)</h1>
-            <p class="page-description">Os botões acionam uma callback instantânea no clique do mouse ou toque. Possuem acentuação de borda e animação suave de mudança de cor no hover.</p>
-
-            <h2>Sintaxe</h2>
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>LapoHub:AddButton(tabIdx, config)</code></pre>
-            </div>
-
-            <h2>Argumentos da Configuração</h2>
-            <div class="table-wrapper">
-                <table class="api-table">
-                    <thead>
-                        <tr>
-                            <th>Parâmetro</th>
-                            <th>Tipo</th>
-                            <th>Padrão</th>
-                            <th>Descrição</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><code>text</code></td>
-                            <td><span class="type-badge string">string</span></td>
-                            <td><code>"Button"</code></td>
-                            <td>O rótulo impresso dentro do botão.</td>
-                        </tr>
-                        <tr>
-                            <td><code>callback</code></td>
-                            <td><span class="type-badge function">function</span></td>
-                            <td><code>function()end</code></td>
-                            <td>Função executada quando o botão for acionado.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <h2>Retorno</h2>
-            <p>Retorna um handle de tabela correspondente ao widget: <code>{ _tabIdx = number }</code>.</p>
-
-            <h2>Exemplo de Uso</h2>
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>LapoHub:AddButton("Combate", {
-    text = "💥 Reatar Inimigos",
-    callback = function()
-        print("Atacando inimigos próximos!")
-    end
-})</code></pre>
-            </div>
-        `
-    },
-
-    "api-toggles": {
-        category: "Referência de API",
-        title: "Toggles (Interruptores)",
-        breadcrumb: "API Toggles",
-        content: `
-            <h1 class="page-title">Interruptor (Toggle)</h1>
-            <p class="page-description">Permite alternar entre dois estados lógicos: verdadeiro (<code>true</code>) e falso (<code>false</code>). O estado visual é composto por um trilho que se ilumina em verde (On) ou se apaga.</p>
-
-            <h2>Sintaxe</h2>
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>LapoHub:AddToggle(tabIdx, config)</code></pre>
-            </div>
-
-            <h2>Argumentos da Configuração</h2>
-            <div class="table-wrapper">
-                <table class="api-table">
-                    <thead>
-                        <tr>
-                            <th>Parâmetro</th>
-                            <th>Tipo</th>
-                            <th>Padrão</th>
-                            <th>Descrição</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><code>text</code></td>
-                            <td><span class="type-badge string">string</span></td>
-                            <td><code>"Toggle"</code></td>
-                            <td>O rótulo do interruptor.</td>
-                        </tr>
-                        <tr>
-                            <td><code>default</code></td>
-                            <td><span class="type-badge boolean">boolean</span></td>
-                            <td><code>false</code></td>
-                            <td>O estado lógico inicial da toggle.</td>
-                        </tr>
-                        <tr>
-                            <td><code>callback</code></td>
-                            <td><span class="type-badge function">function</span></td>
-                            <td><code>function()end</code></td>
-                            <td>Função executada a cada alteração, recebendo o novo estado booleano como argumento.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <h2>Retornos e Métodos do Handle</h2>
-            <p>Retorna um handle de tabela com métodos adicionais para controle de estado dinâmico:</p>
-            <div class="table-wrapper">
-                <table class="api-table">
-                    <thead>
-                        <tr>
-                            <th>Método</th>
-                            <th>Parâmetros</th>
-                            <th>Descrição</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><code>handle:Set(value)</code></td>
-                            <td><code>value: boolean</code></td>
-                            <td>Força a toggle a mudar visualmente e logicamente para o estado fornecido e dispara a callback.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <h2>Exemplo de Uso</h2>
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>local autoFarmToggle = LapoHub:AddToggle("Farm", {
-    text = "Auto Farm de Níveis",
-    default = false,
-    callback = function(state)
-        _G.AutoFarm = state
-        if state then
-            print("Auto farm iniciado!")
-        else
-            print("Auto farm parado!")
-        end
-    end
-})
-
--- Alterando o valor do toggle programaticamente após 10 segundos
-task.delay(10, function()
-    autoFarmToggle:Set(false)
-end)</code></pre>
-            </div>
-        `
-    },
-
-    "api-sliders": {
-        category: "Referência de API",
-        title: "Sliders (Barras Deslizantes)",
-        breadcrumb: "API Sliders",
-        content: `
-            <h1 class="page-title">Barra Deslizante (Slider)</h1>
-            <p class="page-description">Os sliders são usados para ajustar valores numéricos contínuos (como velocidade de caminhada, alcance do kill-aura ou delays) arrastando uma alça circular.</p>
-
-            <h2>Sintaxe</h2>
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>LapoHub:AddSlider(tabIdx, config)</code></pre>
-            </div>
-
-            <h2>Argumentos da Configuração</h2>
-            <div class="table-wrapper">
-                <table class="api-table">
-                    <thead>
-                        <tr>
-                            <th>Parâmetro</th>
-                            <th>Tipo</th>
-                            <th>Padrão</th>
-                            <th>Descrição</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><code>text</code></td>
-                            <td><span class="type-badge string">string</span></td>
-                            <td><code>"Slider"</code></td>
-                            <td>O rótulo exibido à esquerda do slider.</td>
-                        </tr>
-                        <tr>
-                            <td><code>min</code></td>
-                            <td><span class="type-badge number">number</span></td>
-                            <td><code>0</code></td>
-                            <td>O valor numérico mínimo que o slider pode atingir.</td>
-                        </tr>
-                        <tr>
-                            <td><code>max</code></td>
-                            <td><span class="type-badge number">number</span></td>
-                            <td><code>100</code></td>
-                            <td>O valor numérico máximo que o slider pode atingir.</td>
-                        </tr>
-                        <tr>
-                            <td><code>default</code></td>
-                            <td><span class="type-badge number">number</span></td>
-                            <td>Média de min e max</td>
-                            <td>O valor numérico inicial do slider.</td>
-                        </tr>
-                        <tr>
-                            <td><code>callback</code></td>
-                            <td><span class="type-badge function">function</span></td>
-                            <td><code>function()end</code></td>
-                            <td>Disparada enquanto o slider é arrastado ou atualizado, recebendo o valor atual como argumento.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <h2>Retornos e Métodos do Handle</h2>
-            <p>Retorna um handle que oferece suporte ao método:</p>
-            <div class="table-wrapper">
-                <table class="api-table">
-                    <thead>
-                        <tr>
-                            <th>Método</th>
-                            <th>Parâmetros</th>
-                            <th>Descrição</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><code>handle:Set(value)</code></td>
-                            <td><code>value: number</code></td>
-                            <td>Ajusta o valor do slider, reposiciona a alça visual e dispara a callback.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <h2>Exemplo de Uso</h2>
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>local walkspeedSlider = LapoHub:AddSlider("Jogador", {
-    text = "Velocidade do Jogador",
-    min = 16,
-    max = 250,
-    default = 16,
-    callback = function(value)
-        local character = game.Players.LocalPlayer.Character
-        if character and character:FindFirstChildOfClass("Humanoid") then
-            character:FindFirstChildOfClass("Humanoid").WalkSpeed = value
-        end
-    end
-})
-
--- Forçar walkspeed para 100
-walkspeedSlider:Set(100)</code></pre>
-            </div>
-        `
-    },
-
-    "api-dropdowns": {
-        category: "Referência de API",
-        title: "Dropdowns (Menu de Opções)",
-        breadcrumb: "API Dropdowns",
-        content: `
-            <h1 class="page-title">Menu de Opções (Dropdown)</h1>
-            <p class="page-description">Os dropdowns exibem uma lista recolhível de opções. Oferecem suporte avançado a pesquisas textuais para filtrar rapidamente listas extensas.</p>
-
-            <h2>Sintaxe</h2>
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>LapoHub:AddDropdown(tabIdx, config)</code></pre>
-            </div>
-
-            <h2>Argumentos da Configuração</h2>
-            <div class="table-wrapper">
-                <table class="api-table">
-                    <thead>
-                        <tr>
-                            <th>Parâmetro</th>
-                            <th>Tipo</th>
-                            <th>Padrão</th>
-                            <th>Descrição</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><code>text</code></td>
-                            <td><span class="type-badge string">string</span></td>
-                            <td><code>"Dropdown"</code></td>
-                            <td>O rótulo do seletor.</td>
-                        </tr>
-                        <tr>
-                            <td><code>options</code></td>
-                            <td><span class="type-badge table">table</span></td>
-                            <td><code>{}</code></td>
-                            <td>Uma tabela contendo as opções textuais a serem selecionadas (ex: <code>{"A", "B", "C"}</code>).</td>
-                        </tr>
-                        <tr>
-                            <td><code>default</code></td>
-                            <td><span class="type-badge number">number</span></td>
-                            <td><code>1</code></td>
-                            <td>O índice da opção selecionada por padrão ao carregar.</td>
-                        </tr>
-                        <tr>
-                            <td><code>search</code></td>
-                            <td><span class="type-badge boolean">boolean</span></td>
-                            <td><code>false</code></td>
-                            <td>Se <code>true</code>, exibe uma barra de pesquisa dentro do menu suspenso para filtrar itens.</td>
-                        </tr>
-                        <tr>
-                            <td><code>callback</code></td>
-                            <td><span class="type-badge function">function</span></td>
-                            <td><code>function()end</code></td>
-                            <td>Disparada quando o usuário seleciona uma opção. Recebe dois argumentos: <code>(index, value)</code>.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <h2>Retornos e Métodos do Handle</h2>
-            <p>O handle retornado pelo Dropdown possui alta flexibilidade, suportando a atualização dinâmica de opções:</p>
-            <div class="table-wrapper">
-                <table class="api-table">
-                    <thead>
-                        <tr>
-                            <th>Método</th>
-                            <th>Parâmetros</th>
-                            <th>Descrição</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><code>handle:Set(value)</code></td>
-                            <td><code>value: string</code></td>
-                            <td>Altera a opção atualmente selecionada pelo texto fornecido.</td>
-                        </tr>
-                        <tr>
-                            <td><code>handle:Set(newOptionsTable)</code></td>
-                            <td><code>newOptionsTable: table</code></td>
-                            <td>Substitui toda a lista de opções do dropdown por uma nova tabela, limpando a pesquisa anterior e reiniciando a seleção no índice 1.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <h2>Exemplo de Uso</h2>
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>local itensDisponiveis = {"Poção de Vida", "Espada Curta", "Escudo Lendário"}
-
-local itemDropdown = LapoHub:AddDropdown("Mercado", {
-    text = "Selecionar Item para Comprar",
-    options = itensDisponiveis,
-    default = 1,
-    search = true, -- Ativa a barra de busca
-    callback = function(index, value)
-        print("Comprando item:", value, "no índice:", index)
-    end
-})
-
--- Atualizando as opções do mercado posteriormente
-task.wait(5)
-itemDropdown:Set({"Novo Item 1", "Novo Item 2"})</code></pre>
-            </div>
-        `
-    },
-
-    "api-inputs": {
-        category: "Referência de API",
-        title: "Inputs (TextBoxes)",
-        breadcrumb: "API Inputs",
-        content: `
-            <h1 class="page-title">Caixa de Entrada (TextBox)</h1>
-            <p class="page-description">As textboxes capturam dados textuais fornecidos pelos jogadores no Roblox. Possuem efeito de piscar de cursor (|) e canalizam entradas sem propagar keybinds do game.</p>
-
-            <h2>Sintaxe</h2>
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>LapoHub:AddTextBox(tabIdx, config)</code></pre>
-            </div>
-
-            <h2>Argumentos da Configuração</h2>
-            <div class="table-wrapper">
-                <table class="api-table">
-                    <thead>
-                        <tr>
-                            <th>Parâmetro</th>
-                            <th>Tipo</th>
-                            <th>Padrão</th>
-                            <th>Descrição</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><code>text</code></td>
-                            <td><span class="type-badge string">string</span></td>
-                            <td><code>"TextBox"</code></td>
-                            <td>O rótulo identificador do campo de texto.</td>
-                        </tr>
-                        <tr>
-                            <td><code>placeholder</code></td>
-                            <td><span class="type-badge string">string</span></td>
-                            <td><code>"Type here..."</code></td>
-                            <td>Texto de espaço reservado quando o campo estiver vazio.</td>
-                        </tr>
-                        <tr>
-                            <td><code>callback</code></td>
-                            <td><span class="type-badge function">function</span></td>
-                            <td><code>function()end</code></td>
-                            <td>Disparada quando o usuário pressiona Enter ou clica fora desfocando a caixa de texto. Recebe o texto inserido.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <h2>Retornos e Métodos do Handle</h2>
-            <div class="table-wrapper">
-                <table class="api-table">
-                    <thead>
-                        <tr>
-                            <th>Método</th>
-                            <th>Parâmetros</th>
-                            <th>Descrição</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><code>handle:Set(value)</code></td>
-                            <td><code>value: string</code></td>
-                            <td>Atualiza o texto/placeholder interno do campo.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <h2>Exemplo de Uso</h2>
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>LapoHub:AddTextBox("Webhook", {
-    text = "Endereço do Discord Webhook",
-    placeholder = "Cole a URL do canal do Discord...",
-    callback = function(url)
-        _G.DiscordWebhookURL = url
-        LapoHub:Notify({
-            title = "Webhook Salvo",
-            content = "Logs de teleporte serão encaminhados.",
-            duration = 3
-        })
-    end
-})</code></pre>
-            </div>
-
-            <h2>Mapeamento de Entrada Seguro</h2>
-            <p>Diferente de UIs padrão desenhadas pela API do Roblox, a renderização via Drawing do executor não possui focos de mouse ou controles nativos de digitação. Para resolver isso com robustez, o <strong>Lapo Hub X</strong> implementa uma ponte inteligente:</p>
-            <ul class="list-default">
-                <li>Instancia uma ScreenGui de CoreGui/PlayerGui oculta contendo uma TextBox real de tamanho 0.</li>
-                <li>Quando o usuário clica sobre a área desenhada da TextBox da UI, o script foca programaticamente nessa TextBox oculta e captura a digitação.</li>
-                <li>Ao pressionar Enter ou perder o foco, a entrada é atribuída ao elemento desenhado na tela, liberando o teclado para o jogo.</li>
-            </ul>
-        `
-    },
-
-    "api-paragraphs": {
-        category: "Referência de API",
-        title: "Labels & Paragraphs (Rótulos)",
-        breadcrumb: "API Labels",
-        content: `
-            <h1 class="page-title">Rótulos e Parágrafos</h1>
-            <p class="page-description">São componentes estáticos usados para exibir informações textuais na aba ativa. Possuem diferentes tamanhos de fonte e estilos de cores.</p>
-
-            <h2>Sintaxe</h2>
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>LapoHub:AddLabel(tabIdx, config)
-LapoHub:AddParagraph(tabIdx, config)</code></pre>
-            </div>
-
-            <h2>Configuração</h2>
-            <div class="table-wrapper">
-                <table class="api-table">
-                    <thead>
-                        <tr>
-                            <th>Parâmetro</th>
-                            <th>Tipo</th>
-                            <th>Padrão</th>
-                            <th>Descrição</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><code>text</code></td>
-                            <td><span class="type-badge string">string</span></td>
-                            <td><code>""</code></td>
-                            <td>O conteúdo textual a ser exibido.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <h2>Diferença entre Label e Paragraph</h2>
-            <ul class="list-default">
-                <li><strong>Label:</strong> Fonte maior (17px), cor mais clara e brilhante. Ideal para títulos internos ou campos curtos e atualizações rápidas de status.</li>
-                <li><strong>Paragraph:</strong> Fonte menor (15px), cor suavizada/esmaecida. Ideal para descrições, notas explicativas ou blocos de instruções longos. Suporta automaticamente redimensionamento de caixa de texto caso o conteúdo ultrapasse 60 caracteres.</li>
-            </ul>
-
-            <h2>Retornos e Métodos do Handle</h2>
-            <p>Ambos os widgets retornam handles idênticos que permitem a atualização do conteúdo textual em tempo real (como atualizar o número de moedas obtidas por segundo):</p>
-
-            <div class="table-wrapper">
-                <table class="api-table">
-                    <thead>
-                        <tr>
-                            <th>Método</th>
-                            <th>Parâmetros</th>
-                            <th>Descrição</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><code>handle:updateText(newText)</code></td>
-                            <td><code>newText: string</code></td>
-                            <td>Substitui o texto visível pelo novo texto fornecido.</td>
-                        </tr>
-                        <tr>
-                            <td><code>handle:Set(newText)</code></td>
-                            <td><code>newText: string</code></td>
-                            <td>Atalho flexível que chama o método <code>updateText</code> internamente.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <h2>Exemplo de Uso</h2>
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>-- Criando textos
-local totalFarmadosLabel = LapoHub:AddLabel("Status", { text = "Espíritos Farmados: 0" })
-
-LapoHub:AddParagraph("Status", {
-    text = "Nota: Este recurso depende da conexão de rede do jogo. Delays prolongados podem atrasar a contagem de espíritos."
-})
-
--- Simulando um loop de atualização
-task.spawn(function()
-    local count = 0
-    while task.wait(1) do
-        count = count + 1
-        totalFarmadosLabel:Set("Espíritos Farmados: " .. tostring(count))
-    end
-end)</code></pre>
-            </div>
-        `
-    },
-
-    "api-separators": {
-        category: "Referência de API",
-        title: "Separators (Linhas Divisórias)",
-        breadcrumb: "API Separators",
-        content: `
-            <h1 class="page-title">Linha Divisória (Separator)</h1>
-            <p class="page-description">Desenha uma linha horizontal fina e semi-transparente para separar visualmente blocos de componentes em uma mesma aba, melhorando a organização visual.</p>
-
-            <h2>Sintaxe</h2>
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>LapoHub:AddSeparator(tabIdx)</code></pre>
-            </div>
-
-            <h2>Argumentos</h2>
-            <div class="table-wrapper">
-                <table class="api-table">
-                    <thead>
-                        <tr>
-                            <th>Parâmetro</th>
-                            <th>Tipo</th>
-                            <th>Descrição</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><code>tabIdx</code></td>
-                            <td><span class="type-badge string">string</span> / <span class="type-badge number">number</span></td>
-                            <td>A aba associada (nome ou índice) onde a linha horizontal será desenhada.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <h2>Retorno</h2>
-            <p>Retorna o objeto da biblioteca (<code>LapoHub</code>) para permitir chamadas encadeadas.</p>
-
-            <h2>Exemplo de Uso</h2>
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>LapoHub:AddLabel("Aba1", { text = "Configurações Principais" })
-LapoHub:AddToggle("Aba1", { text = "God Mode", default = false })
-
--- Adicionando a linha divisória
-LapoHub:AddSeparator("Aba1")
-
-LapoHub:AddLabel("Aba1", { text = "Configurações Secundárias" })
-LapoHub:AddSlider("Aba1", { text = "Alcance do Pulo", min = 50, max = 200 })</code></pre>
-            </div>
-        `
-    },
-
-    "api-notifications": {
-        category: "Referência de API",
-        title: "Notifications (Notificações)",
-        breadcrumb: "API Notifications",
-        content: `
-            <h1 class="page-title">Notificação (Notify)</h1>
-            <p class="page-description">Cria uma notificação flutuante de tamanho fixo empilhada no canto inferior direito da tela do Roblox. Contém barra de carregamento dinâmica com base no tempo de vida e suporte para quebra de texto longa.</p>
-
-            <h2>Sintaxe</h2>
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>LapoHub:Notify(config)</code></pre>
-            </div>
-
-            <h2>Argumentos da Configuração</h2>
-            <div class="table-wrapper">
-                <table class="api-table">
-                    <thead>
-                        <tr>
-                            <th>Parâmetro</th>
-                            <th>Tipo</th>
-                            <th>Padrão</th>
-                            <th>Descrição</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><code>title</code></td>
-                            <td><span class="type-badge string">string</span></td>
-                            <td><code>"Lapo Hub X"</code></td>
-                            <td>O título do balão de notificação.</td>
-                        </tr>
-                        <tr>
-                            <td><code>content</code></td>
-                            <td><span class="type-badge string">string</span></td>
-                            <td><code>""</code></td>
-                            <td>O conteúdo descritivo da mensagem. Textos muito longos serão quebrados automaticamente em múltiplas linhas (limite máximo de 8 linhas exibidas).</td>
-                        </tr>
-                        <tr>
-                            <td><code>duration</code></td>
-                            <td><span class="type-badge number">number</span></td>
-                            <td><code>4</code></td>
-                            <td>Tempo de exibição em segundos antes do balão sumir da tela.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <h2>Retorno</h2>
-            <p>Retorna o objeto da biblioteca (<code>LapoHub</code>) para permitir chamadas encadeadas.</p>
-
-            <h2>Exemplo de Uso</h2>
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>LapoHub:Notify({
-    title = "Lapo Hub X",
-    content = "Auto-Farm carregado com sucesso! Iniciando teleporte...",
-    duration = 5
-})</code></pre>
-            </div>
-
-            <h2>Como Funciona a Fila</h2>
-            <ul class="list-default">
-                <li>As notificações são adicionadas a um pool global e ordenadas dinamicamente.</li>
-                <li>Quando uma notificação expira ou é removida, as notificações acima dela descem suavemente com interpolação linear (lerp) para ocupar os espaços vazios de maneira suave.</li>
-                <li>A barra colorida na base da notificação diminui gradualmente com base na proporção do tempo de vida restante.</li>
-            </ul>
-        `
-    },
-
-    "api-userprofile": {
-        category: "Referência de API",
-        title: "Footer & Perfil de Usuário",
-        breadcrumb: "API Footer",
-        content: `
-            <h1 class="page-title">Perfil do Usuário no Rodapé</h1>
-            <p class="page-description">O Lapo Hub X inclui um bloco de perfil no rodapé da barra lateral contendo um indicador luminoso online (verde), nome do usuário e rank. Ideal para personalizar seu script comercialmente ou registrar dados de licença.</p>
-
-            <h2>Sintaxe</h2>
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>LapoHub:SetUser(username, rank)
-LapoHub:SetUserCallback(callback)</code></pre>
-            </div>
-
-            <h2>Funções de Configuração</h2>
-            <h3><code>LapoHub:SetUser(username, rank)</code></h3>
-            <p>Configura o texto do perfil exibido no rodapé da barra lateral lateral.</p>
-            <div class="table-wrapper">
-                <table class="api-table">
-                    <thead>
-                        <tr>
-                            <th>Parâmetro</th>
-                            <th>Tipo</th>
-                            <th>Padrão</th>
-                            <th>Descrição</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><code>username</code></td>
-                            <td><span class="type-badge string">string</span></td>
-                            <td><code>"LapoLapoNaldo"</code></td>
-                            <td>Nome de exibição do usuário.</td>
-                        </tr>
-                        <tr>
-                            <td><code>rank</code></td>
-                            <td><span class="type-badge string">string</span></td>
-                            <td><code>"Lapo Newba"</code></td>
-                            <td>Cargo ou nível de permissão impresso abaixo do nome (em destaque lilás).</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <h3><code>LapoHub:SetUserCallback(callback)</code></h3>
-            <p>Registra uma callback executada quando o jogador clica na área do perfil do rodapé.</p>
-            <div class="table-wrapper">
-                <table class="api-table">
-                    <thead>
-                        <tr>
-                            <th>Parâmetro</th>
-                            <th>Tipo</th>
-                            <th>Descrição</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><code>callback</code></td>
-                            <td><span class="type-badge function">function</span></td>
-                            <td>Função executada a cada clique. Recebe os parâmetros <code>(username, rank)</code>.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <h2>Exemplo de Uso</h2>
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>LapoHub:SetUser("LucasDeveloper", "Assinatura VIP")
-
-LapoHub:SetUserCallback(function(name, rank)
-    LapoHub:Notify({
-        title = "Informações do Usuário",
-        content = "Logado como: " .. name .. "\\nRank: " .. rank,
-        duration = 3
-    })
-end)</code></pre>
-            </div>
-        `
-    },
-
-    "api-window-controls": {
-        category: "Referência de API",
-        title: "Controles da Janela & Ciclo de Vida",
-        breadcrumb: "Controles da Janela",
-        content: `
-            <h1 class="page-title">Controles da Janela & Ciclo de Vida</h1>
-            <p class="page-description">Tudo que controla a janela depois de criada: mostrar/ocultar, minimizar, arrastar, rolar, a tecla de atalho e a destruição limpa da interface.</p>
-
-            <h2>Mostrar / Ocultar — <code>ToggleVisibility()</code></h2>
-            <p>Alterna a visibilidade de <strong>toda</strong> a interface. É exatamente o que a <code>ToggleKey</code> aciona internamente, mas você pode chamá-la pelo seu próprio código (ex.: um botão "Esconder Menu").</p>
-            <div class="code-block-container">
-                <div class="code-block-header"><span class="code-language-tag">Lua</span><button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button></div>
-                <pre class="language-lua"><code>-- Esconder por código
-LapoHub:ToggleVisibility()
-
--- Botão dentro do próprio menu que o esconde
-LapoHub:AddButton("Ajustes", {
-    text = "Esconder Menu (use a ToggleKey para reabrir)",
-    callback = function() LapoHub:ToggleVisibility() end
-})</code></pre>
-            </div>
-            <div class="alert tip">
-                <div class="alert-icon"><i class="ri-shield-check-line"></i></div>
-                <div class="alert-content">
-                    <div class="alert-title">Foco é liberado ao ocultar</div>
-                    <p class="alert-text">Ao ocultar, a biblioteca libera automaticamente o foco de qualquer TextBox/pesquisa ativa e fecha dropdowns abertos — evitando que o teclado fique "preso" capturando digitação de um widget invisível.</p>
-                </div>
-            </div>
-
-            <h2>A Tecla de Atalho — <code>ToggleKey</code></h2>
-            <p>Definida no <code>Init</code>. Aceita o <strong>nome</strong> de qualquer tecla (string do <code>Enum.KeyCode</code>). Padrão: <code>"End"</code>.</p>
-            <div class="code-block-container">
-                <div class="code-block-header"><span class="code-language-tag">Lua</span><button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button></div>
-                <pre class="language-lua"><code>LapoHub:Init({ Title = "Hub", ToggleKey = "RightShift" })
--- Exemplos válidos: "End", "K", "Insert", "RightControl", "F4", "Backquote"</code></pre>
-            </div>
-
-            <h2>Minimizar, Arrastar e Rolar (ações do usuário)</h2>
-            <p>Estas interações são feitas diretamente pelo usuário na janela desenhada — não exigem chamadas de API:</p>
-            <div class="table-wrapper">
-                <table class="api-table">
-                    <thead><tr><th>Ação</th><th>Como</th><th>Comportamento</th></tr></thead>
-                    <tbody>
-                        <tr><td>Minimizar</td><td>Botão <code>─</code> no cabeçalho</td><td>Recolhe a janela deixando só a barra de título. Clique de novo para restaurar.</td></tr>
-                        <tr><td>Fechar</td><td>Botão <code>✕</code> no cabeçalho</td><td>Chama <code>Destroy()</code> — encerra a interface por completo.</td></tr>
-                        <tr><td>Arrastar</td><td>Segurar e mover o cabeçalho</td><td>Reposiciona a janela; fica presa dentro da tela (clamp ao viewport).</td></tr>
-                        <tr><td>Rolar conteúdo</td><td>Roda do mouse ou arraste por toque</td><td>Faz scroll vertical dos widgets da aba ativa quando ultrapassam a altura visível.</td></tr>
-                        <tr><td>Mobile</td><td>Botão flutuante <code>☰ / ✕</code></td><td>Em telas touch, reabre/oculta a janela (a ToggleKey não existe sem teclado).</td></tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <h2>Destruir a Interface — <code>Destroy()</code></h2>
-            <p>Encerra o hub por completo: remove todos os desenhos da tela, desconecta os <em>listeners</em> de input, desvincula o sink do <code>ContextActionService</code> e destrói a <code>ScreenGui</code> oculta usada para capturar texto. Use ao trocar de script ou fornecer um botão "Desligar".</p>
-            <div class="code-block-container">
-                <div class="code-block-header"><span class="code-language-tag">Lua</span><button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button></div>
-                <pre class="language-lua"><code>LapoHub:AddButton("Ajustes", {
-    text = "❌ Desligar Hub",
-    callback = function()
-        LapoHub:Notify({ title = "Hub", content = "Encerrando...", duration = 2 })
-        task.delay(1, function() LapoHub:Destroy() end)
-    end
-})</code></pre>
-            </div>
-            <div class="alert tip">
-                <div class="alert-icon"><i class="ri-recycle-line"></i></div>
-                <div class="alert-content">
-                    <div class="alert-title">Anti-duplicação automática</div>
-                    <p class="alert-text">Você raramente precisa chamar <code>Destroy()</code> antes de recarregar: o <code>Init</code> detecta uma instância anterior com o mesmo <code>Title</code> (via <code>shared</code>) e a destrói sozinho antes de desenhar a nova — então rodar o script duas vezes não empilha menus.</p>
-                </div>
-            </div>
-        `
-    },
-
-    "customization": {
-        category: "Guias",
-        title: "Temas & Customização",
-        breadcrumb: "Customização",
-        content: `
-            <h1 class="page-title">Personalização de Temas</h1>
-            <p class="page-description">O design do Lapo Hub X é estruturado através de uma paleta de cores centralizada (Synapse X vibes) no arquivo de origem. Saiba como alterar as cores e criar seu próprio estilo.</p>
-
-            <h2>A Estrutura do Tema</h2>
-            <p>No topo do arquivo <code>Library.lua</code>, a tabela local <code>Theme</code> armazena todos os canais de cores em RGB. Se você hospedar ou customizar o código-fonte, basta editar esses valores:</p>
-
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>local Theme = {
-    BgDeep      = Color3.fromRGB(10,  10,  18),  -- Fundo do rodapé e popup dropdown
-    BgBase      = Color3.fromRGB(14,  14,  26),  -- Fundo principal do painel
-    BgPanel     = Color3.fromRGB(18,  18,  32),  -- Fundo do cabeçalho e barra lateral
-    BgWidget    = Color3.fromRGB(22,  22,  38),  -- Fundo dos botões/toggles/sliders
-    BgInput     = Color3.fromRGB(12,  12,  22),  -- Fundo do campo de texto/caixa de seleção
-    Border      = Color3.fromRGB(40,  40,  70),  -- Cor das bordas normais
-    BorderAccent= Color3.fromRGB(80,  60, 180),  -- Cor das bordas em foco
-    Separator   = Color3.fromRGB(30,  30,  50),  -- Linhas horizontais de separação
-    Accent      = Color3.fromRGB(120,  80, 255), -- Cor primária em destaque (Roxo/Glow)
-    AccentDim   = Color3.fromRGB( 70,  45, 160), -- Cor de acento suavizada (barras de progresso)
-    AccentGlow  = Color3.fromRGB(140, 100, 255), -- Cor brilhante de foco do acento
-    On          = Color3.fromRGB( 50, 220, 120), -- Cor verde ativa (toggle ligado)
-    OnDim       = Color3.fromRGB( 20, 100,  55), -- Cor verde desligada ou esmaecida
-    Text        = Color3.fromRGB(220, 220, 235), -- Texto primário principal
-    TextSub     = Color3.fromRGB(110, 110, 140), -- Texto secundário esmaecido
-    TextMuted   = Color3.fromRGB( 60,  60,  90),  -- Texto inativo ou marca d'água
-    Danger      = Color3.fromRGB(220,  55,  55), -- Cor vermelha (Botão Fechar/Excluir)
-    HoverLight  = Color3.fromRGB(255, 255, 255), -- Brilho de sobreposição no hover
-}</code></pre>
-            </div>
-
-            <h2>Criando Estilos Customizados</h2>
-            <p>Se você deseja mudar o acento Roxo padrão para um tema <strong>Verde Esmeralda (Cyberpunk)</strong>, altere os campos <code>Accent</code> do arquivo original:</p>
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>-- Customização do tema (Exemplo Verde Cyberpunk)
-Theme.Accent      = Color3.fromRGB(16,  185, 129)
-Theme.AccentDim   = Color3.fromRGB(4,   120, 87)
-Theme.AccentGlow  = Color3.fromRGB(52,  211, 153)
-Theme.BorderAccent= Color3.fromRGB(6,   95,  70)</code></pre>
-            </div>
-        `
-    },
-
-    "examples": {
-        category: "Guias",
-        title: "Exemplos Práticos",
-        breadcrumb: "Exemplos",
-        content: `
-            <h1 class="page-title">Exemplos de Implementação</h1>
-            <p class="page-description">Veja casos reais de como aplicar o Lapo Hub X em scripts de automação. Estes exemplos representam práticas recomendadas estruturais.</p>
-
-            <h2>Exemplo 1: Script de Trait Auto-Roller (Simples)</h2>
-            <p>Este exemplo cria uma interface para um simulador que rola traits de unidades automaticamente usando loops de delay com verificação segura do estado do botão Toggle:</p>
-
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>local LapoHub = loadstring(game:HttpGet("https://raw.githubusercontent.com/LapoLapoNaldo/Lapo-X/refs/heads/main/Library.lua"))()
-
-LapoHub:AddTab("Rolador", "🎲")
-LapoHub:Init({ Title = "Trait Roller Tool" })
-
-local selectedUnit = "Nenhuma"
-local autoRollEnabled = false
-
-LapoHub:AddDropdown("Rolador", {
-    text = "Selecionar Unidade",
-    options = {"Goku", "Naruto", "Luffy", "Zoro"},
-    default = 1,
-    callback = function(index, value)
-        selectedUnit = value
-        print("Unidade selecionada para roll:", value)
-    end
-})
-
-LapoHub:AddToggle("Rolador", {
-    text = "Auto Rolar Traits",
-    default = false,
-    callback = function(state)
-        autoRollEnabled = state
-        if state then
-            LapoHub:Notify({ title = "Auto-Roll", content = "Rolamento automático iniciado para " .. selectedUnit, duration = 3 })
-
-            task.spawn(function()
-                while autoRollEnabled do
-                    -- Simula o disparo de um remote de rolagem do jogo
-                    game:GetService("ReplicatedStorage").Remote.RollTrait:FireServer(selectedUnit)
-
-                    -- Intervalo seguro para evitar lag ou desconexões
-                    task.wait(0.8)
-                end
-                LapoHub:Notify({ title = "Auto-Roll", content = "Parado", duration = 2 })
-            end)
-        end
-    end
-})</code></pre>
-            </div>
-
-            <h2>Exemplo 2: Integração de Habilidades (Baseado em LapoSkillsX)</h2>
-            <p>Abaixo está um caso avançado demonstrando o escaner dinâmico de instâncias ativas do jogo e alteração de propriedades no workspace:</p>
-
-            <div class="code-block-container">
-                <div class="code-block-header">
-                    <span class="code-language-tag">Lua</span>
-                    <button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button>
-                </div>
-                <pre class="language-lua"><code>local LapoHub = loadstring(game:HttpGet("https://raw.githubusercontent.com/LapoLapoNaldo/Lapo-X/refs/heads/main/Library.lua"))()
-
-LapoHub:AddTab("Skills", "⚡")
-LapoHub:Init({ Title = "Skill Trigger" })
-
-local workspaceUnits = workspace:WaitForChild("Units")
-local unitList = {}
-
--- Função de varredura das unidades no jogo
-local function getMyUnits()
-    local myName = game.Players.LocalPlayer.Name
-    local found = {}
-    for _, u in ipairs(workspaceUnits:GetChildren()) do
-        local info = u:FindFirstChild("Info")
-        local owner = info and info:FindFirstChild("Owner")
-        if owner and owner.Value == myName then
-            table.insert(found, u.Name)
-        end
-    end
-    return #found > 0 and found or {"Nenhuma unidade encontrada"}
-end
-
-local unitDropdown = LapoHub:AddDropdown("Skills", {
-    text = "Selecione a Unidade",
-    options = getMyUnits(),
-    default = 1,
-    callback = function(idx, val)
-        _G.SelectedUnit = val
-    end
-})
-
--- Botão para recarregar unidades
-LapoHub:AddButton("Skills", {
-    text = "🔄 Atualizar Lista",
-    callback = function()
-        local updated = getMyUnits()
-        unitDropdown:Set(updated) -- Atualiza as opções dinamicamente no handle
-        LapoHub:Notify({ title = "Recarregado", content = "Encontradas " .. #updated .. " unidades.", duration = 2 })
-    end
-})</code></pre>
-            </div>
-        `
-    },
-
-    "automation-patterns": {
-        category: "Guias",
-        title: "Loops de Automação Seguros",
-        breadcrumb: "Loops de Automação",
-        content: `
-            <h1 class="page-title">Loops de Automação Seguros</h1>
-            <p class="page-description">A maioria dos scripts (auto-farm, auto-roll, auto-skill) é um loop ligado/desligado por um Toggle. Fazer isso errado cria loops que <strong>nunca param</strong> ou que <strong>duplicam</strong>. Este é o padrão correto.</p>
-
-            <h2>❌ O Erro Clássico</h2>
-            <p>O callback do Toggle recebe o estado <code>state</code> como <strong>parâmetro</strong>. Esse valor fica congelado dentro daquela execução. Se o loop checar o parâmetro, ele <strong>nunca</strong> vê o desligamento:</p>
-            <div class="code-block-container">
-                <div class="code-block-header"><span class="code-language-tag">Lua — NÃO faça</span><button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button></div>
-                <pre class="language-lua"><code>LapoHub:AddToggle("Farm", {
-    text = "Auto Farm",
-    callback = function(state)
-        task.spawn(function()
-            while state do          -- ❌ 'state' nunca muda aqui!
-                fazerFarm()
-                task.wait(1)
-            end
-        end)
-    end
-})
--- Resultado: desligar o toggle NÃO para o loop, e ligar de novo cria um 2º loop.</code></pre>
-            </div>
-
-            <h2>✅ O Padrão Correto (flag externa)</h2>
-            <p>Guarde o estado numa variável <strong>fora</strong> do callback. O callback só atualiza a flag; o loop lê a flag a cada volta:</p>
-            <div class="code-block-container">
-                <div class="code-block-header"><span class="code-language-tag">Lua</span><button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button></div>
-                <pre class="language-lua"><code>local autoFarm = false   -- flag externa (estado real)
-
-LapoHub:AddToggle("Farm", {
-    text = "Auto Farm",
-    default = false,
-    callback = function(state)
-        autoFarm = state
-        if not state then return end
-        task.spawn(function()
-            while autoFarm do        -- ✅ lê a flag viva
-                fazerFarm()
-                task.wait(1)
-            end
-        end)
-    end
-})</code></pre>
-            </div>
-
-            <h2>🛡️ Blindagem contra Duplicação (re-toggle rápido)</h2>
-            <p>Se o usuário liga/desliga muito rápido, um loop antigo ainda parado em <code>task.wait</code> pode coexistir com o novo. Use uma flag de "rodando" e/ou um <em>token de geração</em>:</p>
-            <div class="code-block-container">
-                <div class="code-block-header"><span class="code-language-tag">Lua</span><button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button></div>
-                <pre class="language-lua"><code>local autoFarm = false
-local running = false
-
-LapoHub:AddToggle("Farm", {
-    text = "Auto Farm",
-    callback = function(state)
-        autoFarm = state
-        if not state or running then return end  -- evita 2º loop
-        running = true
-        task.spawn(function()
-            while autoFarm do
-                fazerFarm()
-                task.wait(1)
-            end
-            running = false                       -- libera ao sair
-        end)
-    end
-})</code></pre>
-            </div>
-
-            <h2>Parar por código</h2>
-            <p>Como o loop lê a flag, basta zerá-la de qualquer lugar (um botão "Parar", outro evento, etc.):</p>
-            <div class="code-block-container">
-                <div class="code-block-header"><span class="code-language-tag">Lua</span><button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button></div>
-                <pre class="language-lua"><code>LapoHub:AddButton("Farm", {
-    text = "⏹ Parar Tudo",
-    callback = function() autoFarm = false end
-})</code></pre>
-            </div>
-
-            <div class="alert warning">
-                <div class="alert-icon"><i class="ri-pulse-line"></i></div>
-                <div class="alert-content">
-                    <div class="alert-title">Sempre dê um <code>task.wait()</code></div>
-                    <p class="alert-text">Um <code>while</code> sem <code>task.wait</code> trava o jogo (loop infinito sem ceder). Mesmo em loops rápidos, use no mínimo <code>task.wait()</code> (um frame). Para chamadas de rede (<code>FireServer</code>/<code>InvokeServer</code>), prefira intervalos de <code>0.2s</code> ou mais para não tomar kick por flood.</p>
-                </div>
-            </div>
-        `
-    },
-
-    "performance": {
-        category: "Guias",
-        title: "Performance & Boas Práticas",
-        breadcrumb: "Performance",
-        content: `
-            <h1 class="page-title">Performance & Boas Práticas</h1>
-            <p class="page-description">A janela é redesenhada a cada frame e os seus callbacks rodam no meio das interações do usuário. Estas práticas mantêm tudo fluido e evitam travadas.</p>
-
-            <h2>1. Não bloqueie a rede dentro de callbacks visuais</h2>
-            <p>Chamar <code>Remote:InvokeServer()</code> em <strong>cada</strong> seleção de dropdown ou atualização de label congela a UI no round-trip do servidor. Busque os dados <strong>uma vez</strong>, guarde em cache e repinte a partir do cache.</p>
-            <div class="code-block-container">
-                <div class="code-block-header"><span class="code-language-tag">Lua</span><button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button></div>
-                <pre class="language-lua"><code>local cache = {}                       -- dados em memória
-
-local function refreshCache()           -- chamado por um BOTÃO, não a cada clique
-    local ok, data = pcall(function() return Remote.ReturnData:InvokeServer() end)
-    if ok and type(data) == "table" then cache = data end
-end
-refreshCache()
-
-LapoHub:AddDropdown("Stats", {
-    text = "Unidade",
-    options = listaDeUnidades,
-    callback = function(_, nome)
-        local u = cache[nome]             -- leitura instantânea do cache
-        infoLabel:Set(u and ("LB: " .. u.LimitBreak) or "N/A")
-    end
-})
-
-LapoHub:AddButton("Stats", { text = "🔄 Atualizar", callback = refreshCache })</code></pre>
-            </div>
-
-            <h2>2. Atualize widgets em vez de recriá-los</h2>
-            <p>Para status ao vivo (moedas/seg, contadores), guarde o <em>handle</em> e use <code>:Set</code> / <code>:updateText</code>. Recriar a aba inteira a cada segundo é caro e desnecessário.</p>
-            <div class="code-block-container">
-                <div class="code-block-header"><span class="code-language-tag">Lua</span><button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button></div>
-                <pre class="language-lua"><code>local contador = LapoHub:AddLabel("Status", { text = "Coletados: 0" })
-task.spawn(function()
-    local n = 0
-    while task.wait(1) do
-        n = n + 1
-        contador:Set("Coletados: " .. n)   -- atualiza só o texto
-    end
-end)</code></pre>
-            </div>
-
-            <h2>3. Adie varreduras pesadas do carregamento</h2>
-            <p>Operações caras no <em>load</em> (ex.: <code>require</code> em dezenas de módulos para listar skills/itens) atrasam a abertura do menu. Rode-as depois com <code>task.spawn</code> + <code>task.wait()</code> e preencha o dropdown quando terminar.</p>
-            <div class="code-block-container">
-                <div class="code-block-header"><span class="code-language-tag">Lua</span><button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button></div>
-                <pre class="language-lua"><code>local skillDropdown = LapoHub:AddDropdown("Skills", { text = "Skill", options = {"Carregando..."} })
-
-task.spawn(function()
-    task.wait()                          -- deixa a UI montar primeiro
-    local lista = escanearSkillsDoJogo() -- trabalho pesado
-    skillDropdown:Set(lista)
-end)</code></pre>
-            </div>
-
-            <h2>4. Debounce em buscas que disparam a cada tecla</h2>
-            <p>A barra de pesquisa do Dropdown filtra a lista a cada caractere. Em listas enormes, jogue o trabalho pesado para um <em>debounce</em> simples:</p>
-            <div class="code-block-container">
-                <div class="code-block-header"><span class="code-language-tag">Lua</span><button class="copy-code-btn"><i class="ri-file-copy-line"></i> Copiar</button></div>
-                <pre class="language-lua"><code>local pending = 0
-local function debouncedFilter(texto)
-    pending = pending + 1
-    local id = pending
-    task.delay(0.15, function()
-        if id ~= pending then return end   -- digitou de novo? ignora o antigo
-        aplicarFiltroCaro(texto)
-    end)
-end</code></pre>
-            </div>
-
-            <div class="alert tip">
-                <div class="alert-icon"><i class="ri-flashlight-line"></i></div>
-                <div class="alert-content">
-                    <div class="alert-title">A biblioteca já faz a parte dela</div>
-                    <p class="alert-text">O render loop interno já memoiza textos truncados, recorta (clip) o que sai da área de conteúdo, lê o mouse uma única vez por frame e limpa todos os objetos de Drawing com <code>:Remove()</code>. Seguindo as práticas acima, o gargalo dificilmente será a UI.</p>
-                </div>
-            </div>
-        `
-    },
-
-    "faq": {
-        category: "Guias",
-        title: "Perguntas Frequentes",
-        breadcrumb: "FAQ",
-        content: `
-            <h1 class="page-title">Perguntas Frequentes</h1>
-            <p class="page-description">Respostas rápidas para as dúvidas mais comuns sobre o uso da biblioteca Lapo Hub X.</p>
-
-            <div class="faq-list">
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <span>O Lapo Hub X funciona em dispositivos móveis?</span>
-                        <i class="ri-arrow-down-s-line faq-icon"></i>
-                    </div>
-                    <div class="faq-answer">
-                        <p>Sim! A biblioteca possui suporte mobile completo. Ela detecta automaticamente telas touch, reduz o tamanho da janela global (escala de 0.72) para caber melhor na tela dos smartphones e cria um botão flutuante para ocultar e mostrar a janela facilmente.</p>
-                    </div>
-                </div>
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <span>Por que a biblioteca usa a Drawing API em vez de ScreenGuis comuns?</span>
-                        <i class="ri-arrow-down-s-line faq-icon"></i>
-                    </div>
-                    <div class="faq-answer">
-                        <p>A Drawing API renderiza diretamente na tela por fora do DOM principal do Roblox, sendo muito mais indetectável para sistemas de segurança anti-cheat dos jogos que varrem o CoreGui buscando por elementos visuais suspeitos.</p>
-                    </div>
-                </div>
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <span>Como fechar ou destruir completamente o menu?</span>
-                        <i class="ri-arrow-down-s-line faq-icon"></i>
-                    </div>
-                    <div class="faq-answer">
-                        <p>Você pode clicar no botão de fechar (✕) no cabeçalho ou chamar a função <code>LapoHub:Destroy()</code> de dentro do seu script. Isso limpa todos os desenhos da tela, remove os escutas de teclado e desvincula os sinks de cliques do ContextActionService.</p>
-                    </div>
-                </div>
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <span>Meu Auto-Farm não para quando desligo o Toggle. Por quê?</span>
-                        <i class="ri-arrow-down-s-line faq-icon"></i>
-                    </div>
-                    <div class="faq-answer">
-                        <p>Quase sempre o loop está checando o <strong>parâmetro</strong> <code>state</code> do callback (que fica congelado) em vez de uma variável externa. Guarde o estado numa flag fora do callback e faça o <code>while</code> ler essa flag. O passo a passo completo está no guia <a href="#automation-patterns">Loops de Automação Seguros</a>.</p>
-                    </div>
-                </div>
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <span>Como troco a tecla que abre/fecha o menu?</span>
-                        <i class="ri-arrow-down-s-line faq-icon"></i>
-                    </div>
-                    <div class="faq-answer">
-                        <p>Passe <code>ToggleKey</code> no <code>Init</code> com o nome da tecla, ex.: <code>LapoHub:Init({ ToggleKey = "RightShift" })</code>. Aceita qualquer nome de <code>Enum.KeyCode</code> ("End", "K", "Insert", "F4"...). Você também pode alternar por código com <code>LapoHub:ToggleVisibility()</code>.</p>
-                    </div>
-                </div>
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <span>Como atualizo as opções de um Dropdown durante o jogo?</span>
-                        <i class="ri-arrow-down-s-line faq-icon"></i>
-                    </div>
-                    <div class="faq-answer">
-                        <p>Guarde o handle retornado e chame <code>handle:Set({ ...novasOpções })</code>. Lembre-se: trocar as opções <strong>não</strong> dispara o callback do dropdown, então se você guarda a seleção numa variável, redefina-a para a primeira opção manualmente após o <code>:Set</code>.</p>
-                    </div>
-                </div>
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <span>O que acontece se eu executar o mesmo script duas vezes?</span>
-                        <i class="ri-arrow-down-s-line faq-icon"></i>
-                    </div>
-                    <div class="faq-answer">
-                        <p>Nada de menus empilhados: o <code>Init</code> identifica uma instância anterior com o mesmo <code>Title</code> (via tabela global <code>shared</code>) e chama <code>:Destroy()</code> nela antes de desenhar a nova. Para rodar dois hubs lado a lado de propósito, basta usar <code>Title</code> diferentes.</p>
-                    </div>
-                </div>
-            </div>
-        `
-    },
-
-    "troubleshooting": {
-        category: "Guias",
-        title: "Resolução de Problemas",
-        breadcrumb: "Solução de Problemas",
-        content: `
-            <h1 class="page-title">Resolução de Problemas</h1>
-            <p class="page-description">Problemas comuns relatados e seus métodos rápidos de correção.</p>
-
-            <h2>Problemas Comuns</h2>
-
-            <h3>1. A interface não carrega e gera o erro 'Drawing.new' is nil</h3>
-            <p>Isso ocorre porque seu executor não suporta a biblioteca gráfica nativa de desenho <strong>Drawing API</strong> ou está operando com permissões restritas. Certifique-se de usar um executor compatível de nível avançado.</p>
-
-            <h3>2. Cliques passam através da interface para o jogo (Mouse Bleeding)</h3>
-            <p>O Lapo Hub X tenta sequestrar a prioridade de toque registrando uma ação de ContextActionService de nível 2000. Se outras ações do jogo estiverem vinculadas acima desse nível ou se o executor redefinir os manipuladores de entrada, os cliques podem passar.</p>
-            <div class="alert alert-warning">
-                <div class="alert-icon"><i class="ri-error-warning-line"></i></div>
-                <div class="alert-content">
-                    <div class="alert-title">Correção</div>
-                    <p class="alert-text">Evite rodar múltiplos scripts de menu pesados simultaneamente, pois eles podem competir pelas portas prioritárias do ContextActionService.</p>
-                </div>
-            </div>
-
-            <h3>3. A caixa de pesquisa do Dropdown não foca em dispositivos móveis</h3>
-            <p>Em alguns executores móveis Android/iOS, a chamada de foco via CoreGui (<code>CaptureFocus</code>) é bloqueada ou requer um atraso adicional. A biblioteca já usa <code>task.defer()</code> para evitar isso. Caso a digitação pare de funcionar, clique fora para desfocar a caixa de seleção e clique nela novamente.</p>
-        `
-    },
-
-    "changelog": {
-        category: "Guias",
-        title: "Histórico de Versões",
-        breadcrumb: "Changelog",
-        content: `
-            <h1 class="page-title">Histórico de Versões (Changelog)</h1>
-            <p class="page-description">Acompanhe as atualizações e melhorias contínuas do Lapo Hub X.</p>
-
-            <div class="changelog-item">
-                <h3>Versão v1.1.0 — Estabilidade & Performance <span class="badge badge-accent">Atual</span></h3>
-                <p class="changelog-meta">Lançado em 20 de Junho de 2026</p>
-                <p><strong>Correções visuais (clipping & foco)</strong></p>
-                <ul class="list-default">
-                    <li>Corrigido o popup de Dropdown que <strong>sumia (mas continuava clicável)</strong> quando a linha era rolada para fora da área visível — agora a visibilidade do popup é decidida pela área do próprio popup.</li>
-                    <li>Corrigido o cursor da TextBox que <strong>flutuava para fora da caixa</strong> (e até da tela) em textos longos.</li>
-                    <li>Eliminada a <strong>linha-fantasma</strong> que as bordas desenhavam no limite da área de conteúdo durante o scroll.</li>
-                    <li>Corrigido o <strong>double-callback</strong> ao clicar fora de uma TextBox (o callback disparava duas vezes).</li>
-                    <li>Foco do teclado agora é <strong>liberado de forma limpa</strong> ao ocultar/destruir a janela — sem mais inputs "presos".</li>
-                    <li>Corrigido o mapeamento de letras e números no fallback de digitação por teclado.</li>
-                </ul>
-                <p><strong>Performance (CPU & memória)</strong></p>
-                <ul class="list-default">
-                    <li>Leitura do mouse e da câmera <strong>uma única vez por frame</strong> (antes era por botão/por frame).</li>
-                    <li>Fim das alocações por frame no render loop: textos truncados agora são <strong>memoizados</strong> e helpers de visibilidade foram movidos para fora do loop.</li>
-                    <li>Corrigido <strong>vazamento de memória</strong> de referências de abas que se acumulavam a cada reconstrução.</li>
-                    <li>Cálculo do limite de rolagem (<code>maxOffset</code>) unificado em um único ponto, mais preciso e barato.</li>
-                </ul>
-                <p><strong>Comportamento dos widgets</strong></p>
-                <ul class="list-default">
-                    <li><code>Dropdown:Set({novasOpções})</code> agora reconstrói corretamente o estado interno (sem mais primeira-abertura com linhas em branco).</li>
-                    <li><code>:Destroy()</code> e <code>:ToggleVisibility()</code> agora limpam foco e estado de dropdown aberto.</li>
-                </ul>
-                <div class="alert tip" style="margin-top: 16px;">
-                    <div class="alert-icon"><i class="ri-checkbox-circle-line"></i></div>
-                    <div class="alert-content">
-                        <div class="alert-title">100% retrocompatível</div>
-                        <p class="alert-text">Nenhuma assinatura pública mudou. Scripts feitos para a v1.0.0 funcionam sem alteração — basta recarregar a biblioteca.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="changelog-item">
-                <h3>Versão v1.0.0 — Lançamento Oficial</h3>
-                <p class="changelog-meta">Lançado em 15 de Junho de 2026</p>
-                <ul class="list-default">
-                    <li>Implementação do suporte completo a dispositivos móveis com escala adaptativa a viewports restritos.</li>
-                    <li>Novo botão móvel flutuante inteligente (☰ / ✕) para controle de visibilidade rápida.</li>
-                    <li>Melhoria profunda no sistema de entrada TextBox adicionando suporte a <code>CaptureFocus</code> seguro via ScreenGui de sink secundário.</li>
-                    <li>Implementação do sistema de pesquisa integrada para Dropdown que suporta filtragem em tempo real de listas imensas de units.</li>
-                    <li>Recalculo automático do tamanho total da janela e offsets de rolagem (rebuildContent) evitando cortes de widgets nas abas.</li>
-                </ul>
-            </div>
-        `
-    },
-
-    "showcase": {
-        category: "Showcase",
-        title: "Simulador Interativo",
-        breadcrumb: "Simulador",
-        content: `
-            <h1 class="page-title">Simulador Interativo da UI</h1>
-            <p class="page-description">Experimente a interface do Lapo Hub X diretamente no navegador! Este painel simula os cliques, inputs e retornos que acontecem em tempo real no jogo.</p>
-
-            <div class="simulator-outer">
-                <!-- Roblox Topbar -->
-                <div class="sim-roblox-topbar">
-                    <div class="sim-topbar-left">
-                        <div class="sim-topbar-icon"><i class="ri-game-line"></i></div>
-                        <span>Roblox Player - Lapo Hub X Demo</span>
-                    </div>
-                    <div class="sim-topbar-right">
-                        <span class="sim-topbar-btn">60 FPS</span>
-                        <span>Ping: 12ms</span>
-                    </div>
-                </div>
-
-                <!-- Game Workspace -->
-                <div class="sim-game-workspace">
-                    <div class="sim-game-grid"></div>
-
-                    <!-- Botão Móvel Flutuante (Aparece se simularmos Mobile ou estiver ativo) -->
-                    <div class="sim-mobile-btn" id="simMobileBtn" title="Toggle UI (Mobile Button)">
-                        <i class="ri-menu-line"></i>
-                    </div>
-
-                    <!-- Notificações Virtuais Empilhadas -->
-                    <div class="sim-notification-stack" id="simNotificationStack"></div>
-
-                    <!-- Janela Principal do Lapo Hub X -->
-                    <div class="sim-window" id="simWindow">
-                        <!-- Header -->
-                        <div class="sim-window-header" id="simWindowHeader">
-                            <div class="sim-window-title-area">
-                                <span class="sim-window-title" id="simWindowTitle">Lapo Hub X</span>
-                                <span class="sim-window-subtitle">syn version</span>
-                            </div>
-                            <div class="sim-window-controls">
-                                <div class="sim-ctrl-btn" id="simBtnMin" title="Minimizar">─</div>
-                                <div class="sim-ctrl-btn close" id="simBtnClose" title="Fechar">✕</div>
-                            </div>
-                        </div>
-
-                        <!-- Body -->
-                        <div class="sim-window-body" id="simWindowBody">
-                            <!-- Sidebar -->
-                            <div class="sim-window-sidebar">
-                                <div class="sim-window-tabs" id="simWindowTabs">
-                                    <!-- Abas serão geradas via JS -->
-                                </div>
-                                <!-- User Footer -->
-                                <div class="sim-window-user" id="simWindowUser">
-                                    <div class="sim-user-status"></div>
-                                    <div class="sim-user-details">
-                                        <span class="sim-user-name" id="simUserName">LapoLapoNaldo</span>
-                                        <span class="sim-user-rank" id="simUserRank">Lapo Newba</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Content -->
-                            <div class="sim-window-content" id="simWindowContent">
-                                <!-- Widgets serão carregados com base na aba ativa -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Painel de Controle e Console -->
-            <div class="sim-controls-panel">
-                <div class="sim-status-text">
-                    <span>Estado do Simulador: <strong id="simStatusState">Ativo (Janela Aberta)</strong></span>
-                </div>
-                <div class="sim-action-btns">
-                    <button class="btn btn-outline btn-sm" id="btnToggleSimScale"><i class="ri-smartphone-line"></i> Simular Celular (Touch)</button>
-                    <button class="btn btn-primary btn-sm" id="btnTriggerSimNotification"><i class="ri-notification-badge-line"></i> Simular Notificação</button>
-                    <button class="btn btn-outline btn-sm" id="btnResetSimWindow"><i class="ri-refresh-line"></i> Resetar Janela</button>
-                </div>
-            </div>
-
-            <h3>Console de Retornos da API (Lua Log)</h3>
-            <div class="code-block-container" style="margin-bottom: 0;">
-                <div class="code-block-header" style="background-color: #05070a;">
-                    <span class="code-language-tag" style="color: #6366f1;"><i class="ri-terminal-box-line"></i> Console de Execução</span>
-                    <button class="copy-code-btn" id="btnClearConsole" style="font-size: 11px;"><i class="ri-delete-bin-line"></i> Limpar</button>
-                </div>
-                <pre style="background: #030408 !important; padding: 16px !important; max-height: 180px; overflow-y: auto;" id="simConsoleLog"><code class="language-txt" style="color: #a5b4fc; font-size: 12px; font-family: var(--font-mono);">-- Console pronto para capturar eventos de UI --
--- Clique nas abas e widgets da janela flutuante acima --</code></pre>
-            </div>
-        `
-    }
+const PROJECT = {
+    title: "Lapo Library X",
+    subtitle: "Made By Luvwas",
+    defaultRoute: "home",
+    pageContent: true,
+    switchEnabled: false
 };
 
-const SIM_TABS = [
-    {
-        id: "combat",
-        name: "Combate",
-        icon: "⚔️",
-        widgets: [
-            { type: "label", text: "🔥 Automações de Ataque" },
-            { type: "toggle", text: "Ativar Kill Aura", default: false, id: "killAura" },
-            { type: "slider", text: "Distância do Alcance", min: 5, max: 50, default: 15, id: "auraRange" },
-            { type: "separator" },
-            { type: "dropdown", text: "Modo de Ataque", options: ["Mais Próximo", "Menor Vida", "Mais Forte"], default: 0, search: false, id: "attackMode" },
-            { type: "button", text: "Executar Ultimate Instantâneo", id: "ultimateBtn" }
-        ]
+const PAGES = {
+    "home": {
+        category: "Começando",
+        title: "Lapo Library X",
+        breadcrumb: "Sobre",
+        faq: false,
+        search: "v1.0.0 — Drawing API Lapo Library X Biblioteca de interface para Roblox renderizada 100% via Drawing API (overlay), sem depender de CoreGui/PlayerGui. Loading animado, micro-interações suaves, dropdown com busca, notificações e suporte a mobile — tudo numa API fluida. Começar agora GitHub Por que usar Overlay puro Tudo desenhado com Drawing.new . Funciona onde GUI tradicional é bloqueada — sem CoreGui/PlayerGui. Loading cinematográfico Abertura com fade-in, scale-pop, spinner *comet* e barra de progresso com brilho. Micro-interações Hover/press suaves em todos os widgets, knob e thumb animados, e indicador de aba que desliza. Mobile-ready Detecta toque, ajusta escala e mostra um botão flutuante para abrir/fechar. Índice de Métodos Tudo que a LapoX expõe. Os detalhes de cada um estão nas páginas seguintes. Categoria Método O que faz Setup Init(config) Inicializa e exibe a janela. Setup AddTab(name, icon) Cria uma aba na sidebar. Widget AddButton(tab, cfg) Botão clicável. Widget AddToggle(tab, cfg) Interruptor on/off. Widget AddSlider(tab, cfg) Barra de valor. Widget AddDropdown(tab, cfg) Seleção com busca opcional. Widget AddTextBox(tab, cfg) Campo de texto. Widget AddLabel(tab, cfg) Rótulo de texto. Widget AddParagraph(tab, cfg) Parágrafo (texto longo). Widget AddSeparator(tab) Linha divisória. Feedback Notify(cfg) Notificação no canto da tela. Rodapé SetUser(name, rank) Nome/cargo no rodapé. Rodapé SetUserCallback(cb) Clique no rodapé. Janela ToggleVisibility() Mostra/esconde a UI. Janela Destroy() Remove tudo e desconecta eventos. Loading ShowLoading(cfg) Abre a tela de carregamento. Loading SetLoadingProgress(pct, msg) Progresso manual (0–1). Loading SetLoadingMessage(msg) Troca a mensagem. Loading QueueLoad(label, fn) Enfileira uma tarefa. Loading RunLoadQueue(onDone) Roda a fila e fecha. Loading FinishLoading(onDone) Fecha o loading manualmente. Perf BeginBatch() / EndBatch() Adiciona muitos widgets sem rebuild. Encadeamento Métodos de setup ( Init , SetUser , AddTab , AddSeparator , loading) retornam self , então dá pra encadear. Já os Add* de widget retornam um handle (veja Handles & :Set() ).",
+        content: "\n            <div class=\"hero-section\">\n                <span class=\"badge badge-primary\">v1.0.0 — Drawing API</span>\n                <h1 class=\"page-title\" id=\"lapo-library-x\" style=\"margin-top: 10px;\">Lapo Library X</h1>\n                <p class=\"page-description\">Biblioteca de interface para Roblox renderizada 100% via Drawing API (overlay), sem depender de CoreGui/PlayerGui. Loading animado, micro-interações suaves, dropdown com busca, notificações e suporte a mobile — tudo numa API fluida.</p>\n                <div class=\"action-group\"><a href=\"#inicio-rapido\" class=\"btn btn-primary\"><i class=\"ri-rocket-line\"></i> Começar agora</a>\n                    <a href=\"https://github.com/LapoLapoNaldo/Lapo-X\" class=\"btn btn-outline\" target=\"_blank\"><i class=\"ri-external-link-line\"></i> GitHub</a></div>\n            </div>\n\n            <h2 id=\"por-que-usar\">Por que usar</h2>\n\n            <div class=\"grid-2\">\n\n                <div class=\"card\">\n                    <div class=\"card-title\"><i class=\"ri-stack-line\"></i> Overlay puro</div>\n                    <p class=\"card-description\">Tudo desenhado com <code>Drawing.new</code>. Funciona onde GUI tradicional é bloqueada — sem CoreGui/PlayerGui.</p>\n                </div>\n\n                <div class=\"card\">\n                    <div class=\"card-title\"><i class=\"ri-loader-4-line\"></i> Loading cinematográfico</div>\n                    <p class=\"card-description\">Abertura com fade-in, scale-pop, spinner *comet* e barra de progresso com brilho.</p>\n                </div>\n\n                <div class=\"card\">\n                    <div class=\"card-title\"><i class=\"ri-cursor-line\"></i> Micro-interações</div>\n                    <p class=\"card-description\">Hover/press suaves em todos os widgets, knob e thumb animados, e indicador de aba que desliza.</p>\n                </div>\n\n                <div class=\"card\">\n                    <div class=\"card-title\"><i class=\"ri-smartphone-line\"></i> Mobile-ready</div>\n                    <p class=\"card-description\">Detecta toque, ajusta escala e mostra um botão flutuante para abrir/fechar.</p>\n                </div>\n            </div>\n\n            <h2 id=\"indice-de-metodos\">Índice de Métodos</h2>\n\n            <p>Tudo que a <code>LapoX</code> expõe. Os detalhes de cada um estão nas páginas seguintes.</p>\n\n            <div class=\"table-wrapper\">\n                <table class=\"api-table\">\n                    <thead>\n                        <tr>\n                            <th>Categoria</th>\n                            <th>Método</th>\n                            <th>O que faz</th>\n                        </tr>\n                    </thead>\n                    <tbody>\n                        <tr>\n                            <td>Setup</td>\n                            <td><code>Init(config)</code></td>\n                            <td>Inicializa e exibe a janela.</td>\n                        </tr>\n\n                        <tr>\n                            <td>Setup</td>\n                            <td><code>AddTab(name, icon)</code></td>\n                            <td>Cria uma aba na sidebar.</td>\n                        </tr>\n\n                        <tr>\n                            <td>Widget</td>\n                            <td><code>AddButton(tab, cfg)</code></td>\n                            <td>Botão clicável.</td>\n                        </tr>\n\n                        <tr>\n                            <td>Widget</td>\n                            <td><code>AddToggle(tab, cfg)</code></td>\n                            <td>Interruptor on/off.</td>\n                        </tr>\n\n                        <tr>\n                            <td>Widget</td>\n                            <td><code>AddSlider(tab, cfg)</code></td>\n                            <td>Barra de valor.</td>\n                        </tr>\n\n                        <tr>\n                            <td>Widget</td>\n                            <td><code>AddDropdown(tab, cfg)</code></td>\n                            <td>Seleção com busca opcional.</td>\n                        </tr>\n\n                        <tr>\n                            <td>Widget</td>\n                            <td><code>AddTextBox(tab, cfg)</code></td>\n                            <td>Campo de texto.</td>\n                        </tr>\n\n                        <tr>\n                            <td>Widget</td>\n                            <td><code>AddLabel(tab, cfg)</code></td>\n                            <td>Rótulo de texto.</td>\n                        </tr>\n\n                        <tr>\n                            <td>Widget</td>\n                            <td><code>AddParagraph(tab, cfg)</code></td>\n                            <td>Parágrafo (texto longo).</td>\n                        </tr>\n\n                        <tr>\n                            <td>Widget</td>\n                            <td><code>AddSeparator(tab)</code></td>\n                            <td>Linha divisória.</td>\n                        </tr>\n\n                        <tr>\n                            <td>Feedback</td>\n                            <td><code>Notify(cfg)</code></td>\n                            <td>Notificação no canto da tela.</td>\n                        </tr>\n\n                        <tr>\n                            <td>Rodapé</td>\n                            <td><code>SetUser(name, rank)</code></td>\n                            <td>Nome/cargo no rodapé.</td>\n                        </tr>\n\n                        <tr>\n                            <td>Rodapé</td>\n                            <td><code>SetUserCallback(cb)</code></td>\n                            <td>Clique no rodapé.</td>\n                        </tr>\n\n                        <tr>\n                            <td>Janela</td>\n                            <td><code>ToggleVisibility()</code></td>\n                            <td>Mostra/esconde a UI.</td>\n                        </tr>\n\n                        <tr>\n                            <td>Janela</td>\n                            <td><code>Destroy()</code></td>\n                            <td>Remove tudo e desconecta eventos.</td>\n                        </tr>\n\n                        <tr>\n                            <td>Loading</td>\n                            <td><code>ShowLoading(cfg)</code></td>\n                            <td>Abre a tela de carregamento.</td>\n                        </tr>\n\n                        <tr>\n                            <td>Loading</td>\n                            <td><code>SetLoadingProgress(pct, msg)</code></td>\n                            <td>Progresso manual (0–1).</td>\n                        </tr>\n\n                        <tr>\n                            <td>Loading</td>\n                            <td><code>SetLoadingMessage(msg)</code></td>\n                            <td>Troca a mensagem.</td>\n                        </tr>\n\n                        <tr>\n                            <td>Loading</td>\n                            <td><code>QueueLoad(label, fn)</code></td>\n                            <td>Enfileira uma tarefa.</td>\n                        </tr>\n\n                        <tr>\n                            <td>Loading</td>\n                            <td><code>RunLoadQueue(onDone)</code></td>\n                            <td>Roda a fila e fecha.</td>\n                        </tr>\n\n                        <tr>\n                            <td>Loading</td>\n                            <td><code>FinishLoading(onDone)</code></td>\n                            <td>Fecha o loading manualmente.</td>\n                        </tr>\n\n                        <tr>\n                            <td>Perf</td>\n                            <td><code>BeginBatch()</code> / <code>EndBatch()</code></td>\n                            <td>Adiciona muitos widgets sem rebuild.</td>\n                        </tr>\n                    </tbody>\n                </table>\n            </div>\n\n            <div class=\"alert tip\">\n                <div class=\"alert-icon\"><i class=\"ri-lightbulb-line\"></i></div>\n                <div class=\"alert-content\">\n                    <div class=\"alert-title\">Encadeamento</div>\n                    <p class=\"alert-text\">Métodos de setup (<code>Init</code>, <code>SetUser</code>, <code>AddTab</code>, <code>AddSeparator</code>, loading) retornam <code>self</code>, então dá pra encadear. Já os <code>Add*</code> de widget retornam um <strong>handle</strong> (veja <strong>Handles &amp; :Set()</strong>).</p>\n                </div>\n            </div>"
     },
-    {
-        id: "teleport",
-        name: "Teleporte",
-        icon: "🗺️",
-        widgets: [
-            { type: "label", text: "🗺️ Teleportar para Estágio" },
-            { type: "dropdown", text: "Escolher Mapa", options: ["Mapa 1", "Mapa 2", "Mapa 3", "Mapa 4"], default: 0, search: true, id: "mapSelector" },
-            { type: "button", text: "Iniciar Teleporte", id: "teleportBtn" },
-            { type: "separator" },
-            { type: "textbox", text: "Teleportar por Altura (Eixo Y)", placeholder: "Insira a altura...", id: "heightY" }
-        ]
+    "carregamento": {
+        category: "Começando",
+        title: "Carregar a Library",
+        breadcrumb: "Carregamento",
+        faq: false,
+        search: "Carregar a Library A lib retorna a tabela LapoX . Use o arquivo local quando existir e caia para o GitHub como fallback. Local + Fallback Só GitHub Lua Copiar local LapoX local ok, lib = pcall(function() return loadstring(readfile(\"Library.lua\"))() end) if ok and lib then LapoX = lib else LapoX = loadstring(game:HttpGet( \"https://raw.githubusercontent.com/LapoLapoNaldo/Lapo-X/refs/heads/main/Library.lua\" ))() end Lua Copiar local LapoX = loadstring(game:HttpGet( \"https://raw.githubusercontent.com/LapoLapoNaldo/Lapo-X/refs/heads/main/Library.lua\" ))() Reexecução sem duplicar Sempre destrua a instância anterior ao rodar o script de novo. A própria lib já faz isso por título (veja a nota), mas guardar num global é mais seguro: Lua Copiar if _G._Lapo then pcall(function() _G._Lapo:Destroy() end) end -- ... carregar e montar a UI ... _G._Lapo = LapoX Singleton por título No Init , a lib guarda a instância em shared[\"LapoLibraryInstance_\" .. Title] e destrói automaticamente uma instância anterior com o mesmo título . Títulos diferentes geram janelas independentes.",
+        content: "\n            <h1 class=\"page-title\" id=\"carregar-a-library\">Carregar a Library</h1>\n\n            <p>A lib retorna a tabela <code>LapoX</code>. Use o arquivo local quando existir e caia para o GitHub como fallback.</p>\n\n            <div class=\"tabs-container\">\n                <div class=\"tabs-header\">\n                    <button class=\"tab-btn active\" data-tab=\"0\"><i class=\"ri-git-repository-line\"></i> Local + Fallback</button>\n<button class=\"tab-btn\" data-tab=\"1\"><i class=\"ri-cloud-line\"></i> Só GitHub</button>\n                </div>\n                <div class=\"tabs-body\">\n                    <div class=\"tab-content active\" data-tab=\"0\">\n\n            <div class=\"code-block-container\">\n                <div class=\"code-block-header\">\n                    <span class=\"code-language-tag\">Lua</span>\n                    <button class=\"copy-code-btn\"><i class=\"ri-file-copy-line\"></i> Copiar</button>\n                </div>\n                <pre class=\"language-lua\"><code>local LapoX\nlocal ok, lib = pcall(function()\n    return loadstring(readfile(\"Library.lua\"))()\nend)\nif ok and lib then\n    LapoX = lib\nelse\n    LapoX = loadstring(game:HttpGet(\n        \"https://raw.githubusercontent.com/LapoLapoNaldo/Lapo-X/refs/heads/main/Library.lua\"\n    ))()\nend</code></pre>\n            </div>\n            </div>\n<div class=\"tab-content\" data-tab=\"1\">\n\n            <div class=\"code-block-container\">\n                <div class=\"code-block-header\">\n                    <span class=\"code-language-tag\">Lua</span>\n                    <button class=\"copy-code-btn\"><i class=\"ri-file-copy-line\"></i> Copiar</button>\n                </div>\n                <pre class=\"language-lua\"><code>local LapoX = loadstring(game:HttpGet(\n    \"https://raw.githubusercontent.com/LapoLapoNaldo/Lapo-X/refs/heads/main/Library.lua\"\n))()</code></pre>\n            </div>\n            </div>\n                </div>\n            </div>\n\n            <h2 id=\"reexecucao-sem-duplicar\">Reexecução sem duplicar</h2>\n\n            <p>Sempre destrua a instância anterior ao rodar o script de novo. A própria lib já faz isso por título (veja a nota), mas guardar num global é mais seguro:</p>\n\n            <div class=\"code-block-container\">\n                <div class=\"code-block-header\">\n                    <span class=\"code-language-tag\">Lua</span>\n                    <button class=\"copy-code-btn\"><i class=\"ri-file-copy-line\"></i> Copiar</button>\n                </div>\n                <pre class=\"language-lua\"><code>if _G._Lapo then pcall(function() _G._Lapo:Destroy() end) end\n-- ... carregar e montar a UI ...\n_G._Lapo = LapoX</code></pre>\n            </div>\n\n            <div class=\"alert info\">\n                <div class=\"alert-icon\"><i class=\"ri-information-line\"></i></div>\n                <div class=\"alert-content\">\n                    <div class=\"alert-title\">Singleton por título</div>\n                    <p class=\"alert-text\">No <code>Init</code>, a lib guarda a instância em <code>shared[&quot;LapoLibraryInstance_&quot; .. Title]</code> e <strong>destrói automaticamente</strong> uma instância anterior com o <strong>mesmo título</strong>. Títulos diferentes geram janelas independentes.</p>\n                </div>\n            </div>"
     },
-    {
-        id: "settings",
-        name: "Ajustes",
-        icon: "⚙️",
-        widgets: [
-            { type: "label", text: "⚙️ Preferências do Script" },
-            { type: "toggle", text: "Bypassar Anti-Cheat", default: true, id: "bypassAnti" },
-            { type: "slider", text: "FPS Cap do Menu", min: 30, max: 240, default: 60, id: "fpsCap" },
-            { type: "paragraph", text: "Nota explicativa: O limitador de FPS atua reduzindo o frame-rate de renderização da Drawing API para diminuir o impacto no processador em computadores de baixo custo." }
-        ]
-    }
-];
-
-let simState = {
-    visible: true,
-    minimized: false,
-    mobile: false,
-    currentTabIdx: 0,
-    widgetValues: {
-        killAura: false,
-        auraRange: 15,
-        attackMode: "Mais Próximo",
-        mapSelector: "Mapa 1",
-        heightY: "",
-        bypassAnti: true,
-        fpsCap: 60
+    "inicio-rapido": {
+        category: "Começando",
+        title: "Início Rápido",
+        breadcrumb: "Início Rápido",
+        faq: false,
+        search: "Início Rápido Exemplo completo: abas, widgets variados, notificação e rodapé. Lua Copiar local LapoX = loadstring(game:HttpGet( \"https://raw.githubusercontent.com/LapoLapoNaldo/Lapo-X/refs/heads/main/Library.lua\" ))() -- 1) Abas ANTES do Init LapoX:AddTab(\"Principal\", \"🏠\") LapoX:AddTab(\"Config\", \"⚙️\") -- 2) Inicializa LapoX:Init({ Title = \"Meu Script\", ToggleKey = \"K\" }) LapoX:SetUser(\"Player\", \"Premium\") -- 3) Widgets (podem vir depois do Init) LapoX:AddButton(\"Principal\", { text = \"Executar\", callback = function() LapoX:Notify({ title = \"OK\", content = \"Rodou!\", duration = 3 }) end, }) local speed = LapoX:AddSlider(\"Config\", { text = \"Velocidade\", min = 0, max = 100, default = 50, callback = function(v) print(\"speed:\", v) end, }) speed:Set(80) -- altera por código Ordem recomendada ShowLoading (opcional) → AddTab (todas) → Init → Add* widgets. Abas adicionadas depois do Init também funcionam, mas declarar antes deixa o fluxo mais limpo.",
+        content: "\n            <h1 class=\"page-title\" id=\"inicio-rapido\">Início Rápido</h1>\n\n            <p>Exemplo completo: abas, widgets variados, notificação e rodapé.</p>\n\n            <div class=\"code-block-container\">\n                <div class=\"code-block-header\">\n                    <span class=\"code-language-tag\">Lua</span>\n                    <button class=\"copy-code-btn\"><i class=\"ri-file-copy-line\"></i> Copiar</button>\n                </div>\n                <pre class=\"language-lua\"><code>local LapoX = loadstring(game:HttpGet(\n    \"https://raw.githubusercontent.com/LapoLapoNaldo/Lapo-X/refs/heads/main/Library.lua\"\n))()\n\n-- 1) Abas ANTES do Init\nLapoX:AddTab(\"Principal\", \"🏠\")\nLapoX:AddTab(\"Config\", \"⚙️\")\n\n-- 2) Inicializa\nLapoX:Init({ Title = \"Meu Script\", ToggleKey = \"K\" })\nLapoX:SetUser(\"Player\", \"Premium\")\n\n-- 3) Widgets (podem vir depois do Init)\nLapoX:AddButton(\"Principal\", {\n    text = \"Executar\",\n    callback = function()\n        LapoX:Notify({ title = \"OK\", content = \"Rodou!\", duration = 3 })\n    end,\n})\n\nlocal speed = LapoX:AddSlider(\"Config\", {\n    text = \"Velocidade\", min = 0, max = 100, default = 50,\n    callback = function(v) print(\"speed:\", v) end,\n})\n\nspeed:Set(80) -- altera por código</code></pre>\n            </div>\n\n            <div class=\"alert important\">\n                <div class=\"alert-icon\"><i class=\"ri-information-line\"></i></div>\n                <div class=\"alert-content\">\n                    <div class=\"alert-title\">Ordem recomendada</div>\n                    <p class=\"alert-text\"><code>ShowLoading</code> (opcional) → <code>AddTab</code> (todas) → <code>Init</code> → <code>Add*</code> widgets. Abas adicionadas <strong>depois</strong> do <code>Init</code> também funcionam, mas declarar antes deixa o fluxo mais limpo.</p>\n                </div>\n            </div>"
+    },
+    "ciclo-de-vida": {
+        category: "Começando",
+        title: "Ciclo de Vida",
+        breadcrumb: "Ciclo de Vida",
+        faq: false,
+        search: "Ciclo de Vida O caminho completo de uma sessão, do load ao destroy. Carregar a lib ( loadstring ). (Opcional) ShowLoading — abre a tela animada e ativa o modo batch internamente. AddTab — registre as abas. Init — cria a janela, detecta mobile, monta input e começa a renderizar. Add* — adicione widgets nas abas. (Opcional) QueueLoad + RunLoadQueue — roda tarefas e fecha o loading com fade-out. Runtime — :Set() nos handles, Notify , ToggleVisibility ... Destroy — ao encerrar, limpa desenhos e conexões. Loading suprime rebuilds Enquanto o loading está ativo, a UI entra em modo batch automaticamente — todos os widgets adicionados nesse período só são montados de uma vez quando o loading termina. Isso deixa a abertura bem mais rápida.",
+        content: "\n            <h1 class=\"page-title\" id=\"ciclo-de-vida\">Ciclo de Vida</h1>\n\n            <p>O caminho completo de uma sessão, do load ao destroy.</p>\n\n            <ol class=\"list-default\">\n                <li><strong>Carregar</strong> a lib (<code>loadstring</code>).</li>\n                <li><strong>(Opcional) <code>ShowLoading</code></strong> — abre a tela animada e ativa o modo batch internamente.</li>\n                <li><strong><code>AddTab</code></strong> — registre as abas.</li>\n                <li><strong><code>Init</code></strong> — cria a janela, detecta mobile, monta input e começa a renderizar.</li>\n                <li><strong><code>Add*</code></strong> — adicione widgets nas abas.</li>\n                <li><strong>(Opcional) <code>QueueLoad</code> + <code>RunLoadQueue</code></strong> — roda tarefas e fecha o loading com fade-out.</li>\n                <li><strong>Runtime</strong> — <code>:Set()</code> nos handles, <code>Notify</code>, <code>ToggleVisibility</code>...</li>\n                <li><strong><code>Destroy</code></strong> — ao encerrar, limpa desenhos e conexões.</li>\n            </ol>\n\n            <div class=\"alert tip\">\n                <div class=\"alert-icon\"><i class=\"ri-lightbulb-line\"></i></div>\n                <div class=\"alert-content\">\n                    <div class=\"alert-title\">Loading suprime rebuilds</div>\n                    <p class=\"alert-text\">Enquanto o loading está ativo, a UI entra em <strong>modo batch</strong> automaticamente — todos os widgets adicionados nesse período só são montados de uma vez quando o loading termina. Isso deixa a abertura bem mais rápida.</p>\n                </div>\n            </div>"
+    },
+    "config-init": {
+        category: "Configuração",
+        title: "Init",
+        breadcrumb: "Init",
+        faq: false,
+        search: "Init Inicializa e exibe a janela. Chame depois de declarar as abas. Retorna self . Lua Copiar LapoX:Init({ Title = \"Meu Script\", ToggleKey = \"K\", }) Config Parâmetro Tipo Padrão Descrição Title string \"Lapo Library X\" Título no cabeçalho. Também é a chave do singleton. ToggleKey string \"End\" Tecla que mostra/esconde a janela. Nome de KeyCode (ex.: \"K\") ou EnumItem. O que o Init faz Registra o singleton e destrói uma instância anterior de mesmo Title . Detecta mobile ( TouchEnabled e sem teclado) e ajusta a escala (0.72 no mobile, 1 no desktop). Define o tamanho/posição da janela (desktop: 960×600 em (120, 80) ; mobile: proporcional à viewport). Cria o *input sink* (captura de teclado/clique) e inicia o loop de render. Restaura a aba atual salva, se houver config anterior. Sem Drawing API Se o executor não tiver Drawing.new , o Init emite um warn e retorna sem montar a UI. Os Add* viram no-op visual. Cheque os Requisitos .",
+        content: "\n            <h1 class=\"page-title\" id=\"init\">Init</h1>\n\n            <p>Inicializa e exibe a janela. Chame <strong>depois</strong> de declarar as abas. Retorna <code>self</code>.</p>\n\n            <div class=\"code-block-container\">\n                <div class=\"code-block-header\">\n                    <span class=\"code-language-tag\">Lua</span>\n                    <button class=\"copy-code-btn\"><i class=\"ri-file-copy-line\"></i> Copiar</button>\n                </div>\n                <pre class=\"language-lua\"><code>LapoX:Init({\n    Title     = \"Meu Script\",\n    ToggleKey = \"K\",\n})</code></pre>\n            </div>\n\n            <h2 id=\"config\">Config</h2>\n\n            <div class=\"table-wrapper\">\n                <table class=\"api-table\">\n                    <thead>\n                        <tr>\n                            <th>Parâmetro</th>\n                            <th>Tipo</th>\n                            <th>Padrão</th>\n                            <th>Descrição</th>\n                        </tr>\n                    </thead>\n                    <tbody>\n                        <tr>\n                            <td><code>Title</code></td>\n                            <td><span class=\"type-badge string\">string</span></td>\n                            <td><code>&quot;Lapo Library X&quot;</code></td>\n                            <td>Título no cabeçalho. Também é a chave do singleton.</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>ToggleKey</code></td>\n                            <td><span class=\"type-badge string\">string</span></td>\n                            <td><code>&quot;End&quot;</code></td>\n                            <td>Tecla que mostra/esconde a janela. Nome de KeyCode (ex.: &quot;K&quot;) ou EnumItem.</td>\n                        </tr>\n                    </tbody>\n                </table>\n            </div>\n\n            <h2 id=\"o-que-o-init-faz\">O que o Init faz</h2>\n\n            <ul class=\"list-default\">\n                <li>Registra o singleton e <strong>destrói</strong> uma instância anterior de mesmo <code>Title</code>.</li>\n                <li>Detecta <strong>mobile</strong> (<code>TouchEnabled</code> e sem teclado) e ajusta a escala (0.72 no mobile, 1 no desktop).</li>\n                <li>Define o tamanho/posição da janela (desktop: <strong>960×600</strong> em <code>(120, 80)</code>; mobile: proporcional à viewport).</li>\n                <li>Cria o *input sink* (captura de teclado/clique) e inicia o loop de render.</li>\n                <li>Restaura a aba atual salva, se houver config anterior.</li>\n            </ul>\n\n            <div class=\"alert warning\">\n                <div class=\"alert-icon\"><i class=\"ri-alert-line\"></i></div>\n                <div class=\"alert-content\">\n                    <div class=\"alert-title\">Sem Drawing API</div>\n                    <p class=\"alert-text\">Se o executor não tiver <code>Drawing.new</code>, o <code>Init</code> emite um <code>warn</code> e retorna sem montar a UI. Os <code>Add*</code> viram no-op visual. Cheque os <strong>Requisitos</strong>.</p>\n                </div>\n            </div>"
+    },
+    "config-tabs": {
+        category: "Configuração",
+        title: "Abas (AddTab)",
+        breadcrumb: "Abas",
+        faq: false,
+        search: "Abas Cada aba é um item da sidebar. O indicador da aba ativa desliza ao trocar. Retorna self . Lua Copiar LapoX:AddTab(\"Principal\", \"🏠\") LapoX:AddTab(\"Config\", \"⚙️\") Parâmetros Parâmetro Tipo Descrição name string Nome da aba — também é o ID usado nos Add* . icon string Prefixo visual opcional (emoji). Pode ser \"\" . Referenciando a aba Nos Add* , o primeiro argumento aceita o nome ou o índice da aba: Lua Copiar LapoX:AddButton(\"Config\", { text = \"A\" }) -- por nome LapoX:AddButton(2, { text = \"B\" }) -- por índice (2ª aba) Abas dinâmicas Dá pra chamar AddTab depois do Init — a sidebar e o layout são reconstruídos na hora.",
+        content: "\n            <h1 class=\"page-title\" id=\"abas\">Abas</h1>\n\n            <p>Cada aba é um item da sidebar. O indicador da aba ativa <strong>desliza</strong> ao trocar. Retorna <code>self</code>.</p>\n\n            <div class=\"code-block-container\">\n                <div class=\"code-block-header\">\n                    <span class=\"code-language-tag\">Lua</span>\n                    <button class=\"copy-code-btn\"><i class=\"ri-file-copy-line\"></i> Copiar</button>\n                </div>\n                <pre class=\"language-lua\"><code>LapoX:AddTab(\"Principal\", \"🏠\")\nLapoX:AddTab(\"Config\", \"⚙️\")</code></pre>\n            </div>\n\n            <h2 id=\"parametros\">Parâmetros</h2>\n\n            <div class=\"table-wrapper\">\n                <table class=\"api-table\">\n                    <thead>\n                        <tr>\n                            <th>Parâmetro</th>\n                            <th>Tipo</th>\n                            <th>Descrição</th>\n                        </tr>\n                    </thead>\n                    <tbody>\n                        <tr>\n                            <td><code>name</code></td>\n                            <td>string</td>\n                            <td>Nome da aba — também é o ID usado nos <code>Add*</code>.</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>icon</code></td>\n                            <td>string</td>\n                            <td>Prefixo visual opcional (emoji). Pode ser <code>&quot;&quot;</code>.</td>\n                        </tr>\n                    </tbody>\n                </table>\n            </div>\n\n            <h2 id=\"referenciando-a-aba\">Referenciando a aba</h2>\n\n            <p>Nos <code>Add*</code>, o primeiro argumento aceita o <strong>nome</strong> ou o <strong>índice</strong> da aba:</p>\n\n            <div class=\"code-block-container\">\n                <div class=\"code-block-header\">\n                    <span class=\"code-language-tag\">Lua</span>\n                    <button class=\"copy-code-btn\"><i class=\"ri-file-copy-line\"></i> Copiar</button>\n                </div>\n                <pre class=\"language-lua\"><code>LapoX:AddButton(\"Config\", { text = \"A\" })  -- por nome\nLapoX:AddButton(2, { text = \"B\" })          -- por índice (2ª aba)</code></pre>\n            </div>\n\n            <div class=\"alert info\">\n                <div class=\"alert-icon\"><i class=\"ri-information-line\"></i></div>\n                <div class=\"alert-content\">\n                    <div class=\"alert-title\">Abas dinâmicas</div>\n                    <p class=\"alert-text\">Dá pra chamar <code>AddTab</code> <strong>depois</strong> do <code>Init</code> — a sidebar e o layout são reconstruídos na hora.</p>\n                </div>\n            </div>"
+    },
+    "config-tema": {
+        category: "Configuração",
+        title: "Tema & Paleta",
+        breadcrumb: "Tema",
+        faq: false,
+        search: "Tema & Paleta A lib usa uma paleta fixa (roxo/índigo sobre fundo quase-preto). Útil conhecer os tons ao combinar com seu projeto. Token RGB Uso Accent 120, 80, 255 Cor principal (destaques, ativo, fill). AccentGlow 140, 100, 255 Brilho/realce do accent. AccentDim 70, 45, 160 Accent apagado (press). BgDeep 10, 10, 18 Fundo mais escuro (notify/loading). BgBase 14, 14, 26 Fundo da janela/conteúdo. BgPanel 18, 18, 32 Sidebar e hover de widget. BgWidget 22, 22, 38 Fundo dos widgets. On 50, 220, 120 Estado ligado (toggle). Text 220, 220, 235 Texto principal. TextSub 110, 110, 140 Texto secundário. Danger 220, 55, 55 Botão fechar. Paleta fixa A paleta não é exposta como API pública — está documentada aqui só para referência visual. Para temas customizados, edite a tabela Theme na fonte da lib.",
+        content: "\n            <h1 class=\"page-title\" id=\"tema-paleta\">Tema &amp; Paleta</h1>\n\n            <p>A lib usa uma paleta fixa (roxo/índigo sobre fundo quase-preto). Útil conhecer os tons ao combinar com seu projeto.</p>\n\n            <div class=\"table-wrapper\">\n                <table class=\"api-table\">\n                    <thead>\n                        <tr>\n                            <th>Token</th>\n                            <th>RGB</th>\n                            <th>Uso</th>\n                        </tr>\n                    </thead>\n                    <tbody>\n                        <tr>\n                            <td><code>Accent</code></td>\n                            <td>120, 80, 255</td>\n                            <td>Cor principal (destaques, ativo, fill).</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>AccentGlow</code></td>\n                            <td>140, 100, 255</td>\n                            <td>Brilho/realce do accent.</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>AccentDim</code></td>\n                            <td>70, 45, 160</td>\n                            <td>Accent apagado (press).</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>BgDeep</code></td>\n                            <td>10, 10, 18</td>\n                            <td>Fundo mais escuro (notify/loading).</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>BgBase</code></td>\n                            <td>14, 14, 26</td>\n                            <td>Fundo da janela/conteúdo.</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>BgPanel</code></td>\n                            <td>18, 18, 32</td>\n                            <td>Sidebar e hover de widget.</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>BgWidget</code></td>\n                            <td>22, 22, 38</td>\n                            <td>Fundo dos widgets.</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>On</code></td>\n                            <td>50, 220, 120</td>\n                            <td>Estado ligado (toggle).</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>Text</code></td>\n                            <td>220, 220, 235</td>\n                            <td>Texto principal.</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>TextSub</code></td>\n                            <td>110, 110, 140</td>\n                            <td>Texto secundário.</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>Danger</code></td>\n                            <td>220, 55, 55</td>\n                            <td>Botão fechar.</td>\n                        </tr>\n                    </tbody>\n                </table>\n            </div>\n\n            <div class=\"alert info\">\n                <div class=\"alert-icon\"><i class=\"ri-information-line\"></i></div>\n                <div class=\"alert-content\">\n                    <div class=\"alert-title\">Paleta fixa</div>\n                    <p class=\"alert-text\">A paleta não é exposta como API pública — está documentada aqui só para referência visual. Para temas customizados, edite a tabela <code>Theme</code> na fonte da lib.</p>\n                </div>\n            </div>"
+    },
+    "widget-handles": {
+        category: "Widgets",
+        title: "Handles & :Set()",
+        breadcrumb: "Handles",
+        faq: false,
+        search: "Handles & :Set() Os Add* de widget retornam um handle — uma tabela pequena para controlar aquele widget por código depois de criado. O que cada widget devolve Método Handle Métodos do handle AddButton Sim — (sem :Set ) AddToggle Sim :Set(bool) AddSlider Sim :Set(number) AddDropdown Sim :Set(valor) ou :Set({opções}) AddTextBox Sim :Set(texto) AddLabel Sim :updateText(t) / :Set(t) AddParagraph Sim :updateText(t) / :Set(t) AddSeparator Não retorna self Exemplo Lua Copiar local toggle = LapoX:AddToggle(\"Geral\", { text = \"Modo Turbo\" }) local label = LapoX:AddLabel(\"Geral\", { text = \"Status: —\" }) toggle:Set(true) label:Set(\"Status: ligado\") Reutilizar a mesma config O handle encontra o widget pela identidade da tabela de config passada. Se você reaproveitar a mesma tabela cfg em dois widgets, o :Set afeta só o primeiro. Use uma tabela nova por widget.",
+        content: "\n            <h1 class=\"page-title\" id=\"handles-set\">Handles &amp; :Set()</h1>\n\n            <p>Os <code>Add*</code> de widget retornam um <strong>handle</strong> — uma tabela pequena para controlar aquele widget por código depois de criado.</p>\n\n            <h2 id=\"o-que-cada-widget-devolve\">O que cada widget devolve</h2>\n\n            <div class=\"table-wrapper\">\n                <table class=\"api-table\">\n                    <thead>\n                        <tr>\n                            <th>Método</th>\n                            <th>Handle</th>\n                            <th>Métodos do handle</th>\n                        </tr>\n                    </thead>\n                    <tbody>\n                        <tr>\n                            <td><code>AddButton</code></td>\n                            <td>Sim</td>\n                            <td>— (sem <code>:Set</code>)</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>AddToggle</code></td>\n                            <td>Sim</td>\n                            <td><code>:Set(bool)</code></td>\n                        </tr>\n\n                        <tr>\n                            <td><code>AddSlider</code></td>\n                            <td>Sim</td>\n                            <td><code>:Set(number)</code></td>\n                        </tr>\n\n                        <tr>\n                            <td><code>AddDropdown</code></td>\n                            <td>Sim</td>\n                            <td><code>:Set(valor)</code> ou <code>:Set({opções})</code></td>\n                        </tr>\n\n                        <tr>\n                            <td><code>AddTextBox</code></td>\n                            <td>Sim</td>\n                            <td><code>:Set(texto)</code></td>\n                        </tr>\n\n                        <tr>\n                            <td><code>AddLabel</code></td>\n                            <td>Sim</td>\n                            <td><code>:updateText(t)</code> / <code>:Set(t)</code></td>\n                        </tr>\n\n                        <tr>\n                            <td><code>AddParagraph</code></td>\n                            <td>Sim</td>\n                            <td><code>:updateText(t)</code> / <code>:Set(t)</code></td>\n                        </tr>\n\n                        <tr>\n                            <td><code>AddSeparator</code></td>\n                            <td>Não</td>\n                            <td>retorna <code>self</code></td>\n                        </tr>\n                    </tbody>\n                </table>\n            </div>\n\n            <h2 id=\"exemplo\">Exemplo</h2>\n\n            <div class=\"code-block-container\">\n                <div class=\"code-block-header\">\n                    <span class=\"code-language-tag\">Lua</span>\n                    <button class=\"copy-code-btn\"><i class=\"ri-file-copy-line\"></i> Copiar</button>\n                </div>\n                <pre class=\"language-lua\"><code>local toggle = LapoX:AddToggle(\"Geral\", { text = \"Modo Turbo\" })\nlocal label  = LapoX:AddLabel(\"Geral\", { text = \"Status: —\" })\n\ntoggle:Set(true)\nlabel:Set(\"Status: ligado\")</code></pre>\n            </div>\n\n            <div class=\"alert warning\">\n                <div class=\"alert-icon\"><i class=\"ri-alert-line\"></i></div>\n                <div class=\"alert-content\">\n                    <div class=\"alert-title\">Reutilizar a mesma config</div>\n                    <p class=\"alert-text\">O handle encontra o widget pela <strong>identidade da tabela de config</strong> passada. Se você reaproveitar a <strong>mesma</strong> tabela <code>cfg</code> em dois widgets, o <code>:Set</code> afeta só o primeiro. Use uma tabela nova por widget.</p>\n                </div>\n            </div>"
+    },
+    "widget-button": {
+        category: "Widgets",
+        title: "Button",
+        breadcrumb: "Button",
+        faq: false,
+        search: "Button Botão clicável com feedback de hover e clique (a barra lateral cresce e brilha no press). Altura 48px. Lua Copiar LapoX:AddButton(\"Principal\", { text = \"Salvar\", callback = function() print(\"clicou!\") end, }) Config Parâmetro Tipo Padrão Descrição text string \"Button\" Rótulo do botão. callback function noop Chamado no clique (protegido por pcall). Sem handle :Set — o botão é uma ação, não um estado.",
+        content: "\n            <h1 class=\"page-title\" id=\"button\">Button</h1>\n\n            <p>Botão clicável com feedback de hover e clique (a barra lateral cresce e brilha no press). Altura 48px.</p>\n\n            <div class=\"code-block-container\">\n                <div class=\"code-block-header\">\n                    <span class=\"code-language-tag\">Lua</span>\n                    <button class=\"copy-code-btn\"><i class=\"ri-file-copy-line\"></i> Copiar</button>\n                </div>\n                <pre class=\"language-lua\"><code>LapoX:AddButton(\"Principal\", {\n    text = \"Salvar\",\n    callback = function() print(\"clicou!\") end,\n})</code></pre>\n            </div>\n\n            <h2 id=\"config\">Config</h2>\n\n            <div class=\"table-wrapper\">\n                <table class=\"api-table\">\n                    <thead>\n                        <tr>\n                            <th>Parâmetro</th>\n                            <th>Tipo</th>\n                            <th>Padrão</th>\n                            <th>Descrição</th>\n                        </tr>\n                    </thead>\n                    <tbody>\n                        <tr>\n                            <td><code>text</code></td>\n                            <td><span class=\"type-badge string\">string</span></td>\n                            <td><code>&quot;Button&quot;</code></td>\n                            <td>Rótulo do botão.</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>callback</code></td>\n                            <td><span class=\"type-badge function\">function</span></td>\n                            <td><code>noop</code></td>\n                            <td>Chamado no clique (protegido por pcall).</td>\n                        </tr>\n                    </tbody>\n                </table>\n            </div>\n\n            <p>Sem handle <code>:Set</code> — o botão é uma ação, não um estado.</p>"
+    },
+    "widget-toggle": {
+        category: "Widgets",
+        title: "Toggle",
+        breadcrumb: "Toggle",
+        faq: false,
+        search: "Toggle Interruptor on/off. O knob desliza ao alternar e o callback recebe o novo estado. Altura 48px. Lua Copiar local t = LapoX:AddToggle(\"Principal\", { text = \"Ativar Recurso\", default = false, callback = function(value) print(\"estado:\", value) end, }) t:Set(true) -- alterna por código (dispara o callback se mudou) Config Parâmetro Tipo Padrão Descrição text string \"Toggle\" Rótulo. default boolean false Estado inicial. callback function noop Recebe (value: boolean) ao alternar. Handle Método Descrição :Set(bool) Define o estado. Só dispara o callback se o valor mudou.",
+        content: "\n            <h1 class=\"page-title\" id=\"toggle\">Toggle</h1>\n\n            <p>Interruptor on/off. O knob <strong>desliza</strong> ao alternar e o callback recebe o novo estado. Altura 48px.</p>\n\n            <div class=\"code-block-container\">\n                <div class=\"code-block-header\">\n                    <span class=\"code-language-tag\">Lua</span>\n                    <button class=\"copy-code-btn\"><i class=\"ri-file-copy-line\"></i> Copiar</button>\n                </div>\n                <pre class=\"language-lua\"><code>local t = LapoX:AddToggle(\"Principal\", {\n    text    = \"Ativar Recurso\",\n    default = false,\n    callback = function(value) print(\"estado:\", value) end,\n})\n\nt:Set(true)   -- alterna por código (dispara o callback se mudou)</code></pre>\n            </div>\n\n            <h2 id=\"config\">Config</h2>\n\n            <div class=\"table-wrapper\">\n                <table class=\"api-table\">\n                    <thead>\n                        <tr>\n                            <th>Parâmetro</th>\n                            <th>Tipo</th>\n                            <th>Padrão</th>\n                            <th>Descrição</th>\n                        </tr>\n                    </thead>\n                    <tbody>\n                        <tr>\n                            <td><code>text</code></td>\n                            <td><span class=\"type-badge string\">string</span></td>\n                            <td><code>&quot;Toggle&quot;</code></td>\n                            <td>Rótulo.</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>default</code></td>\n                            <td><span class=\"type-badge boolean\">boolean</span></td>\n                            <td><code>false</code></td>\n                            <td>Estado inicial.</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>callback</code></td>\n                            <td><span class=\"type-badge function\">function</span></td>\n                            <td><code>noop</code></td>\n                            <td>Recebe <code>(value: boolean)</code> ao alternar.</td>\n                        </tr>\n                    </tbody>\n                </table>\n            </div>\n\n            <h2 id=\"handle\">Handle</h2>\n\n            <div class=\"table-wrapper\">\n                <table class=\"api-table\">\n                    <thead>\n                        <tr>\n                            <th>Método</th>\n                            <th>Descrição</th>\n                        </tr>\n                    </thead>\n                    <tbody>\n                        <tr>\n                            <td><code>:Set(bool)</code></td>\n                            <td>Define o estado. Só dispara o callback se o valor mudou.</td>\n                        </tr>\n                    </tbody>\n                </table>\n            </div>"
+    },
+    "widget-slider": {
+        category: "Widgets",
+        title: "Slider",
+        breadcrumb: "Slider",
+        faq: false,
+        search: "Slider Barra de valor arrastável entre min e max . O thumb cresce no hover. Altura 64px. Lua Copiar local s = LapoX:AddSlider(\"Principal\", { text = \"Velocidade\", min = 0, max = 100, default = 50, callback = function(v) print(\"valor:\", v) end, }) s:Set(75) Config Parâmetro Tipo Padrão Descrição text string \"Slider\" Rótulo. min number 0 Valor mínimo. max number 100 Valor máximo. default number (min+max)/2 Valor inicial (arredondado). callback function noop Recebe (value: number) ao arrastar/mudar. Handle Método Descrição :Set(number) Define o valor (clampado em min..max) e dispara o callback. Valor exibido O número mostrado ao lado é o valor arredondado ( math.floor ). O callback recebe o valor cru.",
+        content: "\n            <h1 class=\"page-title\" id=\"slider\">Slider</h1>\n\n            <p>Barra de valor arrastável entre <code>min</code> e <code>max</code>. O thumb cresce no hover. Altura 64px.</p>\n\n            <div class=\"code-block-container\">\n                <div class=\"code-block-header\">\n                    <span class=\"code-language-tag\">Lua</span>\n                    <button class=\"copy-code-btn\"><i class=\"ri-file-copy-line\"></i> Copiar</button>\n                </div>\n                <pre class=\"language-lua\"><code>local s = LapoX:AddSlider(\"Principal\", {\n    text    = \"Velocidade\",\n    min     = 0,\n    max     = 100,\n    default = 50,\n    callback = function(v) print(\"valor:\", v) end,\n})\n\ns:Set(75)</code></pre>\n            </div>\n\n            <h2 id=\"config\">Config</h2>\n\n            <div class=\"table-wrapper\">\n                <table class=\"api-table\">\n                    <thead>\n                        <tr>\n                            <th>Parâmetro</th>\n                            <th>Tipo</th>\n                            <th>Padrão</th>\n                            <th>Descrição</th>\n                        </tr>\n                    </thead>\n                    <tbody>\n                        <tr>\n                            <td><code>text</code></td>\n                            <td><span class=\"type-badge string\">string</span></td>\n                            <td><code>&quot;Slider&quot;</code></td>\n                            <td>Rótulo.</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>min</code></td>\n                            <td><span class=\"type-badge number\">number</span></td>\n                            <td><code>0</code></td>\n                            <td>Valor mínimo.</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>max</code></td>\n                            <td><span class=\"type-badge number\">number</span></td>\n                            <td><code>100</code></td>\n                            <td>Valor máximo.</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>default</code></td>\n                            <td><span class=\"type-badge number\">number</span></td>\n                            <td><code>(min+max)/2</code></td>\n                            <td>Valor inicial (arredondado).</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>callback</code></td>\n                            <td><span class=\"type-badge function\">function</span></td>\n                            <td><code>noop</code></td>\n                            <td>Recebe <code>(value: number)</code> ao arrastar/mudar.</td>\n                        </tr>\n                    </tbody>\n                </table>\n            </div>\n\n            <h2 id=\"handle\">Handle</h2>\n\n            <div class=\"table-wrapper\">\n                <table class=\"api-table\">\n                    <thead>\n                        <tr>\n                            <th>Método</th>\n                            <th>Descrição</th>\n                        </tr>\n                    </thead>\n                    <tbody>\n                        <tr>\n                            <td><code>:Set(number)</code></td>\n                            <td>Define o valor (clampado em min..max) e dispara o callback.</td>\n                        </tr>\n                    </tbody>\n                </table>\n            </div>\n\n            <div class=\"alert info\">\n                <div class=\"alert-icon\"><i class=\"ri-information-line\"></i></div>\n                <div class=\"alert-content\">\n                    <div class=\"alert-title\">Valor exibido</div>\n                    <p class=\"alert-text\">O número mostrado ao lado é o valor <strong>arredondado</strong> (<code>math.floor</code>). O callback recebe o valor cru.</p>\n                </div>\n            </div>"
+    },
+    "widget-dropdown": {
+        category: "Widgets",
+        title: "Dropdown",
+        breadcrumb: "Dropdown",
+        faq: false,
+        search: "Dropdown Menu de seleção com busca opcional e scroll. Mostra até 6 itens por vez; o resto rola (roda do mouse ou arraste no toque). Lua Copiar local d = LapoX:AddDropdown(\"Principal\", { text = \"Modo\", options = { \"Fácil\", \"Normal\", \"Difícil\" }, default = 1, search = true, callback = function(index, value) print(index, value) end, }) d:Set(\"Difícil\") -- seleciona por valor d:Set({ \"Novo A\", \"Novo B\", \"Novo C\" }) -- troca a lista inteira (reseta seleção) Config Parâmetro Tipo Padrão Descrição text string \"Dropdown\" Rótulo. options table {} Lista de opções (strings). default number 1 Índice inicial selecionado. search boolean false Ativa a barra de busca (só ativa se for exatamente true ). callback function noop Recebe (index: number, value: string) ao escolher. Handle Método Descrição :Set(valor) Seleciona a opção igual ao valor (se existir). :Set({...}) Substitui a lista de opções e reseta para o 1º item. Busca não obriga a digitar Abrir um dropdown com search = true não captura o teclado. A busca só liga quando você clica na caixa de pesquisa — dá pra só rolar e escolher.",
+        content: "\n            <h1 class=\"page-title\" id=\"dropdown\">Dropdown</h1>\n\n            <p>Menu de seleção com <strong>busca</strong> opcional e scroll. Mostra até <strong>6</strong> itens por vez; o resto rola (roda do mouse ou arraste no toque).</p>\n\n            <div class=\"code-block-container\">\n                <div class=\"code-block-header\">\n                    <span class=\"code-language-tag\">Lua</span>\n                    <button class=\"copy-code-btn\"><i class=\"ri-file-copy-line\"></i> Copiar</button>\n                </div>\n                <pre class=\"language-lua\"><code>local d = LapoX:AddDropdown(\"Principal\", {\n    text    = \"Modo\",\n    options = { \"Fácil\", \"Normal\", \"Difícil\" },\n    default = 1,\n    search  = true,\n    callback = function(index, value)\n        print(index, value)\n    end,\n})\n\nd:Set(\"Difícil\")                        -- seleciona por valor\nd:Set({ \"Novo A\", \"Novo B\", \"Novo C\" }) -- troca a lista inteira (reseta seleção)</code></pre>\n            </div>\n\n            <h2 id=\"config\">Config</h2>\n\n            <div class=\"table-wrapper\">\n                <table class=\"api-table\">\n                    <thead>\n                        <tr>\n                            <th>Parâmetro</th>\n                            <th>Tipo</th>\n                            <th>Padrão</th>\n                            <th>Descrição</th>\n                        </tr>\n                    </thead>\n                    <tbody>\n                        <tr>\n                            <td><code>text</code></td>\n                            <td><span class=\"type-badge string\">string</span></td>\n                            <td><code>&quot;Dropdown&quot;</code></td>\n                            <td>Rótulo.</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>options</code></td>\n                            <td><span class=\"type-badge table\">table</span></td>\n                            <td><code>{}</code></td>\n                            <td>Lista de opções (strings).</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>default</code></td>\n                            <td><span class=\"type-badge number\">number</span></td>\n                            <td><code>1</code></td>\n                            <td>Índice inicial selecionado.</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>search</code></td>\n                            <td><span class=\"type-badge boolean\">boolean</span></td>\n                            <td><code>false</code></td>\n                            <td>Ativa a barra de busca (só ativa se for exatamente <code>true</code>).</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>callback</code></td>\n                            <td><span class=\"type-badge function\">function</span></td>\n                            <td><code>noop</code></td>\n                            <td>Recebe <code>(index: number, value: string)</code> ao escolher.</td>\n                        </tr>\n                    </tbody>\n                </table>\n            </div>\n\n            <h2 id=\"handle\">Handle</h2>\n\n            <div class=\"table-wrapper\">\n                <table class=\"api-table\">\n                    <thead>\n                        <tr>\n                            <th>Método</th>\n                            <th>Descrição</th>\n                        </tr>\n                    </thead>\n                    <tbody>\n                        <tr>\n                            <td><code>:Set(valor)</code></td>\n                            <td>Seleciona a opção igual ao valor (se existir).</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>:Set({...})</code></td>\n                            <td>Substitui a lista de opções e reseta para o 1º item.</td>\n                        </tr>\n                    </tbody>\n                </table>\n            </div>\n\n            <div class=\"alert tip\">\n                <div class=\"alert-icon\"><i class=\"ri-lightbulb-line\"></i></div>\n                <div class=\"alert-content\">\n                    <div class=\"alert-title\">Busca não obriga a digitar</div>\n                    <p class=\"alert-text\">Abrir um dropdown com <code>search = true</code> <strong>não</strong> captura o teclado. A busca só liga quando você clica na caixa de pesquisa — dá pra só rolar e escolher.</p>\n                </div>\n            </div>"
+    },
+    "widget-textbox": {
+        category: "Widgets",
+        title: "TextBox",
+        breadcrumb: "TextBox",
+        faq: false,
+        search: "TextBox Campo de texto. Clique para focar (a borda acende), digite e confirme com Enter — aí o callback dispara. Altura 60px. Lua Copiar local box = LapoX:AddTextBox(\"Principal\", { text = \"Seu nome\", placeholder = \"Digite aqui...\", callback = function(texto) print(\"digitou:\", texto) end, }) box:Set(\"valor inicial\") Config Parâmetro Tipo Padrão Descrição text string \"TextBox\" Rótulo acima do campo. placeholder string \"Type here...\" Texto-fantasma quando vazio. callback function noop Recebe (texto: string) ao confirmar (Enter / perder foco). Handle Método Descrição :Set(texto) Preenche o valor do campo.",
+        content: "\n            <h1 class=\"page-title\" id=\"textbox\">TextBox</h1>\n\n            <p>Campo de texto. Clique para focar (a borda acende), digite e confirme com <strong>Enter</strong> — aí o callback dispara. Altura 60px.</p>\n\n            <div class=\"code-block-container\">\n                <div class=\"code-block-header\">\n                    <span class=\"code-language-tag\">Lua</span>\n                    <button class=\"copy-code-btn\"><i class=\"ri-file-copy-line\"></i> Copiar</button>\n                </div>\n                <pre class=\"language-lua\"><code>local box = LapoX:AddTextBox(\"Principal\", {\n    text        = \"Seu nome\",\n    placeholder = \"Digite aqui...\",\n    callback    = function(texto) print(\"digitou:\", texto) end,\n})\n\nbox:Set(\"valor inicial\")</code></pre>\n            </div>\n\n            <h2 id=\"config\">Config</h2>\n\n            <div class=\"table-wrapper\">\n                <table class=\"api-table\">\n                    <thead>\n                        <tr>\n                            <th>Parâmetro</th>\n                            <th>Tipo</th>\n                            <th>Padrão</th>\n                            <th>Descrição</th>\n                        </tr>\n                    </thead>\n                    <tbody>\n                        <tr>\n                            <td><code>text</code></td>\n                            <td><span class=\"type-badge string\">string</span></td>\n                            <td><code>&quot;TextBox&quot;</code></td>\n                            <td>Rótulo acima do campo.</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>placeholder</code></td>\n                            <td><span class=\"type-badge string\">string</span></td>\n                            <td><code>&quot;Type here...&quot;</code></td>\n                            <td>Texto-fantasma quando vazio.</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>callback</code></td>\n                            <td><span class=\"type-badge function\">function</span></td>\n                            <td><code>noop</code></td>\n                            <td>Recebe <code>(texto: string)</code> ao confirmar (Enter / perder foco).</td>\n                        </tr>\n                    </tbody>\n                </table>\n            </div>\n\n            <h2 id=\"handle\">Handle</h2>\n\n            <div class=\"table-wrapper\">\n                <table class=\"api-table\">\n                    <thead>\n                        <tr>\n                            <th>Método</th>\n                            <th>Descrição</th>\n                        </tr>\n                    </thead>\n                    <tbody>\n                        <tr>\n                            <td><code>:Set(texto)</code></td>\n                            <td>Preenche o valor do campo.</td>\n                        </tr>\n                    </tbody>\n                </table>\n            </div>"
+    },
+    "widget-texto": {
+        category: "Widgets",
+        title: "Label, Paragraph e Separator",
+        breadcrumb: "Texto",
+        faq: false,
+        search: "Texto e Organização Elementos estáticos para rotular, descrever e dividir o conteúdo. Label Paragraph Separator Linha de texto curta (altura 32px). Atualizável. Lua Copiar local l = LapoX:AddLabel(\"Geral\", { text = \"Status: OK\" }) l:updateText(\"Status: Erro\") -- ou l:Set(\"...\") Texto descritivo. Fica mais alto (60px) quando passa de 60 caracteres. Lua Copiar local p = LapoX:AddParagraph(\"Geral\", { text = \"Texto mais longo, que ocupa mais espaço vertical.\", }) p:Set(\"Novo texto.\") Linha divisória horizontal. Sem config e sem handle. Lua Copiar LapoX:AddSeparator(\"Geral\") Config Parâmetro Tipo Padrão Descrição text string \"\" Conteúdo textual (Label e Paragraph). Handles Widget Métodos Label :updateText(t) / :Set(t) Paragraph :updateText(t) / :Set(t) Separator — (retorna self )",
+        content: "\n            <h1 class=\"page-title\" id=\"texto-e-organizacao\">Texto e Organização</h1>\n\n            <p>Elementos estáticos para rotular, descrever e dividir o conteúdo.</p>\n\n            <div class=\"tabs-container\">\n                <div class=\"tabs-header\">\n                    <button class=\"tab-btn active\" data-tab=\"0\"><i class=\"ri-text\"></i> Label</button>\n<button class=\"tab-btn\" data-tab=\"1\"><i class=\"ri-paragraph\"></i> Paragraph</button>\n<button class=\"tab-btn\" data-tab=\"2\"><i class=\"ri-separator\"></i> Separator</button>\n                </div>\n                <div class=\"tabs-body\">\n                    <div class=\"tab-content active\" data-tab=\"0\">\n\n            <p>Linha de texto curta (altura 32px). Atualizável.</p>\n\n            <div class=\"code-block-container\">\n                <div class=\"code-block-header\">\n                    <span class=\"code-language-tag\">Lua</span>\n                    <button class=\"copy-code-btn\"><i class=\"ri-file-copy-line\"></i> Copiar</button>\n                </div>\n                <pre class=\"language-lua\"><code>local l = LapoX:AddLabel(\"Geral\", { text = \"Status: OK\" })\nl:updateText(\"Status: Erro\")   -- ou l:Set(\"...\")</code></pre>\n            </div>\n            </div>\n<div class=\"tab-content\" data-tab=\"1\">\n\n            <p>Texto descritivo. Fica mais alto (60px) quando passa de 60 caracteres.</p>\n\n            <div class=\"code-block-container\">\n                <div class=\"code-block-header\">\n                    <span class=\"code-language-tag\">Lua</span>\n                    <button class=\"copy-code-btn\"><i class=\"ri-file-copy-line\"></i> Copiar</button>\n                </div>\n                <pre class=\"language-lua\"><code>local p = LapoX:AddParagraph(\"Geral\", {\n    text = \"Texto mais longo, que ocupa mais espaço vertical.\",\n})\np:Set(\"Novo texto.\")</code></pre>\n            </div>\n            </div>\n<div class=\"tab-content\" data-tab=\"2\">\n\n            <p>Linha divisória horizontal. Sem config e sem handle.</p>\n\n            <div class=\"code-block-container\">\n                <div class=\"code-block-header\">\n                    <span class=\"code-language-tag\">Lua</span>\n                    <button class=\"copy-code-btn\"><i class=\"ri-file-copy-line\"></i> Copiar</button>\n                </div>\n                <pre class=\"language-lua\"><code>LapoX:AddSeparator(\"Geral\")</code></pre>\n            </div>\n            </div>\n                </div>\n            </div>\n\n            <h2 id=\"config\">Config</h2>\n\n            <div class=\"table-wrapper\">\n                <table class=\"api-table\">\n                    <thead>\n                        <tr>\n                            <th>Parâmetro</th>\n                            <th>Tipo</th>\n                            <th>Padrão</th>\n                            <th>Descrição</th>\n                        </tr>\n                    </thead>\n                    <tbody>\n                        <tr>\n                            <td><code>text</code></td>\n                            <td><span class=\"type-badge string\">string</span></td>\n                            <td><code>&quot;&quot;</code></td>\n                            <td>Conteúdo textual (Label e Paragraph).</td>\n                        </tr>\n                    </tbody>\n                </table>\n            </div>\n\n            <h2 id=\"handles\">Handles</h2>\n\n            <div class=\"table-wrapper\">\n                <table class=\"api-table\">\n                    <thead>\n                        <tr>\n                            <th>Widget</th>\n                            <th>Métodos</th>\n                        </tr>\n                    </thead>\n                    <tbody>\n                        <tr>\n                            <td><code>Label</code></td>\n                            <td><code>:updateText(t)</code> / <code>:Set(t)</code></td>\n                        </tr>\n\n                        <tr>\n                            <td><code>Paragraph</code></td>\n                            <td><code>:updateText(t)</code> / <code>:Set(t)</code></td>\n                        </tr>\n\n                        <tr>\n                            <td><code>Separator</code></td>\n                            <td>— (retorna <code>self</code>)</td>\n                        </tr>\n                    </tbody>\n                </table>\n            </div>"
+    },
+    "notify": {
+        category: "Feedback & Rodapé",
+        title: "Notificações (Notify)",
+        breadcrumb: "Notify",
+        faq: false,
+        search: "Notify Empilha uma notificação no canto da tela, com barra de tempo e quebra de linha automática. Retorna self . Lua Copiar LapoX:Notify({ title = \"Sucesso\", content = \"Operação concluída!\", duration = 3, }) -- Multi-linha: use \\n no content LapoX:Notify({ title = \"Log\", content = \"Linha 1\\nLinha 2\" }) Config Parâmetro Tipo Padrão Descrição title string \"Lapo Library X\" Título da notificação. content string \"\" Mensagem. Aceita \\n para múltiplas linhas. duration number 4 Tempo em segundos antes de sumir. Comportamento Quebra automática em ~45 caracteres por linha (tenta cortar no espaço). Máximo de 8 linhas — o excedente vira ... +N linhas . Várias notificações empilham e somem com fade.",
+        content: "\n            <h1 class=\"page-title\" id=\"notify\">Notify</h1>\n\n            <p>Empilha uma notificação no canto da tela, com barra de tempo e quebra de linha automática. Retorna <code>self</code>.</p>\n\n            <div class=\"code-block-container\">\n                <div class=\"code-block-header\">\n                    <span class=\"code-language-tag\">Lua</span>\n                    <button class=\"copy-code-btn\"><i class=\"ri-file-copy-line\"></i> Copiar</button>\n                </div>\n                <pre class=\"language-lua\"><code>LapoX:Notify({\n    title    = \"Sucesso\",\n    content  = \"Operação concluída!\",\n    duration = 3,\n})\n\n-- Multi-linha: use \\n no content\nLapoX:Notify({ title = \"Log\", content = \"Linha 1\\nLinha 2\" })</code></pre>\n            </div>\n\n            <h2 id=\"config\">Config</h2>\n\n            <div class=\"table-wrapper\">\n                <table class=\"api-table\">\n                    <thead>\n                        <tr>\n                            <th>Parâmetro</th>\n                            <th>Tipo</th>\n                            <th>Padrão</th>\n                            <th>Descrição</th>\n                        </tr>\n                    </thead>\n                    <tbody>\n                        <tr>\n                            <td><code>title</code></td>\n                            <td><span class=\"type-badge string\">string</span></td>\n                            <td><code>&quot;Lapo Library X&quot;</code></td>\n                            <td>Título da notificação.</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>content</code></td>\n                            <td><span class=\"type-badge string\">string</span></td>\n                            <td><code>&quot;&quot;</code></td>\n                            <td>Mensagem. Aceita <code>\\n</code> para múltiplas linhas.</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>duration</code></td>\n                            <td><span class=\"type-badge number\">number</span></td>\n                            <td><code>4</code></td>\n                            <td>Tempo em segundos antes de sumir.</td>\n                        </tr>\n                    </tbody>\n                </table>\n            </div>\n\n            <h2 id=\"comportamento\">Comportamento</h2>\n\n            <ul class=\"list-default\">\n                <li>Quebra automática em <strong>~45 caracteres</strong> por linha (tenta cortar no espaço).</li>\n                <li>Máximo de <strong>8 linhas</strong> — o excedente vira <code>... +N linhas</code>.</li>\n                <li>Várias notificações <strong>empilham</strong> e somem com fade.</li>\n            </ul>"
+    },
+    "usuario": {
+        category: "Feedback & Rodapé",
+        title: "Usuário (rodapé)",
+        breadcrumb: "Usuário",
+        faq: false,
+        search: "Usuário Controla o cartão de usuário no rodapé da sidebar. Ambos retornam self . Lua Copiar LapoX:SetUser(\"Player\", \"Premium\") LapoX:SetUserCallback(function(name, rank) LapoX:Notify({ title = \"User\", content = name .. \" • \" .. rank }) end) Métodos Método Parâmetros Descrição SetUser (name, rank) Define nome e cargo no rodapé. nil mantém o valor atual. SetUserCallback (cb) Função chamada ao clicar no rodapé, recebe (name, rank) .",
+        content: "\n            <h1 class=\"page-title\" id=\"usuario\">Usuário</h1>\n\n            <p>Controla o cartão de usuário no rodapé da sidebar. Ambos retornam <code>self</code>.</p>\n\n            <div class=\"code-block-container\">\n                <div class=\"code-block-header\">\n                    <span class=\"code-language-tag\">Lua</span>\n                    <button class=\"copy-code-btn\"><i class=\"ri-file-copy-line\"></i> Copiar</button>\n                </div>\n                <pre class=\"language-lua\"><code>LapoX:SetUser(\"Player\", \"Premium\")\n\nLapoX:SetUserCallback(function(name, rank)\n    LapoX:Notify({ title = \"User\", content = name .. \" • \" .. rank })\nend)</code></pre>\n            </div>\n\n            <h2 id=\"metodos\">Métodos</h2>\n\n            <div class=\"table-wrapper\">\n                <table class=\"api-table\">\n                    <thead>\n                        <tr>\n                            <th>Método</th>\n                            <th>Parâmetros</th>\n                            <th>Descrição</th>\n                        </tr>\n                    </thead>\n                    <tbody>\n                        <tr>\n                            <td><code>SetUser</code></td>\n                            <td><code>(name, rank)</code></td>\n                            <td>Define nome e cargo no rodapé. <code>nil</code> mantém o valor atual.</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>SetUserCallback</code></td>\n                            <td><code>(cb)</code></td>\n                            <td>Função chamada ao clicar no rodapé, recebe <code>(name, rank)</code>.</td>\n                        </tr>\n                    </tbody>\n                </table>\n            </div>"
+    },
+    "loading": {
+        category: "Tela de Loading",
+        title: "Tela de Loading",
+        breadcrumb: "Loading",
+        faq: false,
+        search: "Tela de Loading Abertura animada: fade-in, scale-pop , spinner *comet*, barra de progresso com brilho e fade-out no fim. Chame ShowLoading antes do Init . Lua Copiar LapoX:ShowLoading({ Title = \"Meu Script\", Subtitle = \"by você\", Message = \"Inicializando...\", Image = \"https://i.imgur.com/xxxxx.png\", -- opcional }) Config Parâmetro Tipo Padrão Descrição Title string Project/título Título grande no card. Subtitle string \"\" Subtítulo abaixo do título. Message string \"Carregando módulos...\" Mensagem de status (animável). Image string nil URL/asset de imagem central (opcional). FrameGap number 2 Frames de respiro entre tarefas da fila. Spinner opcional O anel usa Drawing.new(\"Circle\") . Sem suporte, o loading aparece sem o spinner — sem quebrar. A imagem aceita link direto de PNG/JPG (não página HTML).",
+        content: "\n            <h1 class=\"page-title\" id=\"tela-de-loading\">Tela de Loading</h1>\n\n            <p>Abertura animada: fade-in, <strong>scale-pop</strong>, spinner *comet*, barra de progresso com brilho e fade-out no fim. Chame <code>ShowLoading</code> <strong>antes</strong> do <code>Init</code>.</p>\n\n            <div class=\"code-block-container\">\n                <div class=\"code-block-header\">\n                    <span class=\"code-language-tag\">Lua</span>\n                    <button class=\"copy-code-btn\"><i class=\"ri-file-copy-line\"></i> Copiar</button>\n                </div>\n                <pre class=\"language-lua\"><code>LapoX:ShowLoading({\n    Title    = \"Meu Script\",\n    Subtitle = \"by você\",\n    Message  = \"Inicializando...\",\n    Image    = \"https://i.imgur.com/xxxxx.png\", -- opcional\n})</code></pre>\n            </div>\n\n            <h2 id=\"config\">Config</h2>\n\n            <div class=\"table-wrapper\">\n                <table class=\"api-table\">\n                    <thead>\n                        <tr>\n                            <th>Parâmetro</th>\n                            <th>Tipo</th>\n                            <th>Padrão</th>\n                            <th>Descrição</th>\n                        </tr>\n                    </thead>\n                    <tbody>\n                        <tr>\n                            <td><code>Title</code></td>\n                            <td><span class=\"type-badge string\">string</span></td>\n                            <td><code>Project/título</code></td>\n                            <td>Título grande no card.</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>Subtitle</code></td>\n                            <td><span class=\"type-badge string\">string</span></td>\n                            <td><code>&quot;&quot;</code></td>\n                            <td>Subtítulo abaixo do título.</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>Message</code></td>\n                            <td><span class=\"type-badge string\">string</span></td>\n                            <td><code>&quot;Carregando módulos...&quot;</code></td>\n                            <td>Mensagem de status (animável).</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>Image</code></td>\n                            <td><span class=\"type-badge string\">string</span></td>\n                            <td><code>nil</code></td>\n                            <td>URL/asset de imagem central (opcional).</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>FrameGap</code></td>\n                            <td><span class=\"type-badge number\">number</span></td>\n                            <td><code>2</code></td>\n                            <td>Frames de respiro entre tarefas da fila.</td>\n                        </tr>\n                    </tbody>\n                </table>\n            </div>\n\n            <div class=\"alert info\">\n                <div class=\"alert-icon\"><i class=\"ri-information-line\"></i></div>\n                <div class=\"alert-content\">\n                    <div class=\"alert-title\">Spinner opcional</div>\n                    <p class=\"alert-text\">O anel usa <code>Drawing.new(&quot;Circle&quot;)</code>. Sem suporte, o loading aparece sem o spinner — sem quebrar. A imagem aceita link <strong>direto</strong> de PNG/JPG (não página HTML).</p>\n                </div>\n            </div>"
+    },
+    "loading-fila": {
+        category: "Tela de Loading",
+        title: "Progresso & Fila",
+        breadcrumb: "Progresso & Fila",
+        faq: false,
+        search: "Progresso & Fila Duas formas de conduzir o loading: fila de tarefas (automática) ou progresso manual . Fila de tarefas (recomendado) Lua Copiar LapoX:QueueLoad(\"Conectando...\", function() task.wait(0.3) end) LapoX:QueueLoad(\"Baixando dados...\", function() task.wait(0.5) end) LapoX:QueueLoad(\"Montando UI...\", function() task.wait(0.2) end) LapoX:RunLoadQueue(function() LapoX:Notify({ title = \"Pronto\", content = \"Tudo carregado!\" }) end) Progresso manual Lua Copiar LapoX:SetLoadingProgress(0.25, \"Etapa 1...\") task.wait(0.5) LapoX:SetLoadingProgress(0.75, \"Etapa 2...\") task.wait(0.5) LapoX:FinishLoading(function() print(\"fim\") end) Métodos Método Parâmetros Descrição QueueLoad (label, fn) Enfileira uma tarefa (texto + função executada nela). RunLoadQueue (onDone) Roda a fila (uma por frame) e faz fade-out; chama onDone no fim. SetLoadingProgress (pct, msg?) Define o progresso (0–1) e, opcionalmente, a mensagem. SetLoadingMessage (msg) Troca só a mensagem de status. FinishLoading (onDone) Força o fim do loading (fade-out) e chama onDone . Tarefas pesadas Cada fn da fila roda dentro de um pcall . Evite travar o frame — use task.wait para operações longas e deixe a barra respirar.",
+        content: "\n            <h1 class=\"page-title\" id=\"progresso-fila\">Progresso &amp; Fila</h1>\n\n            <p>Duas formas de conduzir o loading: <strong>fila de tarefas</strong> (automática) ou <strong>progresso manual</strong>.</p>\n\n            <h2 id=\"fila-de-tarefas-recomendado\">Fila de tarefas (recomendado)</h2>\n\n            <div class=\"code-block-container\">\n                <div class=\"code-block-header\">\n                    <span class=\"code-language-tag\">Lua</span>\n                    <button class=\"copy-code-btn\"><i class=\"ri-file-copy-line\"></i> Copiar</button>\n                </div>\n                <pre class=\"language-lua\"><code>LapoX:QueueLoad(\"Conectando...\",  function() task.wait(0.3) end)\nLapoX:QueueLoad(\"Baixando dados...\", function() task.wait(0.5) end)\nLapoX:QueueLoad(\"Montando UI...\",  function() task.wait(0.2) end)\n\nLapoX:RunLoadQueue(function()\n    LapoX:Notify({ title = \"Pronto\", content = \"Tudo carregado!\" })\nend)</code></pre>\n            </div>\n\n            <h2 id=\"progresso-manual\">Progresso manual</h2>\n\n            <div class=\"code-block-container\">\n                <div class=\"code-block-header\">\n                    <span class=\"code-language-tag\">Lua</span>\n                    <button class=\"copy-code-btn\"><i class=\"ri-file-copy-line\"></i> Copiar</button>\n                </div>\n                <pre class=\"language-lua\"><code>LapoX:SetLoadingProgress(0.25, \"Etapa 1...\")\ntask.wait(0.5)\nLapoX:SetLoadingProgress(0.75, \"Etapa 2...\")\ntask.wait(0.5)\nLapoX:FinishLoading(function() print(\"fim\") end)</code></pre>\n            </div>\n\n            <h2 id=\"metodos\">Métodos</h2>\n\n            <div class=\"table-wrapper\">\n                <table class=\"api-table\">\n                    <thead>\n                        <tr>\n                            <th>Método</th>\n                            <th>Parâmetros</th>\n                            <th>Descrição</th>\n                        </tr>\n                    </thead>\n                    <tbody>\n                        <tr>\n                            <td><code>QueueLoad</code></td>\n                            <td><code>(label, fn)</code></td>\n                            <td>Enfileira uma tarefa (texto + função executada nela).</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>RunLoadQueue</code></td>\n                            <td><code>(onDone)</code></td>\n                            <td>Roda a fila (uma por frame) e faz fade-out; chama <code>onDone</code> no fim.</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>SetLoadingProgress</code></td>\n                            <td><code>(pct, msg?)</code></td>\n                            <td>Define o progresso (0–1) e, opcionalmente, a mensagem.</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>SetLoadingMessage</code></td>\n                            <td><code>(msg)</code></td>\n                            <td>Troca só a mensagem de status.</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>FinishLoading</code></td>\n                            <td><code>(onDone)</code></td>\n                            <td>Força o fim do loading (fade-out) e chama <code>onDone</code>.</td>\n                        </tr>\n                    </tbody>\n                </table>\n            </div>\n\n            <div class=\"alert tip\">\n                <div class=\"alert-icon\"><i class=\"ri-lightbulb-line\"></i></div>\n                <div class=\"alert-content\">\n                    <div class=\"alert-title\">Tarefas pesadas</div>\n                    <p class=\"alert-text\">Cada <code>fn</code> da fila roda dentro de um <code>pcall</code>. Evite travar o frame — use <code>task.wait</code> para operações longas e deixe a barra respirar.</p>\n                </div>\n            </div>"
+    },
+    "janela": {
+        category: "Janela & Performance",
+        title: "Janela & Sistema",
+        breadcrumb: "Janela",
+        faq: false,
+        search: "Janela & Sistema Controle e comportamentos da janela em runtime. Visibilidade Lua Copiar LapoX:ToggleVisibility() -- mesmo efeito da ToggleKey Destruir Lua Copiar LapoX:Destroy() -- remove desenhos e desconecta eventos Interações nativas Ação Como Mover Arraste pela barra de título (header). Minimizar Botão ─ no cabeçalho (mostra só o header). Fechar Botão ✕ no cabeçalho (chama Destroy ). Mostrar/Esconder Tecla da ToggleKey (padrão End ). Mobile Botão flutuante ☰ ao lado da janela. Rolar conteúdo Roda do mouse ou arraste (toque). Sempre destrua ao sair Como a UI é desenhada por cima da tela, esquecer o Destroy deixa desenhos órfãos. Combine com o padrão de global da página Carregamento .",
+        content: "\n            <h1 class=\"page-title\" id=\"janela-sistema\">Janela &amp; Sistema</h1>\n\n            <p>Controle e comportamentos da janela em runtime.</p>\n\n            <h2 id=\"visibilidade\">Visibilidade</h2>\n\n            <div class=\"code-block-container\">\n                <div class=\"code-block-header\">\n                    <span class=\"code-language-tag\">Lua</span>\n                    <button class=\"copy-code-btn\"><i class=\"ri-file-copy-line\"></i> Copiar</button>\n                </div>\n                <pre class=\"language-lua\"><code>LapoX:ToggleVisibility()   -- mesmo efeito da ToggleKey</code></pre>\n            </div>\n\n            <h2 id=\"destruir\">Destruir</h2>\n\n            <div class=\"code-block-container\">\n                <div class=\"code-block-header\">\n                    <span class=\"code-language-tag\">Lua</span>\n                    <button class=\"copy-code-btn\"><i class=\"ri-file-copy-line\"></i> Copiar</button>\n                </div>\n                <pre class=\"language-lua\"><code>LapoX:Destroy()            -- remove desenhos e desconecta eventos</code></pre>\n            </div>\n\n            <h2 id=\"interacoes-nativas\">Interações nativas</h2>\n\n            <div class=\"table-wrapper\">\n                <table class=\"api-table\">\n                    <thead>\n                        <tr>\n                            <th>Ação</th>\n                            <th>Como</th>\n                        </tr>\n                    </thead>\n                    <tbody>\n                        <tr>\n                            <td>Mover</td>\n                            <td>Arraste pela barra de título (header).</td>\n                        </tr>\n\n                        <tr>\n                            <td>Minimizar</td>\n                            <td>Botão <code>─</code> no cabeçalho (mostra só o header).</td>\n                        </tr>\n\n                        <tr>\n                            <td>Fechar</td>\n                            <td>Botão <code>✕</code> no cabeçalho (chama <code>Destroy</code>).</td>\n                        </tr>\n\n                        <tr>\n                            <td>Mostrar/Esconder</td>\n                            <td>Tecla da <code>ToggleKey</code> (padrão <code>End</code>).</td>\n                        </tr>\n\n                        <tr>\n                            <td>Mobile</td>\n                            <td>Botão flutuante <code>☰</code> ao lado da janela.</td>\n                        </tr>\n\n                        <tr>\n                            <td>Rolar conteúdo</td>\n                            <td>Roda do mouse ou arraste (toque).</td>\n                        </tr>\n                    </tbody>\n                </table>\n            </div>\n\n            <div class=\"alert warning\">\n                <div class=\"alert-icon\"><i class=\"ri-alert-line\"></i></div>\n                <div class=\"alert-content\">\n                    <div class=\"alert-title\">Sempre destrua ao sair</div>\n                    <p class=\"alert-text\">Como a UI é desenhada por cima da tela, esquecer o <code>Destroy</code> deixa desenhos órfãos. Combine com o padrão de global da página <strong>Carregamento</strong>.</p>\n                </div>\n            </div>"
+    },
+    "batch": {
+        category: "Janela & Performance",
+        title: "Batch — muitos widgets",
+        breadcrumb: "Batch",
+        faq: false,
+        search: "Batch Ao adicionar muitos widgets de uma vez, o modo batch evita reconstruir a UI a cada Add* — bem mais rápido. Lua Copiar LapoX:BeginBatch() for i = 1, 80 do LapoX:AddButton(\"Lista\", { text = \"Item \" .. i }) end LapoX:EndBatch() -- reconstrói a UI UMA vez Método Descrição BeginBatch() Suspende a reconstrução automática da UI. EndBatch() Reativa e reconstrói tudo de uma vez. Loading já faz isso Enquanto a tela de loading está ativa, o modo batch é ligado sozinho. Você só precisa de BeginBatch/EndBatch quando adiciona muita coisa fora do loading.",
+        content: "\n            <h1 class=\"page-title\" id=\"batch\">Batch</h1>\n\n            <p>Ao adicionar <strong>muitos</strong> widgets de uma vez, o modo batch evita reconstruir a UI a cada <code>Add*</code> — bem mais rápido.</p>\n\n            <div class=\"code-block-container\">\n                <div class=\"code-block-header\">\n                    <span class=\"code-language-tag\">Lua</span>\n                    <button class=\"copy-code-btn\"><i class=\"ri-file-copy-line\"></i> Copiar</button>\n                </div>\n                <pre class=\"language-lua\"><code>LapoX:BeginBatch()\nfor i = 1, 80 do\n    LapoX:AddButton(\"Lista\", { text = \"Item \" .. i })\nend\nLapoX:EndBatch()   -- reconstrói a UI UMA vez</code></pre>\n            </div>\n\n            <div class=\"table-wrapper\">\n                <table class=\"api-table\">\n                    <thead>\n                        <tr>\n                            <th>Método</th>\n                            <th>Descrição</th>\n                        </tr>\n                    </thead>\n                    <tbody>\n                        <tr>\n                            <td><code>BeginBatch()</code></td>\n                            <td>Suspende a reconstrução automática da UI.</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>EndBatch()</code></td>\n                            <td>Reativa e reconstrói tudo de uma vez.</td>\n                        </tr>\n                    </tbody>\n                </table>\n            </div>\n\n            <div class=\"alert info\">\n                <div class=\"alert-icon\"><i class=\"ri-information-line\"></i></div>\n                <div class=\"alert-content\">\n                    <div class=\"alert-title\">Loading já faz isso</div>\n                    <p class=\"alert-text\">Enquanto a tela de loading está ativa, o modo batch é ligado sozinho. Você só precisa de <code>BeginBatch/EndBatch</code> quando adiciona muita coisa <strong>fora</strong> do loading.</p>\n                </div>\n            </div>"
+    },
+    "requisitos": {
+        category: "Referência",
+        title: "Requisitos",
+        breadcrumb: "Requisitos",
+        faq: false,
+        search: "Requisitos Recurso Necessário? Para quê Drawing.new Obrigatório Renderizar toda a UI. game:HttpGet Recomendado Carregar a lib remotamente. writefile / readfile Opcional Carregar local / persistência futura. Drawing \"Circle\" Opcional Spinner da tela de loading. Mobile A lib detecta toque (TouchEnabled e sem teclado), reduz a escala para 0.72 e exibe o botão flutuante de abrir/fechar.",
+        content: "\n            <h1 class=\"page-title\" id=\"requisitos\">Requisitos</h1>\n\n            <div class=\"table-wrapper\">\n                <table class=\"api-table\">\n                    <thead>\n                        <tr>\n                            <th>Recurso</th>\n                            <th>Necessário?</th>\n                            <th>Para quê</th>\n                        </tr>\n                    </thead>\n                    <tbody>\n                        <tr>\n                            <td><code>Drawing.new</code></td>\n                            <td>Obrigatório</td>\n                            <td>Renderizar toda a UI.</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>game:HttpGet</code></td>\n                            <td>Recomendado</td>\n                            <td>Carregar a lib remotamente.</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>writefile</code>/<code>readfile</code></td>\n                            <td>Opcional</td>\n                            <td>Carregar local / persistência futura.</td>\n                        </tr>\n\n                        <tr>\n                            <td><code>Drawing &quot;Circle&quot;</code></td>\n                            <td>Opcional</td>\n                            <td>Spinner da tela de loading.</td>\n                        </tr>\n                    </tbody>\n                </table>\n            </div>\n\n            <div class=\"alert tip\">\n                <div class=\"alert-icon\"><i class=\"ri-lightbulb-line\"></i></div>\n                <div class=\"alert-content\">\n                    <div class=\"alert-title\">Mobile</div>\n                    <p class=\"alert-text\">A lib detecta toque (TouchEnabled e sem teclado), reduz a escala para 0.72 e exibe o botão flutuante de abrir/fechar.</p>\n                </div>\n            </div>"
+    },
+    "faq": {
+        category: "Referência",
+        title: "Perguntas Frequentes",
+        breadcrumb: "FAQ",
+        faq: true,
+        search: "FAQ Precisa de CoreGui ou PlayerGui? Não. Tudo é desenhado via Drawing API (overlay). A lib só cria um ScreenGui invisível para capturar teclado em TextBox/busca. Como mudo um valor por código? Os Add* de controle (Toggle, Slider, Dropdown, TextBox, Label, Paragraph) devolvem um handle com :Set() . Botões não têm :Set . Ter busca no Dropdown obriga a digitar? Não. Abrir não captura o teclado — a busca só liga ao clicar na caixa de pesquisa. Posso adicionar abas/widgets depois do Init? Pode. A UI é reconstruída na hora. Para muitos de uma vez, use BeginBatch / EndBatch . Como evito UI duplicada ao reexecutar? Guarde a instância num global e chame :Destroy() antes de recriar. O Init também destrói uma instância anterior de mesmo Title . Qual a tecla para esconder a janela? A definida em ToggleKey (padrão End ), ou via LapoX:ToggleVisibility() .",
+        content: "\n            <h1 class=\"page-title\" id=\"faq\">FAQ</h1>\n\n            <div class=\"faq-list\">\n\n                <div class=\"faq-item\">\n                    <button class=\"faq-question\">\n                        <span>Precisa de CoreGui ou PlayerGui?</span>\n                        <i class=\"ri-add-line\"></i>\n                    </button>\n                    <div class=\"faq-answer\">\n                        <p>Não. Tudo é desenhado via Drawing API (overlay). A lib só cria um ScreenGui invisível para capturar teclado em TextBox/busca.</p>\n                    </div>\n                </div>\n\n                <div class=\"faq-item\">\n                    <button class=\"faq-question\">\n                        <span>Como mudo um valor por código?</span>\n                        <i class=\"ri-add-line\"></i>\n                    </button>\n                    <div class=\"faq-answer\">\n                        <p>Os <code>Add*</code> de controle (Toggle, Slider, Dropdown, TextBox, Label, Paragraph) devolvem um handle com <code>:Set()</code>. Botões não têm <code>:Set</code>.</p>\n                    </div>\n                </div>\n\n                <div class=\"faq-item\">\n                    <button class=\"faq-question\">\n                        <span>Ter busca no Dropdown obriga a digitar?</span>\n                        <i class=\"ri-add-line\"></i>\n                    </button>\n                    <div class=\"faq-answer\">\n                        <p>Não. Abrir não captura o teclado — a busca só liga ao clicar na caixa de pesquisa.</p>\n                    </div>\n                </div>\n\n                <div class=\"faq-item\">\n                    <button class=\"faq-question\">\n                        <span>Posso adicionar abas/widgets depois do Init?</span>\n                        <i class=\"ri-add-line\"></i>\n                    </button>\n                    <div class=\"faq-answer\">\n                        <p>Pode. A UI é reconstruída na hora. Para muitos de uma vez, use <code>BeginBatch</code>/<code>EndBatch</code>.</p>\n                    </div>\n                </div>\n\n                <div class=\"faq-item\">\n                    <button class=\"faq-question\">\n                        <span>Como evito UI duplicada ao reexecutar?</span>\n                        <i class=\"ri-add-line\"></i>\n                    </button>\n                    <div class=\"faq-answer\">\n                        <p>Guarde a instância num global e chame <code>:Destroy()</code> antes de recriar. O <code>Init</code> também destrói uma instância anterior de mesmo <code>Title</code>.</p>\n                    </div>\n                </div>\n\n                <div class=\"faq-item\">\n                    <button class=\"faq-question\">\n                        <span>Qual a tecla para esconder a janela?</span>\n                        <i class=\"ri-add-line\"></i>\n                    </button>\n                    <div class=\"faq-answer\">\n                        <p>A definida em <code>ToggleKey</code> (padrão <code>End</code>), ou via <code>LapoX:ToggleVisibility()</code>.</p>\n                    </div>\n                </div>\n            </div>"
+    },
+    "troubleshooting": {
+        category: "Referência",
+        title: "Solução de Problemas",
+        breadcrumb: "Troubleshooting",
+        faq: true,
+        search: "Solução de Problemas A UI não aparece O executor provavelmente não suporta Drawing.new . A lib emite um warn e segue sem montar a UI. Teste num executor com Drawing API. Aparecem duas janelas / desenhos sobrepostos Você rodou o script duas vezes sem destruir a anterior. Use o padrão de global + :Destroy() da página Carregamento . A imagem do loading não carrega Use um link direto de imagem ( .png / .jpg ), não uma página HTML. Sem suporte a Drawing Image, a lib cai no spinner. O spinner do loading não aparece Falta suporte a Drawing.new(\"Circle\") no executor. O resto do loading funciona normalmente. Meu :Set não funciona em um widget Verifique se você não reutilizou a mesma tabela de config em dois widgets — o handle casa pela identidade da tabela. Use uma nova por widget.",
+        content: "\n            <h1 class=\"page-title\" id=\"solucao-de-problemas\">Solução de Problemas</h1>\n\n            <div class=\"faq-list\">\n\n                <div class=\"faq-item\">\n                    <button class=\"faq-question\">\n                        <span>A UI não aparece</span>\n                        <i class=\"ri-add-line\"></i>\n                    </button>\n                    <div class=\"faq-answer\">\n                        <p>O executor provavelmente não suporta <code>Drawing.new</code>. A lib emite um <code>warn</code> e segue sem montar a UI. Teste num executor com Drawing API.</p>\n                    </div>\n                </div>\n\n                <div class=\"faq-item\">\n                    <button class=\"faq-question\">\n                        <span>Aparecem duas janelas / desenhos sobrepostos</span>\n                        <i class=\"ri-add-line\"></i>\n                    </button>\n                    <div class=\"faq-answer\">\n                        <p>Você rodou o script duas vezes sem destruir a anterior. Use o padrão de global + <code>:Destroy()</code> da página <strong>Carregamento</strong>.</p>\n                    </div>\n                </div>\n\n                <div class=\"faq-item\">\n                    <button class=\"faq-question\">\n                        <span>A imagem do loading não carrega</span>\n                        <i class=\"ri-add-line\"></i>\n                    </button>\n                    <div class=\"faq-answer\">\n                        <p>Use um link <strong>direto</strong> de imagem (<code>.png</code>/<code>.jpg</code>), não uma página HTML. Sem suporte a Drawing Image, a lib cai no spinner.</p>\n                    </div>\n                </div>\n\n                <div class=\"faq-item\">\n                    <button class=\"faq-question\">\n                        <span>O spinner do loading não aparece</span>\n                        <i class=\"ri-add-line\"></i>\n                    </button>\n                    <div class=\"faq-answer\">\n                        <p>Falta suporte a <code>Drawing.new(&quot;Circle&quot;)</code> no executor. O resto do loading funciona normalmente.</p>\n                    </div>\n                </div>\n\n                <div class=\"faq-item\">\n                    <button class=\"faq-question\">\n                        <span>Meu :Set não funciona em um widget</span>\n                        <i class=\"ri-add-line\"></i>\n                    </button>\n                    <div class=\"faq-answer\">\n                        <p>Verifique se você não reutilizou a <strong>mesma</strong> tabela de config em dois widgets — o handle casa pela identidade da tabela. Use uma nova por widget.</p>\n                    </div>\n                </div>\n            </div>"
     }
 };
 
@@ -1976,12 +203,13 @@ function initApp() {
     setupNavigation();
     setupGlobalSearch();
     setupKeyboardShortcuts();
+    setupOnThisPage();
+    setupSectionSwitch();
 }
 
 function setupTheme() {
     const themeToggleBtn = document.getElementById("themeToggleBtn");
     const html = document.documentElement;
-
     const savedTheme = localStorage.getItem("theme") || "light";
     html.setAttribute("data-theme", savedTheme);
 
@@ -1997,77 +225,93 @@ function setupRouting() {
     window.addEventListener("hashchange", handleRouting);
 
     if (!window.location.hash) {
-        window.location.hash = "#home";
+        window.location.hash = `#${PROJECT.defaultRoute || "home"}`;
     } else {
         handleRouting();
     }
 }
 
 function handleRouting() {
-    const rawHash = window.location.hash || "#home";
+    const rawHash = window.location.hash || `#${PROJECT.defaultRoute || "home"}`;
     const route = rawHash.replace("#", "");
+    const pageKey = PAGES[route] ? route : null;
 
-    const pageKey = PAGES[route] ? route : "home";
-    const page = PAGES[pageKey];
-
-    renderPage(pageKey, page);
+    if (pageKey) {
+        const page = PAGES[pageKey];
+        renderPage(pageKey, page);
+    } else if (route && route !== (PROJECT.defaultRoute || "home")) {
+        // Route doesn't exist — try default or show 404
+        const defaultRoute = PROJECT.defaultRoute || "home";
+        const defaultPage = PAGES[defaultRoute];
+        if (defaultPage) {
+            renderPage(defaultRoute, defaultPage);
+        } else {
+            renderPage(route, null);
+        }
+    } else {
+        const defaultRoute = PROJECT.defaultRoute || "home";
+        renderPage(defaultRoute, PAGES[defaultRoute] || null);
+    }
 }
 
 function renderPage(pageKey, page) {
     const viewport = document.getElementById("contentViewport");
+    if (!viewport) return;
 
-    document.documentElement.style.scrollBehavior = 'auto';
+    if (!page) {
+        viewport.innerHTML = `<div class="hero-section"><h1 class="page-title">Página não encontrada</h1><p class="page-description">A página <strong>${escapeHtml(pageKey)}</strong> não existe.</p></div>`;
+        updateBreadcrumbs("Erro", "404");
+        return;
+    }
+
+    // Reset scroll position without animation
     window.scrollTo(0, 0);
-    document.documentElement.style.scrollBehavior = '';
 
     viewport.style.opacity = 0;
     viewport.style.transform = "translateY(8px)";
 
-    setTimeout(() => {
-
+    // Atualiza o conteúdo no próximo frame, sem o atraso fixo de 150ms.
+    requestAnimationFrame(() => {
         viewport.innerHTML = page.content;
-
         updateBreadcrumbs(page.category, page.breadcrumb);
-
         updateActiveNavLinks(pageKey);
 
         if (typeof Prism !== "undefined") {
-            Prism.highlightAll();
+            try { Prism.highlightAll(); } catch (_) {}
         }
 
         setupCodeCopyButtons();
+        setupTabs();
 
-        if (pageKey === "faq") {
+        if (page.faq) {
             setupFaqAccordion();
         }
 
-        if (pageKey === "showcase") {
-            initSimulator();
+        if (PROJECT.pageContent) {
+            buildOnThisPage();
         }
 
-        document.documentElement.style.scrollBehavior = 'auto';
-        window.scrollTo(0, 0);
-        document.documentElement.style.scrollBehavior = '';
-
-        viewport.style.opacity = 1;
-        viewport.style.transform = "translateY(0)";
-    }, 150);
+        // Fade-in no frame seguinte para a transição CSS animar a partir de opacity:0.
+        requestAnimationFrame(() => {
+            viewport.style.opacity = 1;
+            viewport.style.transform = "translateY(0)";
+        });
+    });
 }
 
 function updateBreadcrumbs(category, activeItem) {
     const breadcrumb = document.getElementById("breadcrumb");
     breadcrumb.innerHTML = `
-        <span class="breadcrumb-item">${category}</span>
+        <span class="breadcrumb-item">${escapeHtml(category)}</span>
         <span class="breadcrumb-separator">/</span>
-        <span class="breadcrumb-item active">${activeItem}</span>
+        <span class="breadcrumb-item active">${escapeHtml(activeItem)}</span>
     `;
-
-    document.title = `Lapo Hub X | ${activeItem}`;
+    document.title = `${PROJECT.title} | ${activeItem}`;
 }
 
 function updateActiveNavLinks(pageKey) {
     const navLinks = document.querySelectorAll(".nav-link");
-    navLinks.forEach(link => {
+    navLinks.forEach((link) => {
         if (link.getAttribute("data-route") === pageKey) {
             link.classList.add("active");
         } else {
@@ -2096,8 +340,7 @@ function setupNavigation() {
     closeSidebarBtn.addEventListener("click", closeSidebar);
     overlay.addEventListener("click", closeSidebar);
 
-    const navLinks = document.querySelectorAll(".nav-link");
-    navLinks.forEach(link => {
+    document.querySelectorAll(".nav-link").forEach((link) => {
         link.addEventListener("click", () => {
             if (window.innerWidth <= 768) {
                 closeSidebar();
@@ -2110,21 +353,15 @@ function setupGlobalSearch() {
     const searchInput = document.getElementById("searchInput");
     const searchResults = document.getElementById("searchResults");
 
-    const searchDatabase = [];
-    for (const [key, val] of Object.entries(PAGES)) {
-
-        const tempDiv = document.createElement("div");
-        tempDiv.innerHTML = val.content;
-        const text = tempDiv.textContent || tempDiv.innerText || "";
-
-        searchDatabase.push({
-            key: key,
-            title: val.title,
-            category: val.category,
-            content: text,
-            breadcrumb: val.breadcrumb
-        });
-    }
+    // O texto puro de cada página é pré-computado na compilação (campo `search`),
+    // então não rodamos regex de stripHtml no carregamento nem duplicamos o HTML.
+    const searchDatabase = Object.entries(PAGES).map(([key, val]) => ({
+        key,
+        title: val.title,
+        category: val.category,
+        breadcrumb: val.breadcrumb,
+        content: val.search || ""
+    }));
 
     searchInput.addEventListener("input", (e) => {
         const query = e.target.value.toLowerCase().trim();
@@ -2135,10 +372,10 @@ function setupGlobalSearch() {
             return;
         }
 
-        const matches = searchDatabase.filter(item => {
+        const matches = searchDatabase.filter((item) => {
             return item.title.toLowerCase().includes(query) ||
-                   item.content.toLowerCase().includes(query) ||
-                   item.category.toLowerCase().includes(query);
+                item.content.toLowerCase().includes(query) ||
+                item.category.toLowerCase().includes(query);
         });
 
         renderSearchResults(matches, query);
@@ -2151,7 +388,10 @@ function setupGlobalSearch() {
     });
 
     document.addEventListener("keydown", (e) => {
-        if (e.key === "/" && document.activeElement !== searchInput) {
+        // Only activate search shortcut when not already typing in an input
+        const tag = document.activeElement?.tagName || "";
+        const isInput = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || document.activeElement?.isContentEditable;
+        if (e.key === "/" && !isInput) {
             e.preventDefault();
             searchInput.focus();
         }
@@ -2163,12 +403,12 @@ function renderSearchResults(matches, query) {
     searchResults.innerHTML = "";
 
     if (matches.length === 0) {
-        searchResults.innerHTML = `<div class="search-result-empty">Nenhum resultado encontrado para "${query}"</div>`;
+        searchResults.innerHTML = `<div class="search-result-empty">Nenhum resultado encontrado para "${escapeHtml(query)}"</div>`;
         searchResults.classList.add("active");
         return;
     }
 
-    matches.slice(0, 5).forEach(item => {
+    matches.slice(0, 5).forEach((item) => {
         const itemElement = document.createElement("div");
         itemElement.className = "search-result-item";
 
@@ -2183,8 +423,8 @@ function renderSearchResults(matches, query) {
         }
 
         itemElement.innerHTML = `
-            <span class="search-result-category">${item.category} / ${item.breadcrumb}</span>
-            <span class="search-result-title">${item.title}</span>
+            <span class="search-result-category">${escapeHtml(item.category)} / ${escapeHtml(item.breadcrumb)}</span>
+            <span class="search-result-title">${escapeHtml(item.title)}</span>
             <span class="search-result-snippet">${escapeHtml(snippet)}</span>
         `;
 
@@ -2209,13 +449,8 @@ function escapeHtml(text) {
         .replace(/'/g, "&#039;");
 }
 
-// ----------------------------------------------------------------------
-// CODE BLOCK COPY HANDLERS
-// ----------------------------------------------------------------------
 function setupCodeCopyButtons() {
-    const copyBtns = document.querySelectorAll(".copy-code-btn");
-
-    copyBtns.forEach(btn => {
+    document.querySelectorAll(".copy-code-btn").forEach((btn) => {
         btn.addEventListener("click", () => {
             const container = btn.closest(".code-block-container");
             const codeEl = container.querySelector("pre code");
@@ -2226,21 +461,17 @@ function setupCodeCopyButtons() {
                 setTimeout(() => {
                     btn.innerHTML = `<i class="ri-file-copy-line"></i> Copiar`;
                 }, 2000);
-            }).catch(err => {
+            }).catch((err) => {
                 console.error("Falha ao copiar código: ", err);
             });
         });
     });
 }
 
-// ----------------------------------------------------------------------
-// KEYBOARD SHORTCUTS
-// ----------------------------------------------------------------------
 function setupKeyboardShortcuts() {
     const searchInput = document.getElementById("searchInput");
 
     document.addEventListener("keydown", (e) => {
-        // Escape clear input
         if (e.key === "Escape" && document.activeElement === searchInput) {
             searchInput.value = "";
             searchInput.blur();
@@ -2249,21 +480,29 @@ function setupKeyboardShortcuts() {
     });
 }
 
-// ----------------------------------------------------------------------
-// FAQ ACCORDION HANDLERS
-// ----------------------------------------------------------------------
-function setupFaqAccordion() {
-    const questions = document.querySelectorAll(".faq-question");
+function setupTabs() {
+    document.querySelectorAll(".tabs-container").forEach(container => {
+        const buttons = container.querySelectorAll(".tab-btn");
+        const contents = container.querySelectorAll(".tab-content");
 
-    questions.forEach(q => {
+        buttons.forEach(btn => {
+            btn.addEventListener("click", () => {
+                const tabIndex = btn.getAttribute("data-tab");
+                buttons.forEach(b => b.classList.remove("active"));
+                contents.forEach(c => c.classList.remove("active"));
+                btn.classList.add("active");
+                container.querySelector(`.tab-content[data-tab="${tabIndex}"]`).classList.add("active");
+            });
+        });
+    });
+}
+
+function setupFaqAccordion() {
+    document.querySelectorAll(".faq-question").forEach((q) => {
         q.addEventListener("click", () => {
             const item = q.closest(".faq-item");
             const isActive = item.classList.contains("active");
-
-            // Close all
-            document.querySelectorAll(".faq-item").forEach(i => i.classList.remove("active"));
-
-            // Toggle current
+            document.querySelectorAll(".faq-item").forEach((i) => i.classList.remove("active"));
             if (!isActive) {
                 item.classList.add("active");
             }
@@ -2271,452 +510,165 @@ function setupFaqAccordion() {
     });
 }
 
-// ==========================================================================
-// VIRTUAL INTERACTIVE SIMULATOR (SHOWCASE) ENGINE
-// ==========================================================================
+// ============================================================
+// On This Page (PageContent extension)
+// ============================================================
 
-function initSimulator() {
-    simState = {
-        visible: true,
-        minimized: false,
-        mobile: false,
-        currentTabIdx: 0,
-        widgetValues: {
-            killAura: false,
-            auraRange: 15,
-            attackMode: "Mais Próximo",
-            mapSelector: "Mapa 1",
-            heightY: "",
-            bypassAnti: true,
-            fpsCap: 60
-        }
-    };
+let otpHeadingEls = [];
+let otpScrollScheduled = false;
 
-    simLog("LapoHub:Init() executado via console virtual.");
-    simLog("Aguardando interações na janela do Roblox...");
-
-    // Attach Simulator control events
-    document.getElementById("btnTriggerSimNotification").addEventListener("click", triggerSimNotify);
-    document.getElementById("btnToggleSimScale").addEventListener("click", toggleSimScale);
-    document.getElementById("btnResetSimWindow").addEventListener("click", resetSimWindow);
-    document.getElementById("btnClearConsole").addEventListener("click", clearSimConsole);
-
-    // Attach window headers control events
-    document.getElementById("simBtnMin").addEventListener("click", toggleSimMinimize);
-    document.getElementById("simBtnClose").addEventListener("click", toggleSimClose);
-    document.getElementById("simMobileBtn").addEventListener("click", toggleSimClose);
-    document.getElementById("simWindowUser").addEventListener("click", triggerUserCallback);
-
-    renderSimTabs();
-    renderSimWidgets();
+// Altura do header sticky + folga, para ancorar o heading no ponto exato.
+function otpHeaderOffset() {
+    const header = document.querySelector(".top-header");
+    return (header ? header.offsetHeight : 70) + 12;
 }
 
-function simLog(msg) {
-    const logBox = document.getElementById("simConsoleLog");
-    if (!logBox) return;
+function slugifyHeading(text) {
+    return String(text)
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "") || "section";
+}
 
-    const timestamp = new Date().toLocaleTimeString();
+// Monta o índice "On This Page" a partir dos h1/h2/h3 da página atual.
+function buildOnThisPage() {
+    const panel = document.getElementById("onThisPage");
+    const list = document.getElementById("otpList");
+    if (!panel || !list) return;
 
-    // Check if default info text is present
-    if (logBox.textContent.includes("-- Console pronto")) {
-        logBox.textContent = "";
+    const viewport = document.getElementById("contentViewport");
+    const headings = viewport ? Array.from(viewport.querySelectorAll("h1, h2, h3")) : [];
+
+    otpHeadingEls = [];
+
+    if (headings.length === 0) {
+        list.innerHTML = "";
+        panel.classList.remove("active");
+        return;
     }
 
-    logBox.textContent += `[${timestamp}] ${msg}\n`;
-    logBox.scrollTop = logBox.scrollHeight;
-}
+    const used = new Set();
+    let currentH2 = ""; // grupo atual = id do h2 mais recente
+    const itemsHtml = headings.map((el) => {
+        const base = el.id || slugifyHeading(el.textContent);
+        let id = base;
+        let n = 2;
+        while (used.has(id)) { id = base + "-" + n; n += 1; }
+        used.add(id);
+        el.id = id;
 
-function clearSimConsole() {
-    const logBox = document.getElementById("simConsoleLog");
-    if (logBox) {
-        logBox.textContent = "-- Logs limpos pelo usuário --\n";
-    }
-}
+        const level = el.tagName.toLowerCase(); // h1 | h2 | h3
+        let group;
+        if (level === "h2") { currentH2 = id; group = id; }
+        else if (level === "h3") { group = currentH2; }
+        else { group = ""; currentH2 = ""; } // h1 reinicia o grupo
 
-function triggerSimNotify() {
-    createSimNotification("Notificação Externa", "Esta é uma notificação simulada de teste!", 4);
-}
+        otpHeadingEls.push({ el, id, level, group });
 
-function createSimNotification(title, content, duration) {
-    const stack = document.getElementById("simNotificationStack");
-    if (!stack) return;
+        return `<li class="otp-item otp-${level}" data-group="${group}"><a class="otp-link" href="#" data-target="${id}">${escapeHtml(el.textContent)}</a></li>`;
+    }).join("");
 
-    const notif = document.createElement("div");
-    notif.className = "sim-notification";
-    notif.innerHTML = `
-        <span class="sim-notif-title">${title}</span>
-        <span class="sim-notif-content">${content}</span>
-        <div class="sim-notif-bar"></div>
-    `;
+    list.innerHTML = itemsHtml;
+    panel.classList.add("active");
 
-    stack.appendChild(notif);
-    simLog(`[LapoHub Callback] Notify disparado: "${title}" - ${content}`);
-
-    // Remove notification after 4s (sync with animation)
-    setTimeout(() => {
-        notif.style.opacity = 0;
-        notif.style.transform = "translateX(50px)";
-        setTimeout(() => {
-            notif.remove();
-        }, 300);
-    }, (duration || 4) * 1000);
-
-    // Allow clicking to close notification early
-    notif.addEventListener("click", () => {
-        notif.remove();
-        simLog(`[LapoHub Callback] Notificação fechada prematuramente pelo usuário.`);
-    });
-}
-
-function toggleSimScale() {
-    const windowEl = document.getElementById("simWindow");
-    const mobileBtn = document.getElementById("simMobileBtn");
-    const statusState = document.getElementById("simStatusState");
-    const toggleScaleBtn = document.getElementById("btnToggleSimScale");
-
-    simState.mobile = !simState.mobile;
-
-    if (simState.mobile) {
-        windowEl.style.transform = "scale(0.8) translate(-10%, -10%)";
-        windowEl.style.width = "400px";
-        windowEl.style.height = "260px";
-        mobileBtn.style.display = "flex";
-        toggleScaleBtn.innerHTML = `<i class="ri-computer-line"></i> Simular Computador (Desktop)`;
-        simLog("[LapoHub Config] Escala alterada para Mobile (escala global: 0.72x).");
-    } else {
-        windowEl.style.transform = "scale(1)";
-        windowEl.style.width = "";
-        windowEl.style.height = "";
-        mobileBtn.style.display = "none";
-        toggleScaleBtn.innerHTML = `<i class="ri-smartphone-line"></i> Simular Celular (Touch)`;
-        simLog("[LapoHub Config] Escala redefinida para Computador (escala global: 1.0x).");
-    }
-}
-
-function resetSimWindow() {
-    const windowEl = document.getElementById("simWindow");
-    const mobileBtn = document.getElementById("simMobileBtn");
-    const statusState = document.getElementById("simStatusState");
-    const toggleScaleBtn = document.getElementById("btnToggleSimScale");
-
-    simState.visible = true;
-    simState.minimized = false;
-    simState.mobile = false;
-    simState.currentTabIdx = 0;
-
-    windowEl.classList.remove("minimized");
-    windowEl.classList.remove("hidden");
-    windowEl.style.transform = "scale(1)";
-    windowEl.style.width = "";
-    windowEl.style.height = "";
-    mobileBtn.style.display = "none";
-    toggleScaleBtn.innerHTML = `<i class="ri-smartphone-line"></i> Simular Celular (Touch)`;
-    statusState.innerHTML = "Ativo (Janela Aberta)";
-
-    renderSimTabs();
-    renderSimWidgets();
-    clearSimConsole();
-    simLog("LapoHub resetado com sucesso.");
-}
-
-function toggleSimMinimize() {
-    const windowEl = document.getElementById("simWindow");
-    simState.minimized = !simState.minimized;
-
-    if (simState.minimized) {
-        windowEl.classList.add("minimized");
-        document.getElementById("simBtnMin").innerText = "❐";
-        document.getElementById("simStatusState").innerHTML = "Minimizado";
-        simLog("[LapoHub Window] Interface minimizada.");
-    } else {
-        windowEl.classList.remove("minimized");
-        document.getElementById("simBtnMin").innerText = "─";
-        document.getElementById("simStatusState").innerHTML = "Ativo (Janela Aberta)";
-        simLog("[LapoHub Window] Interface restaurada.");
-    }
-}
-
-function toggleSimClose() {
-    const windowEl = document.getElementById("simWindow");
-    simState.visible = !simState.visible;
-
-    if (simState.visible) {
-        windowEl.classList.remove("hidden");
-        document.getElementById("simStatusState").innerHTML = "Ativo (Janela Aberta)";
-        simLog("[LapoHub Window] Interface exibida.");
-    } else {
-        windowEl.classList.add("hidden");
-        document.getElementById("simStatusState").innerHTML = "Oculto (Use o botão Mobile ou tecla de atalho)";
-        simLog("[LapoHub Window] Interface ocultada.");
-        if (simState.mobile) {
-            createSimNotification("Dica", "Clique no botão flutuante para reabrir a janela principal.", 3);
-        }
-    }
-}
-
-function triggerUserCallback() {
-    simLog(`[LapoHub Callback] Perfil clicado! userName: "LapoLapoNaldo", userRank: "Lapo Newba"`);
-    createSimNotification("Perfil", "Usuário: LapoLapoNaldo | Rank: Lapo Newba", 3);
-}
-
-// ----------------------------------------------------------------------
-// RENDER TAB LIST IN SIMULATOR
-// ----------------------------------------------------------------------
-function renderSimTabs() {
-    const tabContainer = document.getElementById("simWindowTabs");
-    if (!tabContainer) return;
-
-    tabContainer.innerHTML = "";
-
-    SIM_TABS.forEach((tab, index) => {
-        const item = document.createElement("div");
-        item.className = `sim-tab-item ${index === simState.currentTabIdx ? 'active' : ''}`;
-        item.innerHTML = `<span>${tab.icon}</span> ${tab.name}`;
-
-        item.addEventListener("click", () => {
-            if (simState.currentTabIdx === index) return;
-            simState.currentTabIdx = index;
-            renderSimTabs();
-            renderSimWidgets();
-            simLog(`[LapoHub Tab] Mudança de aba: "${tab.name}" (Index: ${index + 1})`);
+    // Scroll suave sem mexer no hash (que é usado pelo roteador da SPA).
+    list.querySelectorAll(".otp-link").forEach((link) => {
+        link.addEventListener("click", (e) => {
+            e.preventDefault();
+            const target = document.getElementById(link.getAttribute("data-target"));
+            if (!target) return;
+            // Posiciona o heading exatamente logo abaixo do header sticky.
+            const top = target.getBoundingClientRect().top + window.scrollY - otpHeaderOffset();
+            window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
         });
+    });
 
-        tabContainer.appendChild(item);
+    highlightActiveHeading();
+}
+
+// Destaca, no índice, a seção atualmente visível (scrollspy).
+function highlightActiveHeading() {
+    const list = document.getElementById("otpList");
+    if (!list || otpHeadingEls.length === 0) return;
+
+    const offset = otpHeaderOffset() + 8; // header sticky + pequena folga
+    let active = otpHeadingEls[0];
+    for (const item of otpHeadingEls) {
+        if (item.el.getBoundingClientRect().top <= offset) {
+            active = item;
+        } else {
+            break;
+        }
+    }
+
+    // Seção (h2) ativa: h2 -> ele mesmo; h3 -> seu grupo; h1 -> nenhuma.
+    const activeGroup = active.level === "h1" ? "" : active.group;
+
+    list.querySelectorAll(".otp-item").forEach((li) => {
+        const link = li.querySelector(".otp-link");
+        link.classList.toggle("active", link.getAttribute("data-target") === active.id);
+
+        // h3 só aparece quando estamos na seção (h2) a que ele pertence.
+        if (li.classList.contains("otp-h3")) {
+            const visible = activeGroup !== "" && li.getAttribute("data-group") === activeGroup;
+            li.classList.toggle("otp-collapsed", !visible);
+        }
     });
 }
 
-// ----------------------------------------------------------------------
-// RENDER WIDGETS IN SELECTED TAB
-// ----------------------------------------------------------------------
-function renderSimWidgets() {
-    const contentContainer = document.getElementById("simWindowContent");
-    if (!contentContainer) return;
+// Registra (uma única vez) o listener de scroll com throttle via rAF.
+function setupOnThisPage() {
+    if (!PROJECT.pageContent) return;
+    window.addEventListener("scroll", () => {
+        if (otpScrollScheduled) return;
+        otpScrollScheduled = true;
+        requestAnimationFrame(() => {
+            otpScrollScheduled = false;
+            highlightActiveHeading();
+        });
+    }, { passive: true });
+}
 
-    contentContainer.innerHTML = "";
-    const currentTab = SIM_TABS[simState.currentTabIdx];
 
-    currentTab.widgets.forEach(w => {
-        let el = document.createElement("div");
+// ============================================================
+// Section Switch (Switch extension)
+// ============================================================
 
-        if (w.type === "label") {
-            el.className = "sim-widget-label";
-            el.innerText = w.text;
-        }
+// Cada seção com `data-switch-variants` ganha um controle que troca a variante
+// ativa, filtrando quais páginas (li[data-variant]) aparecem no nav. Páginas sem
+// variante (untagged) ficam sempre visíveis.
+function setupSectionSwitch() {
+    if (!PROJECT.switchEnabled) return;
 
-        else if (w.type === "paragraph") {
-            el.className = "sim-widget-paragraph";
-            el.innerText = w.text;
-        }
+    document.querySelectorAll(".nav-section[data-switch-variants]").forEach((section) => {
+        const variants = (section.getAttribute("data-switch-variants") || "")
+            .split(",").map((v) => v.trim()).filter(Boolean);
+        if (variants.length === 0) return;
 
-        else if (w.type === "separator") {
-            el.className = "sim-widget-separator";
-        }
+        let current = section.getAttribute("data-switch-default") || variants[0];
+        const btn = section.querySelector(".section-switch");
+        const label = section.querySelector(".section-switch-label");
 
-        else if (w.type === "button") {
-            el.className = "sim-widget button";
-            el.innerHTML = `<span class="sim-widget-title">${w.text}</span>`;
-
-            el.addEventListener("click", () => {
-                simLog(`[LapoHub Callback] Botão acionado: "${w.text}"`);
+        function apply() {
+            if (label) label.textContent = current;
+            section.querySelectorAll("li[data-variant]").forEach((li) => {
+                li.classList.toggle("switch-hidden", li.getAttribute("data-variant") !== current);
             });
         }
 
-        else if (w.type === "toggle") {
-            el.className = `sim-widget toggle ${simState.widgetValues[w.id] ? 'active' : ''}`;
-            el.innerHTML = `
-                <span class="sim-widget-title">${w.text}</span>
-                <div class="sim-toggle-track">
-                    <div class="sim-toggle-knob"></div>
-                </div>
-            `;
-
-            el.addEventListener("click", () => {
-                simState.widgetValues[w.id] = !simState.widgetValues[w.id];
-                el.classList.toggle("active");
-                simLog(`[LapoHub Callback] Toggle "${w.text}": ${simState.widgetValues[w.id]}`);
+        if (btn) {
+            btn.addEventListener("click", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const idx = variants.indexOf(current);
+                current = variants[(idx + 1) % variants.length];
+                apply();
             });
         }
 
-        else if (w.type === "slider") {
-            const val = simState.widgetValues[w.id];
-            const pct = ((val - w.min) / (w.max - w.min)) * 100;
-
-            el.className = "sim-widget slider";
-            el.innerHTML = `
-                <div class="sim-widget-header">
-                    <span class="sim-widget-title">${w.text}</span>
-                    <span class="sim-slider-value" id="simVal_${w.id}">${val}</span>
-                </div>
-                <div class="sim-slider-track" id="simTrack_${w.id}">
-                    <div class="sim-slider-fill" style="width: ${pct}%"></div>
-                    <div class="sim-slider-thumb" style="left: ${pct}%"></div>
-                </div>
-            `;
-
-            // Make slider draggable
-            setTimeout(() => {
-                const track = document.getElementById(`simTrack_${w.id}`);
-                if (!track) return;
-
-                function updateSliderPosition(clientX) {
-                    const rect = track.getBoundingClientRect();
-                    const valPct = Math.min(Math.max(0, (clientX - rect.left) / rect.width), 1);
-                    const rawVal = w.min + valPct * (w.max - w.min);
-                    const finalVal = Math.floor(rawVal);
-
-                    simState.widgetValues[w.id] = finalVal;
-
-                    track.querySelector(".sim-slider-fill").style.width = `${valPct * 100}%`;
-                    track.querySelector(".sim-slider-thumb").style.left = `${valPct * 100}%`;
-                    document.getElementById(`simVal_${w.id}`).innerText = finalVal;
-                }
-
-                track.addEventListener("mousedown", (e) => {
-                    updateSliderPosition(e.clientX);
-                    simLog(`[LapoHub Callback] Slider "${w.text}" iniciado: ${simState.widgetValues[w.id]}`);
-
-                    function mouseMoveHandler(evt) {
-                        updateSliderPosition(evt.clientX);
-                    }
-
-                    function mouseUpHandler() {
-                        simLog(`[LapoHub Callback] Slider "${w.text}" finalizado em: ${simState.widgetValues[w.id]}`);
-                        window.removeEventListener("mousemove", mouseMoveHandler);
-                        window.removeEventListener("mouseup", mouseUpHandler);
-                    }
-
-                    window.addEventListener("mousemove", mouseMoveHandler);
-                    window.addEventListener("mouseup", mouseUpHandler);
-                });
-
-                // Add touch support
-                track.addEventListener("touchstart", (e) => {
-                    updateSliderPosition(e.touches[0].clientX);
-                    simLog(`[LapoHub Callback] Slider "${w.text}" iniciado (touch): ${simState.widgetValues[w.id]}`);
-
-                    function touchMoveHandler(evt) {
-                        updateSliderPosition(evt.touches[0].clientX);
-                    }
-
-                    function touchEndHandler() {
-                        simLog(`[LapoHub Callback] Slider "${w.text}" finalizado (touch) em: ${simState.widgetValues[w.id]}`);
-                        window.removeEventListener("touchmove", touchMoveHandler);
-                        window.removeEventListener("touchend", touchEndHandler);
-                    }
-
-                    window.addEventListener("touchmove", touchMoveHandler);
-                    window.addEventListener("touchend", touchEndHandler);
-                });
-            }, 0);
-        }
-
-        else if (w.type === "dropdown") {
-            const currentSel = simState.widgetValues[w.id];
-
-            el.className = "sim-widget dropdown";
-            el.innerHTML = `
-                <span class="sim-widget-title">${w.text}</span>
-                <div class="sim-dropdown-display">
-                    <span id="simDisplay_${w.id}">${currentSel}</span>
-                    <i class="ri-arrow-down-s-fill sim-dropdown-arrow"></i>
-                </div>
-                <div class="sim-dropdown-popup" id="simPopup_${w.id}">
-                    ${w.options.map(opt => `
-                        <div class="sim-dropdown-item ${opt === currentSel ? 'selected' : ''}" data-value="${opt}">${opt}</div>
-                    `).join('')}
-                </div>
-            `;
-
-            // Toggle Popup display
-            setTimeout(() => {
-                const display = el.querySelector(".sim-dropdown-display");
-                const popup = document.getElementById(`simPopup_${w.id}`);
-
-                display.addEventListener("click", (e) => {
-                    e.stopPropagation();
-
-                    // Close other dropdowns first
-                    document.querySelectorAll(".sim-dropdown-popup").forEach(p => {
-                        if (p !== popup) p.classList.remove("active");
-                    });
-
-                    popup.classList.toggle("active");
-                });
-
-                // Select option click
-                const items = popup.querySelectorAll(".sim-dropdown-item");
-                items.forEach((item, index) => {
-                    item.addEventListener("click", (e) => {
-                        e.stopPropagation();
-                        const val = item.getAttribute("data-value");
-                        simState.widgetValues[w.id] = val;
-
-                        document.getElementById(`simDisplay_${w.id}`).innerText = val;
-                        popup.classList.remove("active");
-
-                        // Update selected class
-                        items.forEach(i => i.classList.remove("selected"));
-                        item.classList.add("selected");
-
-                        simLog(`[LapoHub Callback] Dropdown "${w.text}" item selecionado: "${val}" (Index: ${index + 1})`);
-                    });
-                });
-
-                // Hide popup when clicking workspace
-                document.addEventListener("click", () => {
-                    popup.classList.remove("active");
-                });
-            }, 0);
-        }
-
-        else if (w.type === "textbox") {
-            const currentVal = simState.widgetValues[w.id];
-            el.className = "sim-widget textbox";
-            el.innerHTML = `
-                <span class="sim-widget-title">${w.text}</span>
-                <div class="sim-textbox-input">
-                    <span id="simVal_${w.id}">${currentVal || w.placeholder}</span>
-                    <div class="sim-textbox-cursor"></div>
-                </div>
-            `;
-
-            setTimeout(() => {
-                const inputArea = el.querySelector(".sim-textbox-input");
-
-                inputArea.addEventListener("click", (e) => {
-                    e.stopPropagation();
-
-                    // Defocus all other textboxes first
-                    document.querySelectorAll(".sim-widget.textbox").forEach(box => {
-                        box.classList.remove("active");
-                    });
-
-                    el.classList.add("active");
-                    simLog(`[LapoHub Input] TextBox "${w.text}" em foco.`);
-
-                    // Create a prompt to simulate Roblox input typing in the browser
-                    setTimeout(() => {
-                        const userText = prompt(`[Simulador Roblox] Digite o valor para a TextBox "${w.text}":`, simState.widgetValues[w.id]);
-                        el.classList.remove("active");
-
-                        if (userText !== null) {
-                            simState.widgetValues[w.id] = userText;
-                            document.getElementById(`simVal_${w.id}`).innerText = userText || w.placeholder;
-                            document.getElementById(`simVal_${w.id}`).style.color = userText ? "var(--sim-text)" : "var(--sim-text-muted)";
-                            simLog(`[LapoHub Callback] TextBox "${w.text}" valor alterado: "${userText}"`);
-                        } else {
-                            simLog(`[LapoHub Input] Digitação cancelada.`);
-                        }
-                    }, 100);
-                });
-
-                // Remove focus clicking elsewhere
-                document.addEventListener("click", () => {
-                    el.classList.remove("active");
-                });
-            }, 0);
-        }
-
-        contentContainer.appendChild(el);
+        apply();
     });
 }
+
