@@ -100,6 +100,57 @@ local function lerpColor(a, b, t)
     )
 end
 
+-- ============================================================
+--  ETAPA 1 — Fundação de animação (Opção A)
+--  A Drawing API não suporta TweenService/UIListLayout/UIPadding,
+--  então implementamos equivalentes próprios que rodam no
+--  RenderStepped. Estas peças não alteram o visual sozinhas;
+--  são usadas pelas etapas seguintes (loading, hover, layout).
+-- ============================================================
+
+-- Funções de easing (curvas de aceleração)
+local Ease = {}
+function Ease.linear(t)  return t end
+function Ease.outQuad(t) return 1 - (1 - t) * (1 - t) end
+function Ease.inQuad(t)  return t * t end
+function Ease.inOutQuad(t)
+    if t < 0.5 then return 2 * t * t end
+    local f = -2 * t + 2
+    return 1 - (f * f) / 2
+end
+function Ease.outCubic(t) local f = 1 - t; return 1 - f * f * f end
+function Ease.inCubic(t)  return t * t * t end
+function Ease.inOutCubic(t)
+    if t < 0.5 then return 4 * t * t * t end
+    local f = -2 * t + 2
+    return 1 - (f * f * f) / 2
+end
+function Ease.outBack(t)
+    local c1 = 1.70158
+    local c3 = c1 + 1
+    local f  = t - 1
+    return 1 + c3 * f * f * f + c1 * f * f
+end
+function Ease.outExpo(t)
+    if t >= 1 then return 1 end
+    return 1 - 2 ^ (-10 * t)
+end
+
+-- Suavização exponencial independente de framerate.
+-- Ideal para estados contínuos (hover/press) que perseguem um alvo.
+local function damp(current, target, speed, dt)
+    local a = 1 - math.exp(-(speed or 10) * (dt or 1 / 60))
+    return current + (target - current) * a
+end
+
+-- Medidas base de layout (sem escala) — centraliza os "magic numbers".
+-- Equivalente conceitual a UIPadding + UIListLayout.Padding.
+local Layout = {
+    contentPad = 12,  -- padding das bordas da área de conteúdo
+    gap        = 8,   -- espaço vertical entre widgets
+    widgetPadX = 12,  -- padding horizontal interno dos widgets
+}
+
 local function inRect(px, py, rx, ry, rw, rh)
     return px >= rx and px <= rx + rw and py >= ry and py <= ry + rh
 end
@@ -328,6 +379,17 @@ local function buildStructure()
     state._userRankTxt = ui.footerRank
     state._userBg      = ui.footerBg
 
+    -- Indicador de aba deslizante (destaque + barra de accent que escorrega
+    -- entre as abas). Substitui o acender/apagar por tab.
+    ui.tabHighlight = pool(make("Square", {
+        Filled = true, Color = Theme.BgWidget,
+        Transparency = 1, ZIndex = 11, Visible = state.visible
+    }))
+    ui.tabIndicator = pool(make("Square", {
+        Filled = true, Color = Theme.Accent,
+        Transparency = 1, ZIndex = 14, Visible = state.visible
+    }))
+
     if state.mobile then
         ui.mobileBtn = pool(make("Square", {
             Filled = true, Color = Theme.Accent,
@@ -351,6 +413,8 @@ local function buildTabs()
     for _, a in ipairs(tabAccentList) do pcall(function() a:Remove() end) end
     tabBgList, tabTextList, tabAccentList = {}, {}, {}
     tabDrawings = {}
+    state.tabIndY = nil        -- faz o indicador "encaixar" na aba ativa no 1º frame
+    state.tabTextAnim = {}
 
     local s = state.scale
     for i, tab in ipairs(state.tabs) do
@@ -686,10 +750,10 @@ end
 local function recalcMaxOffset()
     if state._maxOffsetDirty == false then return state.maxOffset end
     local ss = state.scale
-    local totalH = 10 * ss
-    for _, w in ipairs(widgetList) do totalH = totalH + w.h + 5 * ss end
+    local totalH = Layout.contentPad * ss
+    for _, w in ipairs(widgetList) do totalH = totalH + w.h + Layout.gap * ss end
     local contentAreaH = state.frameSize.Y - 34 * ss
-    state.maxOffset = math.max(0, totalH - contentAreaH + 10 * ss)
+    state.maxOffset = math.max(0, totalH - contentAreaH + Layout.contentPad * ss)
     state._maxOffsetDirty = false
     return state.maxOffset
 end
@@ -704,7 +768,7 @@ local function rebuildContent()
     if not tab then return end
 
     local s       = state.scale
-    local padding = 10 * s
+    local padding = Layout.contentPad * s
     local curY    = padding
 
     for _, wdesc in ipairs(tab.widgets) do
@@ -723,7 +787,7 @@ local function rebuildContent()
             end
             w._allDrawings = all
             table.insert(widgetList, w)
-            curY = curY + w.h + 5 * s
+            curY = curY + w.h + Layout.gap * s
         end
     end
     recalcMaxOffset()
@@ -1227,6 +1291,7 @@ local function setupInput()
     table.insert(state.connections, c2)
 
     local function activateWidget(w, px, py, s, cX, cY, cW, cH, cY2)
+        w.pressT = 1
         if w.type == "Button" then
             local ok, err = pcall(w.callback)
             if not ok then warn("[LapoLibraryX] Button callback error: " .. tostring(err)) end
@@ -1895,31 +1960,79 @@ local function startRenderLoop()
             local TAB_PAD = 6*ss
             for i, bg in ipairs(tabBgList) do
                 local tabY  = mh+HEADER_H+TAB_PAD+(i-1)*(TAB_H+2*ss)
-                local active= i==state.currentTab
                 bg.Position = Vector2.new(mw+2*ss, tabY)
                 bg.Size     = Vector2.new(SIDE_W-4*ss, TAB_H)
-                bg.Color    = active and Theme.BgWidget or Color3.new(0,0,0)
-                bg.Transparency = active and 1 or 0
+                bg.Transparency = 0          -- destaque agora é o indicador deslizante
                 bg.Visible  = true
                 tabTextList[i].Position = Vector2.new(mw+22*ss, tabY+(TAB_H-16*ss)/2)
-                tabTextList[i].Color    = active and Theme.Text or Theme.TextSub
+                tabTextList[i].Color    = Theme.TextSub
                 tabTextList[i].Visible  = true
-                tabAccentList[i].Position    = Vector2.new(mw+2*ss, tabY+6*ss)
-                tabAccentList[i].Size        = Vector2.new(3*ss, TAB_H-12*ss)
-                tabAccentList[i].Transparency= active and 1 or 0
-                tabAccentList[i].Visible     = true
+                tabAccentList[i].Transparency = 0   -- idem (substituído pelo indicador)
+                tabAccentList[i].Visible      = false
             end
+            if ui.tabHighlight then ui.tabHighlight.Visible = true end
+            if ui.tabIndicator then ui.tabIndicator.Visible = true end
         end -- fim if showBody (layout estático)
         end -- fim layoutDirty
 
         local showBody = not state.minimized
         if showBody then
+            -- indicador de aba deslizante + cor de texto animada (hover/ativo)
+            do
+                local TAB_H   = 38*ss
+                local TAB_PAD = 6*ss
+                local nTabs   = #tabBgList
+                if nTabs > 0 then
+                    local activeY = mh+HEADER_H+TAB_PAD+(state.currentTab-1)*(TAB_H+2*ss)
+                    if state.tabIndY == nil then state.tabIndY = activeY end
+                    state.tabIndY = damp(state.tabIndY, activeY, 16, dt)
+
+                    if ui.tabHighlight then
+                        ui.tabHighlight.Position = Vector2.new(mw+2*ss, state.tabIndY)
+                        ui.tabHighlight.Size     = Vector2.new(SIDE_W-4*ss, TAB_H)
+                        ui.tabHighlight.Visible  = true
+                    end
+                    if ui.tabIndicator then
+                        ui.tabIndicator.Position = Vector2.new(mw+2*ss, state.tabIndY+6*ss)
+                        ui.tabIndicator.Size     = Vector2.new(3*ss, TAB_H-12*ss)
+                        ui.tabIndicator.Visible  = true
+                    end
+
+                    state.tabTextAnim = state.tabTextAnim or {}
+                    local anim = state.tabTextAnim
+                    for i = 1, nTabs do
+                        local tabY   = mh+HEADER_H+TAB_PAD+(i-1)*(TAB_H+2*ss)
+                        local over   = mouseLoc.X>=mw+2*ss and mouseLoc.X<=mw+SIDE_W-2*ss
+                            and mouseLoc.Y>=tabY and mouseLoc.Y<=tabY+TAB_H
+                        local active = i == state.currentTab
+                        anim[i] = damp(anim[i] or 0, (active or over) and 1 or 0, 14, dt)
+                        if tabTextList[i] then
+                            tabTextList[i].Color = lerpColor(Theme.TextSub, Theme.Text, anim[i])
+                        end
+                    end
+                elseif ui.tabHighlight then
+                    ui.tabHighlight.Visible = false
+                    if ui.tabIndicator then ui.tabIndicator.Visible = false end
+                end
+            end
+
             local cX = mw + SIDE_W + 1
             local cY = mh + HEADER_H
             local cW = fw - SIDE_W - 1
             local cH = fh - HEADER_H
             local cY2 = cY + cH
-            local PAD = 10*ss
+            local PAD = Layout.contentPad*ss
+            local wWidth = cW - PAD*2
+
+            -- micro-interações: hover/press suaves via damp (etapa 1).
+            -- pressT é setado para 1 no clique (activateWidget) e decai aqui.
+            local function interact(w, wy, wh)
+                local over = mouseLoc.X >= cX+PAD and mouseLoc.X <= cX+PAD+wWidth
+                    and mouseLoc.Y >= math.max(wy, cY) and mouseLoc.Y <= math.min(wy+wh, cY2)
+                w.hoverT = damp(w.hoverT or 0, over and 1 or 0, 12, dt)
+                w.pressT = damp(w.pressT or 0, 0, 16, dt)
+                return w.hoverT, w.pressT
+            end
 
             for _, w in ipairs(widgetList) do
 
@@ -1955,37 +2068,40 @@ local function startRenderLoop()
                         if w.label.Text ~= nt then w.label.Text = nt end
 
                     elseif w.type == "Button" then
-                        local hovering = mouseLoc.X>=cX+PAD and mouseLoc.X<=cX+PAD+wW and mouseLoc.Y>=wy and mouseLoc.Y<=wy+wh
-                        w.hoverT = lerp(w.hoverT or 0, hovering and 1 or 0, dt*10)
-                        local t  = w.hoverT
+                        local t, p = interact(w, wy, wh)
+                        local emph = math.max(t, p)
 
                         renderClippedSquare(w.bg, cX+PAD, wy, wW, wh, cY, cY2)
-                        w.bg.Color = lerpColor(Theme.BgWidget, Theme.BgPanel, t)
+                        w.bg.Color = lerpColor(lerpColor(Theme.BgWidget, Theme.BgPanel, t), Theme.AccentDim, p*0.5)
 
                         renderClippedOutline(w.border, cX+PAD, wy, wW, wh, cY, cY2)
-                        w.border.Color = lerpColor(Theme.Border, Theme.Accent, t)
+                        w.border.Color = lerpColor(Theme.Border, Theme.Accent, emph)
 
-                        renderClippedSquare(w.bar, cX+PAD, wy+4*ss, 3*ss, wh-8*ss, cY, cY2)
-                        w.bar.Color = Theme.Accent
-                        w.bar.Transparency = t
+                        renderClippedSquare(w.bar, cX+PAD, wy+4*ss, (2 + 2*emph)*ss, wh-8*ss, cY, cY2)
+                        w.bar.Color = lerpColor(Theme.Accent, Theme.AccentGlow, p)
+                        w.bar.Transparency = emph
 
                         w.label.Visible = isSubVisible(wy+(wh-17*ss)/2, 17*ss, cY, cY2)
                         w.label.Position = Vector2.new(cX+PAD+14*ss, wy+(wh-17*ss)/2)
                         w.label.Size = 17*ss
                         local nt = truncCached(w, "label", w.text, wW - 24*ss, 17*ss)
                         if w.label.Text ~= nt then w.label.Text = nt end
-                        w.label.Color = lerpColor(Theme.Text, Theme.AccentGlow, t*0.5)
+                        w.label.Color = lerpColor(Theme.Text, Theme.AccentGlow, emph*0.5)
 
                     elseif w.type == "Toggle" then
+                        local t, p = interact(w, wy, wh)
                         local TRACK_W = 36*ss
                         local TRACK_H = 18*ss
                         local tX      = cX+PAD+wW-TRACK_W-8*ss
                         local tY      = wy+(wh-TRACK_H)/2
                         local knobSz  = TRACK_H - 4*ss
-                        local knobX   = w.value and (tX+TRACK_W-knobSz-2*ss) or (tX+2*ss)
+                        w.knobT = damp(w.knobT or (w.value and 1 or 0), w.value and 1 or 0, 16, dt)
+                        local knobX   = lerp(tX+2*ss, tX+TRACK_W-knobSz-2*ss, w.knobT)
 
                         renderClippedSquare(w.bg, cX+PAD, wy, wW, wh, cY, cY2)
+                        w.bg.Color = lerpColor(lerpColor(Theme.BgWidget, Theme.BgPanel, t), Theme.AccentDim, p*0.5)
                         renderClippedOutline(w.border, cX+PAD, wy, wW, wh, cY, cY2)
+                        w.border.Color = lerpColor(Theme.Border, Theme.Accent, math.max(t, p))
 
                         renderClippedSquare(w.trackBg, tX, tY, TRACK_W, TRACK_H, cY, cY2)
                         renderClippedOutline(w.trackBd, tX, tY, TRACK_W, TRACK_H, cY, cY2)
@@ -1999,6 +2115,7 @@ local function startRenderLoop()
                         if w.label.Text ~= nt then w.label.Text = nt end
 
                     elseif w.type == "Slider" then
+                        local t, p = interact(w, wy, wh)
                         local trkX = cX+PAD+10*ss
                         local trkW = wW-20*ss
                         local trkH = 5*ss
@@ -2006,7 +2123,9 @@ local function startRenderLoop()
                         local ratio= (w.value-w.min)/(w.max-w.min)
 
                         renderClippedSquare(w.bg, cX+PAD, wy, wW, wh, cY, cY2)
+                        w.bg.Color = lerpColor(lerpColor(Theme.BgWidget, Theme.BgPanel, t), Theme.AccentDim, p*0.5)
                         renderClippedOutline(w.border, cX+PAD, wy, wW, wh, cY, cY2)
+                        w.border.Color = lerpColor(Theme.Border, Theme.Accent, math.max(t, p))
 
                         w.label.Visible = isSubVisible(wy+6*ss, 17*ss, cY, cY2)
                         w.label.Position = Vector2.new(cX+PAD+10*ss, wy+6*ss)
@@ -2022,7 +2141,7 @@ local function startRenderLoop()
                         renderClippedSquare(w.track, trkX, trkY, trkW, trkH, cY, cY2)
                         renderClippedSquare(w.fill, trkX, trkY, trkW*ratio, trkH, cY, cY2)
 
-                        local thumbSz = 12*ss
+                        local thumbSz = (12 + 3*math.max(t, p))*ss
                         local thumbX  = trkX + trkW*ratio - thumbSz/2
                         renderClippedSquare(w.thumb, thumbX, trkY - (thumbSz-trkH)/2, thumbSz, thumbSz, cY, cY2)
                         renderClippedOutline(w.thumbGl, thumbX-1, trkY-(thumbSz-trkH)/2-1, thumbSz+2, thumbSz+2, cY, cY2)
@@ -2032,9 +2151,11 @@ local function startRenderLoop()
                         local dispX = cX+PAD+wW-DISPW-8*ss
                         local dispH = wh - 16*ss
 
+                        local t, p = interact(w, wy, wh)
                         renderClippedSquare(w.bg, cX+PAD, wy, wW, wh, cY, cY2)
+                        w.bg.Color = lerpColor(lerpColor(Theme.BgWidget, Theme.BgPanel, t), Theme.AccentDim, p*0.5)
                         renderClippedOutline(w.border, cX+PAD, wy, wW, wh, cY, cY2)
-                        w.border.Color = w.open and Theme.Accent or Theme.Border
+                        w.border.Color = lerpColor(Theme.Border, Theme.Accent, math.max(t, p, w.open and 1 or 0))
 
                         w.label.Visible = isSubVisible(wy+(wh-17*ss)/2, 17*ss, cY, cY2)
                         w.label.Position = Vector2.new(cX+PAD+10*ss, wy+(wh-17*ss)/2)
@@ -2062,9 +2183,11 @@ local function startRenderLoop()
                         local inputY = wy+28*ss
                         local inputH = wh-34*ss
 
+                        local t, p = interact(w, wy, wh)
                         renderClippedSquare(w.bg, cX+PAD, wy, wW, wh, cY, cY2)
+                        w.bg.Color = lerpColor(Theme.BgWidget, Theme.BgPanel, t)
                         renderClippedOutline(w.border, cX+PAD, wy, wW, wh, cY, cY2)
-                        w.border.Color = w.focused and Theme.Accent or Theme.Border
+                        w.border.Color = lerpColor(Theme.Border, Theme.Accent, math.max(t, w.focused and 1 or 0))
 
                         w.label.Visible = isSubVisible(wy+6*ss, 17*ss, cY, cY2)
                         w.label.Position = Vector2.new(cX+PAD+10*ss, wy+6*ss)
@@ -2098,6 +2221,8 @@ local function startRenderLoop()
                 end
             end
         else
+            if ui.tabHighlight then ui.tabHighlight.Visible = false end
+            if ui.tabIndicator then ui.tabIndicator.Visible = false end
             for _, bg in ipairs(tabBgList)     do bg.Visible = false end
             for _, tt in ipairs(tabTextList)   do tt.Visible = false end
             for _, ac in ipairs(tabAccentList) do ac.Visible = false end
@@ -2173,7 +2298,7 @@ local Loader = {
     frameCounter    = 0,
 }
 
-local LOADER_DOTS = 8
+local LOADER_DOTS = 12
 
 local function loaderLoadImage(obj, src)
     Loader.imageErr = nil
@@ -2316,6 +2441,11 @@ local function loaderBuild(cfg)
         Filled = true, Color = Theme.Accent,
         Transparency = 0, ZIndex = 906, Visible = true
     }))
+    -- brilho pulsante na ponta da barra de progresso
+    Loader.barGlow = add(make("Square", {
+        Filled = true, Color = Theme.AccentGlow,
+        Transparency = 0, ZIndex = 907, Visible = true
+    }))
 end
 
 local function loaderSetAlpha(a)
@@ -2346,6 +2476,10 @@ local function loaderLayout()
 
     local CW = math.clamp(sw * 0.34, 320, 460)
     local CH = math.clamp(sh * 0.5, 300, 380)
+    -- scale-pop de entrada/saída aplicado ao card inteiro
+    local sc = Loader.cardScale or 1
+    CW = CW * sc
+    CH = CH * sc
     local CX = (sw - CW) / 2
     local CY = (sh - CH) / 2
 
@@ -2358,8 +2492,10 @@ local function loaderLayout()
         Loader.cardBorder.Size     = Vector2.new(CW, CH)
     end
     if Loader.topAccent then
-        Loader.topAccent.Position = Vector2.new(CX, CY)
-        Loader.topAccent.Size     = Vector2.new(CW, 3)
+        -- barra de accent expandindo a partir do centro
+        local aw = CW * (Loader.accentT or 1)
+        Loader.topAccent.Position = Vector2.new(CX + (CW - aw) / 2, CY)
+        Loader.topAccent.Size     = Vector2.new(aw, 3)
     end
 
     local cx = CX + CW / 2
@@ -2373,27 +2509,33 @@ local function loaderLayout()
         Loader.image.Size     = Vector2.new(imgSize, imgSize)
     end
 
-    -- spinner em volta (ou no lugar) da imagem
+    -- spinner: comet circular suave (cabeça forte, cauda some) que gira
+    local fade  = Loader.fade or 1
     local ringR = imgSize / 2 + (Loader.hasImage and 16 or 0)
     if not Loader.hasImage then ringR = imgSize * 0.42 end
+    local nDots = #Loader.dots
     for i, d in ipairs(Loader.dots) do
         if d then
-            local ang = Loader.spin + (i / LOADER_DOTS) * math.pi * 2
-            d.Position = Vector2.new(cx + math.cos(ang) * ringR, centerY + math.sin(ang) * ringR)
-            -- pontos somem progressivamente criando o efeito de rotação
-            local t = (i / LOADER_DOTS)
-            d.Radius = (3 + t * 3)
-            d.Color = lerpColor(Theme.AccentDim, Theme.AccentGlow, t)
+            local frac   = (i - 1) / nDots                 -- 0 = cabeça do comet
+            local ang    = Loader.spin + frac * math.pi * 2
+            d.Position   = Vector2.new(cx + math.cos(ang) * ringR, centerY + math.sin(ang) * ringR)
+            local bright = 1 - frac                          -- cabeça forte, cauda fraca
+            d.Radius     = 2.5 + bright * 3.5
+            d.Color      = lerpColor(Theme.AccentDim, Theme.AccentGlow, bright)
+            -- cauda some mais rápido (bright^2) e respeita o fade global de entrada/saída
+            d.Transparency = (bright * bright) * fade
         end
     end
 
-    -- textos
+    -- textos (com leve slide-in vertical na entrada)
+    local introE = Ease.outCubic(math.clamp((Loader.introElapsed or 1) / 0.5, 0, 1))
+    local slide  = (1 - introE) * 10
     local textY = centerY + ringR + 22
     if Loader.titleTxt then
-        Loader.titleTxt.Position = Vector2.new(cx, textY)
+        Loader.titleTxt.Position = Vector2.new(cx, textY - slide)
     end
     if Loader.subTxt and Loader.subTxt.Visible then
-        Loader.subTxt.Position = Vector2.new(cx, textY + 30)
+        Loader.subTxt.Position = Vector2.new(cx, textY + 30 - slide)
     end
 
     -- barra de progresso perto da base
@@ -2412,6 +2554,14 @@ local function loaderLayout()
     if Loader.barFill then
         Loader.barFill.Position = Vector2.new(barX, barY)
         Loader.barFill.Size     = Vector2.new(math.max(0, barW * Loader.shownProgress), barH)
+    end
+    if Loader.barGlow then
+        local fw    = math.max(0, barW * Loader.shownProgress)
+        local gw    = 12
+        local pulse = 0.5 + 0.5 * math.abs(math.sin(Loader.pulse or 0))
+        Loader.barGlow.Position     = Vector2.new(barX + math.max(0, fw - gw), barY - 1)
+        Loader.barGlow.Size         = Vector2.new(gw, barH + 2)
+        Loader.barGlow.Transparency = (Loader.shownProgress > 0.02) and (pulse * (Loader.fade or 1)) or 0
     end
 
     -- mensagem acima da barra, porcentagem abaixo
@@ -2458,22 +2608,39 @@ local function loaderStartLoop()
         if not Loader.active then return end
         dt = math.clamp(dt or (1/60), 0, 0.1)
 
-        -- animações
-        Loader.spin  = Loader.spin + dt * 4
-        Loader.pulse = Loader.pulse + dt * 3
+        -- animações contínuas
+        Loader.spin  = Loader.spin + dt * 3.2
+        Loader.pulse = Loader.pulse + dt * 4
 
-        -- fade in / out
+        local INTRO_DUR = 0.5
+        local OUTRO_DUR = 0.4
+
         if Loader.fadingOut then
-            Loader.fade = math.clamp(Loader.fade - dt * 3, 0, 1)
+            -- saída: fade-out + leve scale-down (easeInOutCubic)
+            Loader.outroElapsed = (Loader.outroElapsed or 0) + dt
+            local t = math.clamp(Loader.outroElapsed / OUTRO_DUR, 0, 1)
+            local e = Ease.inOutCubic(t)
+            Loader.fade      = 1 - e
+            Loader.cardScale = 1 - 0.06 * e
+            Loader.accentT   = 1
             loaderSetAlpha(Loader.fade)
-            if Loader.fade <= 0 then
+            if t >= 1 then
                 loaderStop()
                 return
             end
         else
-            if Loader.fade < 1 then
-                Loader.fade = math.clamp(Loader.fade + dt * 4, 0, 1)
+            -- entrada: fade-in (outCubic) + scale-pop (outBack) + accent expandindo
+            if (Loader.introElapsed or 0) < INTRO_DUR then
+                Loader.introElapsed = (Loader.introElapsed or 0) + dt
+                local t = math.clamp(Loader.introElapsed / INTRO_DUR, 0, 1)
+                Loader.fade      = Ease.outCubic(t)
+                Loader.cardScale = 0.9 + 0.1 * Ease.outBack(t)
+                Loader.accentT   = Ease.outCubic(math.clamp(t * 1.3, 0, 1))
                 loaderSetAlpha(Loader.fade)
+            else
+                Loader.fade      = 1
+                Loader.cardScale = 1
+                Loader.accentT   = 1
             end
         end
 
@@ -2560,6 +2727,10 @@ function LapoX:ShowLoading(config)
     Loader.pulse         = 0
     Loader.fade          = 0
     Loader.fadingOut     = false
+    Loader.introElapsed  = 0
+    Loader.outroElapsed  = 0
+    Loader.cardScale     = 0.9
+    Loader.accentT       = 0
     Loader.running       = false
     Loader.queue         = {}
     Loader.queueIndex    = 0
