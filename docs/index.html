@@ -1,24 +1,22 @@
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="light">
 <head>
+    <!-- Recursos externos via CDN (sem SRI). Para offline/air-gapped, faça self-host. -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lapo Hub X | Documentação Oficial</title>
-    <meta name="description" content="Documentação completa e interativa para a biblioteca de interface de usuário Lapo Hub X para Roblox. Desenvolvida para alta performance e estilo moderno.">
-
+    <title>Lapo Library X | Documentação</title>
+    <meta name="description" content="Documentação completa da Lapo Library X — biblioteca de UI para Roblox sobre a Drawing API: widgets, notificações, tela de loading animada, micro-interações e tema premium.">
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Outfit:wght@400;500;600;700;800&amp;family=Fira+Code:wght@400;500&amp;display=swap" rel="stylesheet">
 
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" id="prism-theme-dark">
-
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="app-container">
-
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
         <aside class="sidebar" id="sidebar">
@@ -28,8 +26,8 @@
                         <i class="ri-hexagon-fill"></i>
                     </div>
                     <div class="logo-text">
-                        <span class="logo-title">Lapo Hub X</span>
-                        <span class="logo-subtitle">UI Library</span>
+                        <span class="logo-title">Lapo Library X</span>
+                        <span class="logo-subtitle">Made By Luvwas</span>
                     </div>
                 </a>
                 <button class="close-sidebar-btn" id="closeSidebarBtn">
@@ -43,70 +41,99 @@
                     <input type="text" id="searchInput" placeholder="Pesquisar documentação..." autocomplete="off">
                     <span class="search-shortcut">/</span>
                 </div>
-
                 <div class="search-results" id="searchResults"></div>
             </div>
 
             <nav class="sidebar-nav">
                 <div class="nav-section">
-                    <h3 class="nav-section-title">Começando</h3>
+                    <h3 class="nav-section-title">
+                        <span class="nav-section-name">Começando</span>
+                    </h3>
                     <ul class="nav-list">
-                        <li><a href="#home" class="nav-link active" data-route="home"><i class="ri-home-4-line"></i> Início</a></li>
-                        <li><a href="#getting-started" class="nav-link" data-route="getting-started"><i class="ri-rocket-line"></i> Introdução</a></li>
-                        <li><a href="#installation" class="nav-link" data-route="installation"><i class="ri-download-cloud-line"></i> Instalação</a></li>
+                        <li><a href="#home" class="nav-link" data-route="home"><i class="ri-home-4-line"></i> Sobre</a></li>
+                        <li><a href="#carregamento" class="nav-link" data-route="carregamento"><i class="ri-download-cloud-2-line"></i> Carregamento</a></li>
+                        <li><a href="#inicio-rapido" class="nav-link" data-route="inicio-rapido"><i class="ri-rocket-line"></i> Início Rápido</a></li>
+                        <li><a href="#ciclo-de-vida" class="nav-link" data-route="ciclo-de-vida"><i class="ri-loop-left-line"></i> Ciclo de Vida</a></li>
                     </ul>
                 </div>
 
                 <div class="nav-section">
-                    <h3 class="nav-section-title">Referência de API</h3>
+                    <h3 class="nav-section-title">
+                        <span class="nav-section-name">Configuração</span>
+                    </h3>
                     <ul class="nav-list">
-                        <li><a href="#cheatsheet" class="nav-link" data-route="cheatsheet"><i class="ri-booklet-line"></i> Referência Rápida</a></li>
-                        <li><a href="#api-window" class="nav-link" data-route="api-window"><i class="ri-window-line"></i> Window (Init)</a></li>
-                        <li><a href="#api-tabs" class="nav-link" data-route="api-tabs"><i class="ri-folders-line"></i> Tabs (Abas)</a></li>
-                        <li><a href="#api-buttons" class="nav-link" data-route="api-buttons"><i class="ri-toggle-line"></i> Buttons (Botões)</a></li>
-                        <li><a href="#api-toggles" class="nav-link" data-route="api-toggles"><i class="ri-checkbox-line"></i> Toggles (Interruptores)</a></li>
-                        <li><a href="#api-sliders" class="nav-link" data-route="api-sliders"><i class="ri-equalizer-line"></i> Sliders (Deslizantes)</a></li>
-                        <li><a href="#api-dropdowns" class="nav-link" data-route="api-dropdowns"><i class="ri-arrow-down-s-line"></i> Dropdowns (Seleção)</a></li>
-                        <li><a href="#api-inputs" class="nav-link" data-route="api-inputs"><i class="ri-input-cursor-move"></i> Inputs (TextBoxes)</a></li>
-                        <li><a href="#api-paragraphs" class="nav-link" data-route="api-paragraphs"><i class="ri-paragraph"></i> Labels & Paragraphs</a></li>
-                        <li><a href="#api-separators" class="nav-link" data-route="api-separators"><i class="ri-separator"></i> Separators (Linhas)</a></li>
-                        <li><a href="#api-notifications" class="nav-link" data-route="api-notifications"><i class="ri-notification-badge-line"></i> Notifications</a></li>
-                        <li><a href="#api-userprofile" class="nav-link" data-route="api-userprofile"><i class="ri-user-settings-line"></i> Footer & User Info</a></li>
-                        <li><a href="#api-window-controls" class="nav-link" data-route="api-window-controls"><i class="ri-window-2-line"></i> Controles da Janela</a></li>
+                        <li><a href="#config-init" class="nav-link" data-route="config-init"><i class="ri-play-circle-line"></i> Init</a></li>
+                        <li><a href="#config-tabs" class="nav-link" data-route="config-tabs"><i class="ri-layout-column-line"></i> Abas (AddTab)</a></li>
+                        <li><a href="#config-tema" class="nav-link" data-route="config-tema"><i class="ri-palette-line"></i> Tema &amp; Cores</a></li>
                     </ul>
                 </div>
 
                 <div class="nav-section">
-                    <h3 class="nav-section-title">Showcase</h3>
+                    <h3 class="nav-section-title">
+                        <span class="nav-section-name">Widgets</span>
+                    </h3>
                     <ul class="nav-list">
-                        <li><a href="#showcase" class="nav-link" data-route="showcase"><i class="ri-gamepad-line"></i> Simulador Interativo</a></li>
+                        <li><a href="#widget-handles" class="nav-link" data-route="widget-handles"><i class="ri-links-line"></i> Handles &amp; :Set()</a></li>
+                        <li><a href="#widget-button" class="nav-link" data-route="widget-button"><i class="ri-cursor-line"></i> Button</a></li>
+                        <li><a href="#widget-toggle" class="nav-link" data-route="widget-toggle"><i class="ri-toggle-line"></i> Toggle</a></li>
+                        <li><a href="#widget-slider" class="nav-link" data-route="widget-slider"><i class="ri-equalizer-line"></i> Slider</a></li>
+                        <li><a href="#widget-dropdown" class="nav-link" data-route="widget-dropdown"><i class="ri-arrow-down-s-line"></i> Dropdown</a></li>
+                        <li><a href="#widget-textbox" class="nav-link" data-route="widget-textbox"><i class="ri-input-method-line"></i> TextBox</a></li>
+                        <li><a href="#widget-texto" class="nav-link" data-route="widget-texto"><i class="ri-text"></i> Label / Paragraph / Separator</a></li>
                     </ul>
                 </div>
 
                 <div class="nav-section">
-                    <h3 class="nav-section-title">Guias</h3>
+                    <h3 class="nav-section-title">
+                        <span class="nav-section-name">Feedback &amp; Rodapé</span>
+                    </h3>
                     <ul class="nav-list">
-                        <li><a href="#customization" class="nav-link" data-route="customization"><i class="ri-palette-line"></i> Temas & Customização</a></li>
-                        <li><a href="#examples" class="nav-link" data-route="examples"><i class="ri-code-s-slash-line"></i> Exemplos de Scripts</a></li>
-                        <li><a href="#automation-patterns" class="nav-link" data-route="automation-patterns"><i class="ri-loop-left-line"></i> Loops de Automação</a></li>
-                        <li><a href="#performance" class="nav-link" data-route="performance"><i class="ri-speed-up-line"></i> Performance & Boas Práticas</a></li>
-                        <li><a href="#faq" class="nav-link" data-route="faq"><i class="ri-question-line"></i> Perguntas Frequentes</a></li>
-                        <li><a href="#troubleshooting" class="nav-link" data-route="troubleshooting"><i class="ri-error-warning-line"></i> Resolução de Problemas</a></li>
-                        <li><a href="#changelog" class="nav-link" data-route="changelog"><i class="ri-history-line"></i> Histórico (Changelog)</a></li>
+                        <li><a href="#notify" class="nav-link" data-route="notify"><i class="ri-notification-3-line"></i> Notify</a></li>
+                        <li><a href="#usuario" class="nav-link" data-route="usuario"><i class="ri-user-3-line"></i> Usuário</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">
+                        <span class="nav-section-name">Tela de Loading</span>
+                    </h3>
+                    <ul class="nav-list">
+                        <li><a href="#loading" class="nav-link" data-route="loading"><i class="ri-loader-4-line"></i> ShowLoading</a></li>
+                        <li><a href="#loading-fila" class="nav-link" data-route="loading-fila"><i class="ri-list-ordered"></i> Progresso &amp; Fila</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">
+                        <span class="nav-section-name">Janela &amp; Performance</span>
+                    </h3>
+                    <ul class="nav-list">
+                        <li><a href="#janela" class="nav-link" data-route="janela"><i class="ri-window-line"></i> Janela &amp; Sistema</a></li>
+                        <li><a href="#batch" class="nav-link" data-route="batch"><i class="ri-stack-line"></i> Batch (perf)</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">
+                        <span class="nav-section-name">Referência</span>
+                    </h3>
+                    <ul class="nav-list">
+                        <li><a href="#requisitos" class="nav-link" data-route="requisitos"><i class="ri-checkbox-circle-line"></i> Requisitos</a></li>
+                        <li><a href="#faq" class="nav-link" data-route="faq"><i class="ri-questionnaire-line"></i> FAQ</a></li>
+                        <li><a href="#troubleshooting" class="nav-link" data-route="troubleshooting"><i class="ri-bug-line"></i> Solução de Problemas</a></li>
                     </ul>
                 </div>
             </nav>
 
             <div class="sidebar-footer">
                 <div class="footer-meta">
-                    <span>Versão v1.1.0</span>
+                    <span>Versão v1.0.0</span>
                     <span class="status-badge online"><span class="pulse-dot"></span>Estável</span>
                 </div>
             </div>
         </aside>
 
         <div class="main-layout">
-
             <header class="top-header">
                 <div class="top-header-left">
                     <button class="menu-toggle-btn" id="menuToggleBtn">
@@ -115,7 +142,7 @@
                     <div class="breadcrumb" id="breadcrumb">
                         <span class="breadcrumb-item">Começando</span>
                         <span class="breadcrumb-separator">/</span>
-                        <span class="breadcrumb-item active">Início</span>
+                        <span class="breadcrumb-item active">Sobre</span>
                     </div>
                 </div>
                 <div class="top-header-right">
@@ -123,7 +150,6 @@
                         <i class="ri-github-fill"></i>
                         <span class="github-text">GitHub</span>
                     </a>
-
                     <div class="theme-toggle-wrapper">
                         <button class="theme-toggle-btn" id="themeToggleBtn" title="Alternar Tema (Dark/Light)">
                             <i class="ri-sun-line light-icon"></i>
@@ -133,15 +159,18 @@
                 </div>
             </header>
 
-            <main class="content-viewport" id="contentViewport">
-
-            </main>
+            <div class="content-row">
+                <main class="content-viewport" id="contentViewport"></main>
+                <aside class="on-this-page" id="onThisPage" aria-label="On This Page">
+                    <div class="otp-title">On This Page</div>
+                    <ul class="otp-list" id="otpList"></ul>
+                </aside>
+            </div>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-lua.min.js"></script>
-
     <script src="app.js"></script>
 </body>
 </html>
